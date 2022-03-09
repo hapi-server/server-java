@@ -8,7 +8,7 @@ input validation and data handling, so that those setting up servers can focus
 on the data sources feeding into the server.
 
 This will be a Java servlet which implements the HAPI protocol (version 3.1), using
-plugins written and maintained by the data steward.  How these plugs connect will
+plugins written and maintained by the data steward.  How these plugins connect will
 be documented below, and may evolve as the server matures, but the intent is that
 plugins for the Python server might also be used with this server implementation.
 
