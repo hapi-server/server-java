@@ -27,6 +27,10 @@ attacks.  It may provide caching of data when the readers are slow, and also val
 that reader responses are correct.  Readers should be allowed to be sloppy, so that 
 boilerplate code for subsetting needn't appear in each reader.
 
+Last, we intent to support use with Docker containers, so that it can be set up easily
+at such sites.  A war file will be the initial target and Docker container will be 
+provided later.
+
 # Initial Implementations
 There are a few groups who may use this server immediately.  The CDAWeb group's SSCWeb
 is implemented by scaping data from their web responses, and clearly needs to 
@@ -34,4 +38,10 @@ be reimplemented.  ESAC intends to set up a HAPI server and is interested in
 this framework, and we hope to set up an initial version of the server in late May 2022.
 PDS-PPI has an existing server which might be more easily maintained using this
 framework.  The CDAWeb server has known problems which need to be resolved.  
+
+# Schedule
+* Initial implementation will be in March 2022.
+* Deployment of support for SSCWeb at CDAWeb in April 2022.
+* Containerize and deploy for testing at ESAC May 2022.
+* Code matures over the next year
 
