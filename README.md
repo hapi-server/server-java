@@ -32,9 +32,11 @@ at such sites.  A war file will be the initial target and Docker container will 
 provided later.
 
 # Initial Implementations
-There are a few groups who may use this server immediately.  The CDAWeb group's SSCWeb
-is implemented by scaping data from their web responses, and clearly needs to 
-be reimplemented.  ESAC intends to set up a HAPI server and is interested in
+There are a few groups who may use this server immediately.  The HAPI server for
+the CDAWeb group's SSCWeb service is currently implemented as a secondary pass-through
+server (that calls the non-HAPI server and reformats the response as HAPI), so
+a full Java implementation could move this beyond the kind of web-scraping approach.
+ESAC intends to set up a HAPI server and is interested in
 this framework, and we hope to set up an initial version of the server in late May 2022.
 PDS-PPI has an existing server which might be more easily maintained using this
 framework.  The CDAWeb server has known problems which need to be resolved.  
