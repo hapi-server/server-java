@@ -27,7 +27,7 @@ attacks.  It may provide caching of data when the readers are slow, and also val
 that reader responses are correct.  Readers should be allowed to be sloppy, so that 
 boilerplate code for subsetting needn't appear in each reader.
 
-Last, we intent to support use with Docker containers, so that it can be set up easily
+Last, we intend to support use with Docker containers, so that it can be set up easily
 at such sites.  A war file will be the initial target and Docker container will be 
 provided later.
 
