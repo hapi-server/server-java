@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+    <servlet>
+        <description>Provides the server about response.</description>
+        <servlet-name>AboutServlet</servlet-name>
+        <servlet-class>org.hapiserver.AboutServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <description>Shows the capabilities of the HAPI server</description>
+        <servlet-name>CapabilitiesServlet</servlet-name>
+        <servlet-class>org.hapiserver.CapabilitiesServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <description>Shows the catalog of the HAPI server</description>
+        <servlet-name>CatalogServlet</servlet-name>
+        <servlet-class>org.hapiserver.CatalogServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>InfoServlet</servlet-name>
+        <servlet-class>org.hapiserver.InfoServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AboutServlet</servlet-name>
+        <url-pattern>/hapi/about</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CapabilitiesServlet</servlet-name>
+        <url-pattern>/hapi/capabilities</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CatalogServlet</servlet-name>
+        <url-pattern>/hapi/catalog</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>InfoServlet</servlet-name>
+        <url-pattern>/InfoServlet</url-pattern>
+    </servlet-mapping>
+    <session-config>
+        <session-timeout>
+            30
+        </session-timeout>
+    </session-config>
+    <welcome-file-list>
+        <welcome-file>/index.jsp</welcome-file>
+    </welcome-file-list>
+    <error-page>
+        <exception-type>java.lang.RuntimeException</exception-type>
+        <location>/hapi/error.jsp</location>
+    </error-page>
+    <context-param>
+        <param-name>hapi_home</param-name>
+        <param-value>/tmp/jbf-hapi-server/</param-value>
+    </context-param>
+</web-app>

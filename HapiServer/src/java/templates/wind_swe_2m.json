@@ -1,0 +1,38 @@
+{
+    "HAPI": "3.0",
+    "x_createdAt": "2017-02-21T17:27Z",
+    "modificationDate": "lastyear",
+    "parameters": [
+        {
+            "length": 24,
+            "name": "Time",
+            "type": "isotime",
+            "fill": null,            
+            "units": "UTC"
+        },
+        {
+            "description": "Scalar proton thermal speed (km/s) trace of anisotropic temperatures",
+            "fill": "99999",
+            "name": "ThermalSpeed",
+            "label": "Thermal Speed",
+            "type": "double",
+            "units": "km/s"
+        },
+        {
+            "description": "Position of Wind S/C at start of spectrum",
+            "fill": "-1e31",
+            "name": "PositionGSE",
+            "label": "Wind S/C Position GSE",
+            "type": "double",
+            "units": "Re",
+            "size": [3]
+        }
+    ],
+    "x_uri": "vap+jyds:file:///home/jbf/ct/autoplot/script/weatherForecast.jyds",
+    "cadence": "PT2M",
+    "x_about": "https://cdaweb.gsfc.nasa.gov/pub/data/wind/swe/ascii/2-min/", 
+    "sampleStartDate": "2019-12-30",
+    "sampleStopDate": "2020-01-03",
+    "startDate": "1994-01-01",
+    "stopDate": "2022-01-01"
+}
