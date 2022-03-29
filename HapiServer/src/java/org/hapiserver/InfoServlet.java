@@ -83,9 +83,6 @@ public class InfoServlet extends HttpServlet {
         
         if ( o.has("modificationDate") ) { // allow modification date to be "lasthour"
             String modificationDate= o.getString("modificationDate");
-            if ( !Character.isDigit( modificationDate.charAt(0) ) ) {
-                
-            }
             try {
                 int[] ss= ExtentedTimeUtil.parseTime( modificationDate );
                 o.put( "modificationDate", TimeUtil.formatIso8601Time(ss) );
