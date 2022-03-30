@@ -5,9 +5,25 @@ import java.text.ParseException;
 
 /**
  * Useful extentions to the TimeUtil class, like support for times like "now-P1D"
+ * All of these could potentially go into a future version of the TimeUtil class.
  * @author jbf
  */
 public class ExtentedTimeUtil {
+    
+    /**
+     * parse the time which is known to the developer to be valid.  A runtime 
+     * error is thrown if it it not valid.
+     * @param time
+     * @return the decomposed time.
+     * @throws RuntimeException if the time is not valid.
+     */
+    public static int[] parseValidTime( String time ) {
+        try {
+            return parseTime(time);
+        } catch ( ParseException ex ) {
+            throw new RuntimeException(ex);
+        }
+    }
     
     /**
      * parse the time, allowing times like "now" and "lastHour"
@@ -87,5 +103,54 @@ public class ExtentedTimeUtil {
             return now;
         }
         
+    }
+    
+    /**
+     * true if t1 is after t2.
+     * @param t1
+     * @param t2
+     * @return 
+     */
+    public static boolean gt( int[] t1, int[] t2 ) {
+        TimeUtil.normalizeTime(t1);
+        TimeUtil.normalizeTime(t2);
+        for ( int i=0; i<7; i++ ) {
+            if ( t1[i]>t2[i] ) {
+                return true;
+            } else if ( t1[i]<t2[i] ) {
+                return false;
+            }
+        }
+        return false; // they are equal
+    }
+    
+    /**
+     * given the two times, return a 14 element time range.
+     * @param t1 a seven digit time
+     * @param t2 a seven digit time after the first time.
+     * @return a fourteen digit time range.
+     * @throws IllegalArgumentException when the first time is greater than or equal to the second time.
+     */
+    public static int[] createTimeRange( int[] t1, int[] t2 ) {
+        if ( !gt(t2,t1) ) {
+            throw new IllegalArgumentException("t1 is greater than t2");
+        }
+        int[] result= new int[TimeUtil.TIME_DIGITS*2];
+        System.arraycopy( t1, 0, result, 0, 7 );
+        System.arraycopy( t2, 0, result, 7, 7 );
+        return result;
+    }
+    
+    /**
+     * return the seven element stop time from the time range.  Note
+     * it is fine to use a time range as the start time, because codes
+     * will only read the first seven components.
+     * @param tr a fourteen-element time range.
+     * @return the stop time.
+     */
+    public static int[] getStopTime( int [] tr ) {
+        int[] result= new int[7];
+        System.arraycopy( tr, 7, result, 0, 7 );
+        return result;
     }
 }
