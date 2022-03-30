@@ -102,6 +102,7 @@
                     //String autoplotServer= "http://localhost:8084/AutoplotServlet";
                     
                     String me= "http://spot9/hapi"; // TODO: address this, what is the public name for the server
+                    boolean sparklines= false;      // don't draw sparklines using external server.
                     
                     out.println(" ");
                     JSONArray parameters= info.getJSONArray("parameters");
@@ -110,7 +111,7 @@
                         try {
                             String pname= parameters.getJSONObject(j).getString("name");
                             out.print( String.format( "<a href=\"data?id=%s&parameters=%s&%s\">%s</a>", ds.getString("id"), pname, exampleTimeRange, pname ) );
-                            if ( j>0 ) { //sparklines
+                            if ( j>0 && sparklines ) { //sparklines
                                 //     vap  +hapi  :https      ://jfaden.net  /HapiServerDemo  /hapi  ?id=?parameters=Temperature
                                 //?url=vap%2Bhapi%3Ahttps%3A%2F%2Fjfaden.net%2FHapiServerDemo%2Fhapi%3Fid%3DpoolTemperature%26timerange%3D2020-08-06&format=image%2Fpng&width=70&height=20&column=0%2C100%25&row=0%2C100%25&timeRange=2003-mar&renderType=&color=%23000000&symbolSize=&fillColor=%23aaaaff&foregroundColor=%23000000&backgroundColor=none
                                 StringBuilder sb= new StringBuilder();

@@ -65,26 +65,27 @@ public class ExtendedTimeUtil {
             delta= TimeUtil.parseISO8601Duration(label.substring(i));
             label= label.substring(0,i);
         }
+        label= label.toLowerCase();
         if ( label.startsWith("last") ) {
-            if ( label.endsWith("Minute") ) {
+            if ( label.endsWith("minute") ) {
                 now[6]=0;
                 now[5]=0;
-            } else if ( label.endsWith("Hour") ) {
+            } else if ( label.endsWith("hour") ) {
                 now[6]=0;
                 now[5]=0;
                 now[4]=0;
-            } else if ( label.endsWith("Day") ) {
+            } else if ( label.endsWith("day") ) {
                 now[6]=0;
                 now[5]=0;                
                 now[4]=0;
                 now[3]=0;
-            } else if ( label.endsWith("Month") ) {
+            } else if ( label.endsWith("month") ) {
                 now[6]=0;
                 now[5]=0;                
                 now[4]=0;
                 now[3]=0;
                 now[2]=1;
-            } else if ( label.endsWith("Year") ) {
+            } else if ( label.endsWith("year") ) {
                 now[6]=0;
                 now[5]=0;                
                 now[4]=0;
