@@ -85,7 +85,7 @@ public class CapabilitiesServlet extends HttpServlet {
         File capabilitiesFile= new File( HAPI_HOME, "capabilities.json" );
         if ( capabilitiesFile.exists() ) {
             logger.log(Level.FINE, "using cached about file {0}", capabilitiesFile);
-            sendFile(capabilitiesFile, request, response );
+            Util.sendFile(capabilitiesFile, request, response );
             
         } else {
             synchronized ( this ) {
@@ -103,28 +103,9 @@ public class CapabilitiesServlet extends HttpServlet {
                 }
                 logger.log(Level.FINE, "using cached capabilities file {0}", capabilitiesFile);
             }
-            sendFile( capabilitiesFile, request, response );
+            Util.sendFile( capabilitiesFile, request, response );
         }
         
-    }
-
-    private void sendFile(File aboutFile, HttpServletRequest request, HttpServletResponse response) throws IllegalArgumentException, IOException {
-        byte[] bb= Files.readAllBytes( Paths.get( aboutFile.toURI() ) );
-        String s= new String( bb, Charset.forName("UTF-8") );
-        if ( Util.isTrustedClient(request) ) {
-            // security says this should not be shown in production use, but include for localhost
-            JSONObject jo;
-            try {
-                jo = new JSONObject(s);
-                jo.put("x_HAPI_SERVER_HOME", HAPI_HOME );
-                jo.setEscapeForwardSlashAlways(false);
-                s= jo.toString(4);
-            } catch (JSONException ex) {
-                throw new IllegalArgumentException(ex);
-            }
-        }
-        // isTrustedClient used to verify the JSON structure
-        Util.transfer( new ByteArrayInputStream(s.getBytes("UTF-8")), response.getOutputStream(), true );
     }
 
 }
