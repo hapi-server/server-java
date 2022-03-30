@@ -4,6 +4,7 @@ package org.hapiserver;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,6 +26,26 @@ public class Initialize {
         if ( !hapiHome.mkdirs() ) {
             throw new RuntimeException("Unable to make hapi_home");
         }
+        
+        try {
+            File catalogFile= new File( hapiHome, "catalog.json" );
+            
+            logger.log(Level.INFO, "copy catalog.json from internal templates to {0}", catalogFile);
+            
+            InputStream in= Util.getTemplateAsStream("catalog.json");
+            File tmpFile= new File( hapiHome, "_catalog.json" );
+            Util.transfer( in, new FileOutputStream(tmpFile), true );
+            if ( !tmpFile.renameTo(catalogFile) ) {
+                logger.log(Level.SEVERE, "Unable to write to {0}", catalogFile);
+                throw new IllegalArgumentException("unable to write catalog file");
+            } else {
+                logger.log(Level.FINE, "wrote cached catalog file {0}", catalogFile);
+            }
+
+        } catch ( IOException ex ) {
+            throw new RuntimeException(ex);
+        }
+        
         File infoDir= new File( hapiHome, "info" );
         if ( !infoDir.mkdirs() ) {
             throw new RuntimeException("Unable to make info area");
