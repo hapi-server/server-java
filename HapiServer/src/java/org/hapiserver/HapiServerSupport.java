@@ -23,7 +23,7 @@ public class HapiServerSupport {
     
     private static final Logger logger= Util.getLogger();
     
-    private static final int[] myValidTime= ExtentedTimeUtil.parseValidTime( "2200-01-01T00:00" );
+    private static final int[] myValidTime= ExtendedTimeUtil.parseValidTime( "2200-01-01T00:00" );
 
     /**
      * return the range of available data. For example, Polar/Hydra data is available
@@ -43,9 +43,9 @@ public class HapiServerSupport {
                     stopDate = "now";
                 }
                 if ( startDate!=null && stopDate!=null ) {
-                    int[] t1= ExtentedTimeUtil.parseValidTime(startDate);
-                    int[] t2= ExtentedTimeUtil.parseValidTime(stopDate);
-                    return ExtentedTimeUtil.createTimeRange( t1, t2 );
+                    int[] t1= ExtendedTimeUtil.parseValidTime(startDate);
+                    int[] t2= ExtendedTimeUtil.parseValidTime(stopDate);
+                    return ExtendedTimeUtil.createTimeRange( t1, t2 );
                 } else {
                     throw new IllegalArgumentException("info doesn't have start and stop date");
                 }
@@ -65,18 +65,18 @@ public class HapiServerSupport {
             int[] landing;
             if ( info.has("sampleStartDate") && info.has("sampleStopDate") ) {
                 try {
-                    int[] t1= ExtentedTimeUtil.parseValidTime(info.getString("sampleStartDate"));
-                    int[] t2= ExtentedTimeUtil.parseValidTime(info.getString("sampleStopDate"));
-                    landing = ExtentedTimeUtil.createTimeRange(t1, t2);
+                    int[] t1= ExtendedTimeUtil.parseValidTime(info.getString("sampleStartDate"));
+                    int[] t2= ExtendedTimeUtil.parseValidTime(info.getString("sampleStopDate"));
+                    landing = ExtendedTimeUtil.createTimeRange(t1, t2);
                     return landing;
                 } catch (JSONException ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
             } 
-            int[] end = ExtentedTimeUtil.getStopTime(range);
+            int[] end = ExtendedTimeUtil.getStopTime(range);
             end[4]= end[5]= end[6]= 0;
             int[] start= TimeUtil.subtract( end, new int[] { 0, 0, 1, 0, 0, 0, 0 } );
-            landing = ExtentedTimeUtil.createTimeRange( start, end );
+            landing = ExtendedTimeUtil.createTimeRange( start, end );
             return landing;
         }
     }

@@ -84,7 +84,7 @@ public class InfoServlet extends HttpServlet {
         if ( o.has("modificationDate") ) { // allow modification date to be "lasthour"
             String modificationDate= o.getString("modificationDate");
             try {
-                int[] ss= ExtentedTimeUtil.parseTime( modificationDate );
+                int[] ss= ExtendedTimeUtil.parseTime( modificationDate );
                 o.put( "modificationDate", TimeUtil.formatIso8601Time(ss) );
             } catch ( ParseException ex ) {
                 
@@ -95,8 +95,8 @@ public class InfoServlet extends HttpServlet {
         if ( o.has("startDate") && o.has("stopDate") ) { 
             String startDate= o.getString("startDate");
             String stopDate= o.getString("stopDate");
-            o.put( "startDate", TimeUtil.formatIso8601Time( ExtentedTimeUtil.parseTime(startDate) ) );
-            o.put( "stopDate", TimeUtil.formatIso8601Time( ExtentedTimeUtil.parseTime(stopDate) ) );
+            o.put( "startDate", TimeUtil.formatIso8601Time( ExtendedTimeUtil.parseTime(startDate) ) );
+            o.put( "stopDate", TimeUtil.formatIso8601Time( ExtendedTimeUtil.parseTime(stopDate) ) );
         } else {
             if ( !o.has("startDate") ) {
                 logger.warning("non-conformant server needs to have startDate");
@@ -109,8 +109,8 @@ public class InfoServlet extends HttpServlet {
         if ( o.has("sampleStartDate") && o.has("sampleStopDate") ) { 
             String startDate= o.getString("sampleStartDate");
             String stopDate= o.getString("sampleStopDate");
-            o.put( "sampleStartDate", TimeUtil.formatIso8601Time(ExtentedTimeUtil.parseTime(startDate) ) );
-            o.put( "sampleStopDate", TimeUtil.formatIso8601Time( ExtentedTimeUtil.parseTime(stopDate) ) );
+            o.put( "sampleStartDate", TimeUtil.formatIso8601Time(ExtendedTimeUtil.parseTime(startDate) ) );
+            o.put( "sampleStopDate", TimeUtil.formatIso8601Time( ExtendedTimeUtil.parseTime(stopDate) ) );
         }
         
         JSONObject status= new JSONObject();
