@@ -19,10 +19,11 @@
             "units": "km/s"
         },
         {
-            "description": "Position of Wind S/C at start of spectrum",
+            "description": "GSE Position of Wind S/C at start of spectrum",
             "fill": "-1e31",
             "name": "PositionGSE",
-            "label": "Wind S/C Position GSE",
+            "x_label": "Wind S/C Position GSE",
+            "label": [ "Wind S/C Position GSE X", "Wind S/C Position GSE Y", "Wind S/C Position GSE Z" ],
             "type": "double",
             "units": "Re",
             "size": [3]
