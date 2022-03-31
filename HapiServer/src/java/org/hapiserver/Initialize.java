@@ -22,11 +22,30 @@ public class Initialize {
      * initialize the hapi_home area.
      * @param hapiHome area where infos are stored.
      */
-    public static void initialize( File hapiHome ) {
+    public static synchronized void initialize( File hapiHome ) {
         if ( !hapiHome.mkdirs() ) {
             throw new RuntimeException("Unable to make hapi_home");
         }
-        
+
+        try {
+            File aboutFile= new File( hapiHome, "about.json" );
+            
+            logger.log(Level.INFO, "copy about.json from internal templates to {0}", aboutFile);
+            
+            InputStream in= Util.getTemplateAsStream("about.json");
+            File tmpFile= new File( hapiHome, "_about.json" );
+            Util.transfer( in, new FileOutputStream(tmpFile), true );
+            if ( !tmpFile.renameTo(aboutFile) ) {
+                logger.log(Level.SEVERE, "Unable to write to {0}", aboutFile);
+                throw new IllegalArgumentException("unable to write about file");
+            } else {
+                logger.log(Level.FINE, "wrote cached about file {0}", aboutFile);
+            }
+
+        } catch ( IOException ex ) {
+            throw new RuntimeException(ex);
+        }
+
         try {
             File catalogFile= new File( hapiHome, "catalog.json" );
             
