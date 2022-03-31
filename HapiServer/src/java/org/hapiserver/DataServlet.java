@@ -100,11 +100,10 @@ public class DataServlet extends HttpServlet {
         
         DataFormatter dataFormatter;
         if ( format.equals("binary") ) {
-            throw new IllegalArgumentException("binary is not supported yet");
-            //response.setContentType("application/binary");
-            //dataFormatter= new BinaryDataFormatter();
-            //response.setHeader("Content-disposition", "attachment; filename="
-            //    + Ops.safeName(id) + "_"+timeMin+ "_"+timeMax + ".bin" );
+            response.setContentType("application/binary");
+            dataFormatter= new BinaryDataFormatter();
+            response.setHeader("Content-disposition", "attachment; filename="
+                + Util.fileSystemSafeName(id) + "_"+timeMin+ "_"+timeMax + ".bin" );
         } else {
             response.setContentType("text/csv;charset=UTF-8");  
             dataFormatter= new CsvDataFormatter();
