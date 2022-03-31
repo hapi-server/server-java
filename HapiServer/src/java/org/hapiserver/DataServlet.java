@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -31,6 +32,8 @@ public class DataServlet extends HttpServlet {
     private static final Logger logger= Util.getLogger();
     
     private String HAPI_HOME;
+    
+    private static Charset CHARSET= Charset.forName("UTF-8");
     
     @Override
     public void init() throws ServletException {
@@ -314,6 +317,8 @@ public class DataServlet extends HttpServlet {
 //            }
 //        }
         
+        boolean verify= true;
+        
         try {
             assert dsiter!=null;
             while ( dsiter.hasNext() ) {
@@ -322,6 +327,22 @@ public class DataServlet extends HttpServlet {
                 HapiRecord first= dsiter.next();
             
                 dataFormatter.initialize( jo, out, first );
+                
+                if ( verify ) {
+                    ByteArrayOutputStream testOut= new ByteArrayOutputStream(1024);
+                    dataFormatter.sendRecord( testOut, first);
+                    byte[] bb= testOut.toByteArray();
+                    try {
+                        int len= jo.getJSONArray("parameters").getJSONObject(0).getInt("length");
+                        if ( bb[len-1]!='Z' ) {
+                            logger.log(Level.WARNING,
+                                "time is not the correct length or Z is missing, expected Z at byte offset {0}", len);
+                        }
+                    } catch (JSONException ex) {
+                        Logger.getLogger(DataServlet.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    verify= false;
+                }
                 
                 // format time boundaries so they are in the same format as the data, and simple string comparisons can be made.
                 String startTime= TimeUtil.reformatIsoTime( first.getIsoTime(0), timeMin );
