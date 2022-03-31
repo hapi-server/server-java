@@ -26,7 +26,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 /**
- *
+ * Info servlet describes a data set.
  * @author jbf
  */
 @WebServlet(urlPatterns = {"/info"})
