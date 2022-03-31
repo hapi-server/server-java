@@ -231,7 +231,7 @@ public class DataServlet extends HttpServlet {
         try {
 
             jo0= HapiServerSupport.getInfo( HAPI_HOME, id );
-            int[] indexMap=null;
+            int[] indexMap;
             
             if ( !parameters.equals("") ) {
                 jo= Util.subsetParams( jo0, parameters );
@@ -328,9 +328,11 @@ public class DataServlet extends HttpServlet {
                 HapiRecord first= dsiter.next();
             
                 dataFormatter.initialize( jo, out, first );
+                
+                // format time boundaries so they are in the same format as the data, and simple string comparisons can be made.
+                String startTime= TimeUtil.reformatIsoTime( first.getIsoTime(0), timeMin );
+                String stopTime= TimeUtil.reformatIsoTime( first.getIsoTime(0), timeMax );
         
-                String startTime= "2019-365T23:00Z";
-                String stopTime= "2019-365T23:30Z";
                 if ( first.getIsoTime(0).compareTo( startTime )>=0 && first.getIsoTime(0).compareTo( stopTime )<0 ) {
                     dataFormatter.sendRecord( out, first );
                 }
