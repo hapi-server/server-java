@@ -52,6 +52,19 @@ public class BinaryDataFormatter implements DataFormatter {
                 TransferType tt;
                 final String stype = parameter.getString("type");
                 double fl=-1;
+
+                int nfields;
+                if ( parameter.has("size") ) {
+                    JSONArray ja= (JSONArray)parameter.get("size");
+                    int prod= 1;
+                    for ( int j=0; j<ja.length(); j++ ) {
+                        prod*= ja.getInt(j);
+                    }
+                    nfields= prod;
+                } else {
+                    nfields= 1;
+                }
+                
                 switch (stype) {
                     case "isotime":
                         {
@@ -60,7 +73,15 @@ public class BinaryDataFormatter implements DataFormatter {
                             tt= new TransferType() {
                                 @Override
                                 public void write( HapiRecord record, int i, ByteBuffer buffer) {
-                                    buffer.put( record.getIsoTime(i).getBytes(CHARSET) );
+                                    if ( nfields==1 ) {
+                                        buffer.put( record.getIsoTime(i).getBytes(CHARSET) );
+                                    } else {
+                                        String[] ss= record.getIsoTimeArray(i);
+                                        for ( int j=0; j<nfields; j++ ) {
+                                            buffer.put( ss[j].getBytes(CHARSET) );
+                                        }
+                                    }
+                                    
                                 }
                                 @Override
                                 public int sizeBytes() {
@@ -78,6 +99,7 @@ public class BinaryDataFormatter implements DataFormatter {
                             tt= new TransferType() {
                                 @Override
                                 public void write( HapiRecord record, int i, ByteBuffer buffer) {
+                                    if ( nfields>1 ) throw new IllegalArgumentException("not supported, email jbfaden"); //TODO: nfields
                                     byte[] bytes= record.getString(i).getBytes( Charset.forName("UTF-8") );
                                     if ( bytes.length==len ) {
                                         buffer.put( bytes );
@@ -98,7 +120,8 @@ public class BinaryDataFormatter implements DataFormatter {
                             break;
                         }
                     case "double":
-                        tt= new TransferType() {
+                        if ( nfields==1 ) {
+                            tt= new TransferType() {
                                 @Override
                                 public void write( HapiRecord record, int i, ByteBuffer buffer) {
                                     double d= record.getDouble(i);
@@ -109,10 +132,27 @@ public class BinaryDataFormatter implements DataFormatter {
                                     return 8;
                                 }
                             };
+                        } else {
+                            tt= new TransferType() {
+                                @Override
+                                public void write( HapiRecord record, int i, ByteBuffer buffer) {
+                                    double[] dd= record.getDoubleArray(i);
+                                    for ( int j=0; j<nfields; j++ ) {
+                                        double d= dd[j];
+                                        buffer.putDouble( d );
+                                    }
+                                }
+                                @Override
+                                public int sizeBytes() {
+                                    return 8 * nfields;
+                                }
+                            };                            
+                        }
                         fl= Double.parseDouble( parameter.getString("fill") );
                         break;
                     case "integer":
-                        tt= new TransferType() {
+                        if ( nfields==1 ) {
+                            tt= new TransferType() {
                                 @Override
                                 public void write( HapiRecord record, int i, ByteBuffer buffer) {
                                     int integer= record.getInteger(i);
@@ -123,28 +163,32 @@ public class BinaryDataFormatter implements DataFormatter {
                                     return 4;
                                 }
                             };
+                        } else {
+                            tt= new TransferType() {
+                                @Override
+                                public void write( HapiRecord record, int i, ByteBuffer buffer) {
+                                    int[] dd= record.getIntegerArray(i);
+                                    for ( int j=0; j<nfields; j++ ) {
+                                        int d= dd[j];
+                                        buffer.putInt( d );
+                                    }
+                                }
+                                @Override
+                                public int sizeBytes() {
+                                    return 4 * nfields;
+                                }
+                            };                            
+                        }
                         fl= Double.parseDouble( parameter.getString("fill") );
                         break;
                     default:
                     throw new IllegalArgumentException("server is misconfigured, using unsupported type: "+stype );
                 }
-                int nfields;
-                if ( parameter.has("size") ) {
-                    JSONArray ja= (JSONArray)parameter.get("size");
-                    int prod= 1;
-                    for ( int j=0; j<ja.length(); j++ ) {
-                        prod*= ja.getInt(j);
-                    }
-                    nfields= prod;
-                } else {
-                    nfields= 1;
-                }
-                for ( int j=0; j<nfields; j++ ) {
-                    transferTypes[totalFields+j]= tt;
-                    fill[totalFields+j]= fl;
-                }
+                transferTypes[i]= tt;
+                fill[i]= fl;
+
                 totalFields+= nfields;
-                bufferSize+= nfields * tt.sizeBytes();
+                bufferSize+= tt.sizeBytes();
             }
 
             b= ByteBuffer.allocate( bufferSize );

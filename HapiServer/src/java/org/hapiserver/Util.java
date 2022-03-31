@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -293,6 +294,26 @@ public class Util {
             throw new RuntimeException(ex);
         }
     }
+    
+    /**
+     * properly trim the byte array containing a UTF-8 String to a limit
+     * @param bytes the bytes
+     * @param k the number of bytes
+     * @return 
+     */
+    public static byte[] trimUTF8( byte[] bytes, int k ) {
+        if ( bytes.length==k ) return bytes;
+        int b= bytes[k];
+        if ( b>127 ) { // uh-oh, we are mid-UTF8-extended character.
+            while ( k>0 && b>127 ) {
+                k=k-1;
+                b= bytes[k];
+            }
+        }
+        bytes= Arrays.copyOf( bytes, k );
+        return bytes;
+    }
+    
     
     /**
      * return the logger used for the web application
