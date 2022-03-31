@@ -165,7 +165,7 @@ public class HapiServerSupport {
                 throw new IllegalArgumentException("This should not happen");
             }
             InfoData infoData= new InfoData(jo,latestTimeStamp);
-            cc.infoCache.put( s, infoData );
+            cc.infoCache.put( id, infoData );
         }
         return jo;
     }
