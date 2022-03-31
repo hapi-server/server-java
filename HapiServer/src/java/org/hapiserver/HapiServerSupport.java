@@ -80,8 +80,8 @@ public class HapiServerSupport {
         }
     }
 
-    private static class CacheData {
-        public CacheData( JSONObject catalog, long catalogTimeStamp ) {
+    private static class CatalogData {
+        public CatalogData( JSONObject catalog, long catalogTimeStamp ) {
             this.catalog= catalog;
             this.catalogTimeStamp= catalogTimeStamp;
         }
@@ -90,7 +90,7 @@ public class HapiServerSupport {
         Map<String,InfoData> infoCache= new HashMap<>();
     }
 
-    private static Map<String,CacheData> catalogCache= new HashMap<>();
+    private static Map<String,CatalogData> catalogCache= new HashMap<>();
     
     private static class InfoData {
         public InfoData( JSONObject info, long infoTimeStamp ) {
@@ -110,7 +110,7 @@ public class HapiServerSupport {
      */
     public static JSONObject getCatalog( String HAPI_HOME ) throws IOException, JSONException {
         File catalogFile= new File( HAPI_HOME, "catalog.json" );
-        CacheData cc= catalogCache.get( HAPI_HOME );
+        CatalogData cc= catalogCache.get( HAPI_HOME );
         long latestTimeStamp= catalogFile.lastModified();
         if ( cc!=null ) {
             if ( cc.catalogTimeStamp == latestTimeStamp ) {
@@ -120,7 +120,7 @@ public class HapiServerSupport {
         byte[] bb= Files.readAllBytes( Paths.get( catalogFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         JSONObject jo= new JSONObject(s);
-        cc= new CacheData(jo,latestTimeStamp);
+        cc= new CatalogData(jo,latestTimeStamp);
         catalogCache.put( HAPI_HOME, cc );
         return jo;
     }
@@ -141,7 +141,7 @@ public class HapiServerSupport {
         if ( !infoFile.exists() ) {
             throw new IllegalArgumentException("id does not exist");
         }
-        CacheData cc= catalogCache.get( HAPI_HOME );
+        CatalogData cc= catalogCache.get( HAPI_HOME );
         long latestTimeStamp= infoFile.lastModified();
         if ( cc!=null ) {
             InfoData infoData= cc.infoCache.get( id );
