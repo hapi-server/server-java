@@ -12,7 +12,7 @@
         },
         {
             "description": "Scalar proton thermal speed (km/s) trace of anisotropic temperatures",
-            "fill": "99999",
+            "fill": "99999.9",
             "name": "ThermalSpeed",
             "label": "Thermal Speed",
             "type": "double",
@@ -31,8 +31,8 @@
     "x_uri": "vap+jyds:file:///home/jbf/ct/autoplot/script/weatherForecast.jyds",
     "cadence": "PT2M",
     "x_about": "https://cdaweb.gsfc.nasa.gov/pub/data/wind/swe/ascii/2-min/", 
-    "sampleStartDate": "2019-12-30T23:00Z",
-    "sampleStopDate": "2020-01-01T01:00Z",
+    "sampleStartDate": "2019-365T23:00Z",
+    "sampleStopDate": "2019-365T23:30Z",
     "startDate": "1994-01-01",
     "stopDate": "2022-01-01"
 }
