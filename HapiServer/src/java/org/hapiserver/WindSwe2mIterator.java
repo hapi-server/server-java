@@ -11,9 +11,11 @@ import java.util.logging.Logger;
 import jdk.nashorn.api.scripting.URLReader;
 
 /**
- * Bootstrap method for getting server going.
+ * Bootstrap method for getting server going.  Each record of the dataset at
+ * https://cdaweb.gsfc.nasa.gov/pub/data/wind/swe/ascii/2-min/wind_swe_2m_sw2022.asc
+ * are formatted like so:
  * (i4.4," ", f11.6," ", i4.2,18(" ",f7.1),2(" ",f9.3),14(" ",f7.1),2(" ",f9.3)," ",f6.1,7(" ",f7.1)," ",f9.3,10(" ",f9.3),2(" ", f11.6))
- *
+ * 
  * @author jbf
  */
 public class WindSwe2mIterator implements Iterator<HapiRecord> {
@@ -57,8 +59,8 @@ public class WindSwe2mIterator implements Iterator<HapiRecord> {
 
     private void readNextRecord() {
         try {
+            nextRecord= readerCurrentYear.readLine();
             while ( nextRecord==null && currentYear<=stopYear) {
-                nextRecord= readerCurrentYear.readLine();
                 if ( nextRecord==null ) {
                     readerCurrentYear.close();
                     currentYear++;
@@ -68,7 +70,7 @@ public class WindSwe2mIterator implements Iterator<HapiRecord> {
                         readerCurrentYear= new BufferedReader( new URLReader( currentUrl ) );
                         nextRecord= readerCurrentYear.readLine();
                     }
-                }
+                } 
             }
         } catch ( IOException ex ) {
             logger.log(Level.SEVERE, null, ex);
@@ -100,7 +102,7 @@ public class WindSwe2mIterator implements Iterator<HapiRecord> {
                     final int mn= (int)( fsec / 60 );
                     fsec= fsec - mn*60;
                     final double ffsec= fsec;
-                    return String.format( "%04d-%03dT%02d:%02d:%9.6fZ", year, doy, hr, mn, ffsec );
+                    return String.format( "%04d-%03dT%02d:%02d:%09.6fZ", year, doy, hr, mn, ffsec );
                 } else {
                     throw new IllegalArgumentException("implementation error");
                 }
