@@ -329,9 +329,17 @@ public class DataServlet extends HttpServlet {
             
                 dataFormatter.initialize( jo, out, first );
         
-                dataFormatter.sendRecord( out, first );
+                String startTime= "2019-365T23:00Z";
+                String stopTime= "2019-365T23:30Z";
+                if ( first.getIsoTime(0).compareTo( startTime )>=0 && first.getIsoTime(0).compareTo( stopTime )<0 ) {
+                    dataFormatter.sendRecord( out, first );
+                }
                 while ( dsiter.hasNext() ) {
-                    dataFormatter.sendRecord( out, dsiter.next() );
+                    HapiRecord record= dsiter.next();
+                    String isoTime= record.getIsoTime(0);
+                    if ( isoTime.compareTo( startTime )>=0 && isoTime.compareTo( stopTime )<0 ) {
+                        dataFormatter.sendRecord( out,record );
+                    }
                 }
             }
             
