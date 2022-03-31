@@ -222,24 +222,23 @@ public class Util {
         }
 
         // unpack the resort where the lengths are greater than 1.
-        int sum=0;
-        for ( int i=0; i<lengths.length; i++ ) sum+= lengths[i];
-        int[] indexMap1= new int[ sum ];
-        int c= 0;
-        if ( indexMap1.length>indexMap.length ) {
-            for ( int k=0; k<lengths.length; k++ ) {
-                if ( lengths[k]==1 ) {
-                    indexMap1[c]= indexMap[k];
-                    c++;
-                } else {
-                    for ( int l=0; l<lengths[k]; l++ ) { 
-                        indexMap1[c]= indexMap[k]+l;
-                        c++;
-                    }
-                }
-            }
-            indexMap= indexMap1;
-        }
+//        int sum=0;
+//        for ( int i=0; i<lengths.length; i++ ) sum+= lengths[i];
+//        int[] indexMap1= new int[ sum ];
+//        int c= 0;
+//        if ( indexMap1.length>indexMap.length ) {
+//            for ( int k=0; k<lengths.length; k++ ) {
+//                if ( lengths[k]==1 ) {
+//                    indexMap1[c]= indexMap[k];
+//                    c++;
+//                } else {
+//                    for ( int l=0; l<lengths[k]; l++ ) { 
+//                        indexMap1[c]= indexMap[k]+l;
+//                        c++;
+//                    }
+//                }
+//            }
+//        }
         if ( indexMap[indexMap.length-1]==-1 ) {
             throw new IllegalArgumentException("last index of index map wasn't set--server implementation error");
         }

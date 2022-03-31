@@ -4,7 +4,7 @@ package org.hapiserver;
 import java.util.Iterator;
 
 /**
- *
+ * implements a subset of parameters by mapping back to full HapiRecord.
  * @author jbf
  */
 public class SubsetFieldsDataSetIterator implements Iterator<HapiRecord> {
@@ -14,6 +14,7 @@ public class SubsetFieldsDataSetIterator implements Iterator<HapiRecord> {
     
     public SubsetFieldsDataSetIterator( Iterator<HapiRecord> iter, int[] fieldMap ) {
         this.iter= iter;
+        this.fieldMap= fieldMap;
     }
 
     @Override
