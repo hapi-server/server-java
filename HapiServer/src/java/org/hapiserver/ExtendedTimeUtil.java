@@ -2,6 +2,8 @@
 package org.hapiserver;
 
 import java.text.ParseException;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Useful extentions to the TimeUtil class, like support for times like "now-P1D"
@@ -154,4 +156,17 @@ public class ExtendedTimeUtil {
         System.arraycopy( tr, 7, result, 0, 7 );
         return result;
     }
+    
+    /**
+     * format the time as milliseconds since 1970-01-01T00:00Z into a string.  The
+     * number of milliseconds should not include leap seconds.
+     * 
+     * @param time the number of milliseconds since 1970-01-01T00:00Z
+     * @return the formatted time.
+     * @see DateTimeFormatter#parse
+     */
+    public static String fromMillisecondsSince1970(long time) {
+        return DateTimeFormatter.ISO_INSTANT.format( Instant.ofEpochMilli(time) );
+    }
+    
 }
