@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+    <filter>
+        <filter-name>GZIPFilter</filter-name>
+        <filter-class>com.jspbook.GZIPFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>GZIPFilter</filter-name>
+        <url-pattern>/data</url-pattern>
+    </filter-mapping>
     <servlet>
         <description>Provides the server about response.</description>
         <servlet-name>AboutServlet</servlet-name>
@@ -19,6 +27,10 @@
         <servlet-name>InfoServlet</servlet-name>
         <servlet-class>org.hapiserver.InfoServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>DataServlet</servlet-name>
+        <servlet-class>org.hapiserver.DataServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>AboutServlet</servlet-name>
         <url-pattern>/hapi/about</url-pattern>
@@ -34,6 +46,10 @@
     <servlet-mapping>
         <servlet-name>InfoServlet</servlet-name>
         <url-pattern>/InfoServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DataServlet</servlet-name>
+        <url-pattern>/DataServlet</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
