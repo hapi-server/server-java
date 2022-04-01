@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.hapiserver.exceptions.BadIdException;
 
 /**
  * Info servlet describes a data set.
@@ -59,8 +60,8 @@ public class InfoServlet extends HttpServlet {
         File infoFileHome= new File( HAPI_HOME, "info" );
         File infoFile= new File( infoFileHome, Util.fileSystemSafeName(id)+".json" );
         
-        if ( !infoFile.exists() ) {
-            throw new FileNotFoundException("Server misconfiguration, expected to find file for "+id+" ("+Util.fileSystemSafeName(id)+")" );
+        if ( !infoFile.exists() ) {            
+            throw new BadIdException( "Server misconfiguration, expected to find file for "+id, id );
         }
         
         Path path = infoFile.toPath();
@@ -153,8 +154,9 @@ public class InfoServlet extends HttpServlet {
                 jo.setEscapeForwardSlashAlways(false);
                 String s= jo.toString(4);
                 out.write(s);
-            } catch ( FileNotFoundException ex ) {
+            } catch ( BadIdException ex ) {
                 Util.raiseError( 1406, "HAPI error 1406: unknown dataset id " + id, response, out);
+                return;
             } catch (IllegalArgumentException | ParseException ex) {
                 throw new RuntimeException(ex);
             }

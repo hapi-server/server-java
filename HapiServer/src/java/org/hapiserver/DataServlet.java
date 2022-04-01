@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.hapiserver.exceptions.BadIdException;
 
 /**
  * Data servlet sends the data
@@ -128,6 +129,9 @@ public class DataServlet extends HttpServlet {
         JSONObject jo;
         try {
             jo= HapiServerSupport.getInfo( HAPI_HOME, id );
+        } catch ( BadIdException ex ) {
+            Util.raiseError( 1406, "HAPI error 1406: unknown dataset id " + id, response, new PrintWriter( response.getOutputStream() ) );
+            return;
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
         }

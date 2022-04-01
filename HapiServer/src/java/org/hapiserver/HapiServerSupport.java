@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.hapiserver.exceptions.BadIdException;
 
 
 /**
@@ -151,7 +152,7 @@ public class HapiServerSupport {
         id= Util.fileSystemSafeName(id);
         File infoFile= new File( infoDir, id + ".json" );
         if ( !infoFile.exists() ) {
-            throw new IllegalArgumentException("id does not exist");
+            throw new BadIdException("id does not exist",id);
         }
         CatalogData cc= catalogCache.get( HAPI_HOME );
         long latestTimeStamp= infoFile.lastModified();
