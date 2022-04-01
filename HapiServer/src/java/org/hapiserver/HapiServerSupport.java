@@ -7,8 +7,6 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -18,14 +16,25 @@ import org.codehaus.jettison.json.JSONObject;
 
 
 /**
- *
+ * static utility routines to support the HAPI server.  This includes a
+ * cache which will store and maintain the catalog and infos in memory along
+ * with the timetags for the files which define the responses.
+ * 
  * @author jbf
  */
 public class HapiServerSupport {
     
     private static final Logger logger= Util.getLogger();
     
-    private static final int[] myValidTime= ExtendedTimeUtil.parseValidTime( "2200-01-01T00:00" );
+    /**
+     * reference for assumptions about time, no time in the system can be greater than or equal to this time.
+     */
+    public static final int[] lastValidTime= ExtendedTimeUtil.parseValidTime( "2100-01-01T00:00" );
+
+    /**
+     * reference for assumptions about time, no time in the system can be less than this time.
+     */
+    public static final int[] firstValidTime= ExtendedTimeUtil.parseValidTime( "1900-01-01T00:00" );
 
     /**
      * return the range of available data. For example, Polar/Hydra data is available
