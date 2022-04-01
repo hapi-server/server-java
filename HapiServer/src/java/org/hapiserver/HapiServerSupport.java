@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.ParseException;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -154,7 +157,20 @@ public class HapiServerSupport {
         byte[] bb= Files.readAllBytes( Paths.get( infoFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         JSONObject jo= new JSONObject(s);
-        
+        if ( jo.has("modificationDate") ) {
+            String modificationDate= jo.getString("modificationDate");
+            if ( modificationDate.length()==0 ) {
+                String stime= ExtendedTimeUtil.fromMillisecondsSince1970(latestTimeStamp);
+                jo.put( "modificationDate", stime );
+            } else if ( !( modificationDate.length()>0 && Character.isDigit( modificationDate.charAt(0) ) ) ) {
+                try {
+                    String stime= TimeUtil.formatIso8601Time( ExtendedTimeUtil.parseTime( modificationDate ) );
+                    jo.put( "modificationDate", stime );
+                } catch (ParseException ex) {
+                    throw new IllegalArgumentException(ex);
+                }
+            }
+        }
         cc= catalogCache.get( HAPI_HOME );
         if ( cc==null ) {
             getCatalog(HAPI_HOME); // create a cache entry
