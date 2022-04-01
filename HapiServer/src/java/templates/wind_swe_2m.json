@@ -29,7 +29,6 @@
             "size": [3]
         }
     ],
-    "x_uri": "vap+jyds:file:///home/jbf/ct/autoplot/script/weatherForecast.jyds",
     "cadence": "PT2M",
     "x_about": "https://cdaweb.gsfc.nasa.gov/pub/data/wind/swe/ascii/2-min/", 
     "sampleStartDate": "2019-365T23:00Z",
