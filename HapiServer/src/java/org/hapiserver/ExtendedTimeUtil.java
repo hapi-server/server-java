@@ -174,16 +174,26 @@ public class ExtendedTimeUtil {
      * @param time seven element time range
      * @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
      */
-    public static String formatIso8601TimeBrief(int[] time) {
+    public static String formatIso8601TimeBrief(int[] time ) {
+        return formatIso8601TimeBrief(time,0);
+    }
+    
+    /**
+     * format the time, but omit trailing zeros.  $Y-$m-$dT$H:$M is the coursest resolution returned.
+     * @param time seven element time range
+     * @param offset the offset into the time array (7 for stop time in 14-element range array).
+     * @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
+     */
+    public static String formatIso8601TimeBrief(int[] time, int offset ) {
         
-        String stime= TimeUtil.formatIso8601Time(time);
+        String stime= TimeUtil.formatIso8601Time(time,offset);
         
-        int nanos= time[6];
+        int nanos= time[6+offset];
         int micros= nanos % 1000;
         int millis= nanos % 10000000;
         
         if ( nanos==0 ) {
-            if ( time[5]==0 ) {
+            if ( time[5+offset]==0 ) {
                 return stime.substring(0,16) + "Z";
             } else {
                 return stime.substring(0,19) + "Z";

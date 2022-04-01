@@ -4,6 +4,7 @@
     Author     : jbf
 --%>
 
+<%@page import="org.hapiserver.ExtendedTimeUtil"%>
 <%@page import="org.codehaus.jettison.json.JSONException"%>
 <%@page import="java.net.URLEncoder"%>
 <%@page import="org.hapiserver.TimeUtil"%>
@@ -88,7 +89,9 @@
                     }
 
                     String exampleTimeRange= exampleRange==null ? null : 
-                        String.format( "start=%s&stop=%s", TimeUtil.formatIso8601Time(exampleRange), TimeUtil.formatIso8601Time(exampleRange,TimeUtil.TIME_DIGITS) ); 
+                        String.format( "start=%s&stop=%s", 
+                            ExtendedTimeUtil.formatIso8601TimeBrief(exampleRange), 
+                            ExtendedTimeUtil.formatIso8601TimeBrief(exampleRange,TimeUtil.TIME_DIGITS) ); 
                     out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
                     if ( exampleRange!=null ) {
                         out.println( String.format("[<a href=\"info?id=%s\">Info</a>] [<a href=\"data?id=%s&%s\">Data</a>]", 
