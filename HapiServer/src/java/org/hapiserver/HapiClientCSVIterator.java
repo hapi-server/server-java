@@ -44,7 +44,7 @@ public class HapiClientCSVIterator implements Iterator<HapiRecord> {
      * @param info the info describing the fields.
      * @param reader buffered reader providing each parseable line.
      * @throws IOException when there is an issue reading the data.
-     * @throws org.json.JSONException when the JSON is mis-formatted.
+     * @throws org.codehaus.jettison.json.JSONException
      */
     public HapiClientCSVIterator(JSONObject info, BufferedReader reader) throws IOException, JSONException {
         this.info= info;
