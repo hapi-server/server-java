@@ -168,5 +168,35 @@ public class ExtendedTimeUtil {
     public static String fromMillisecondsSince1970(long time) {
         return DateTimeFormatter.ISO_INSTANT.format( Instant.ofEpochMilli(time) );
     }
+
+    /**
+     * format the time, but omit trailing zeros.  $Y-$m-$dT$H:$M is the coursest resolution returned.
+     * @param time seven element time range
+     * @return formatted time, possibly truncated to minutes, seconds, milliseconds, or microseconds
+     */
+    public static String formatIso8601TimeBrief(int[] time) {
+        
+        String stime= TimeUtil.formatIso8601Time(time);
+        
+        int nanos= time[6];
+        int micros= nanos % 1000;
+        int millis= nanos % 10000000;
+        
+        if ( nanos==0 ) {
+            if ( time[5]==0 ) {
+                return stime.substring(0,16) + "Z";
+            } else {
+                return stime.substring(0,19) + "Z";
+            }
+        } else {
+            if ( millis==0 ) {
+                return stime.substring(0,23) + "Z";
+            } else if ( micros==0 ) {
+                return stime.substring(0,26) + "Z";
+            } else {
+                return stime;
+            }
+        }
+    }
     
 }

@@ -164,7 +164,7 @@ public class HapiServerSupport {
                 jo.put( "modificationDate", stime );
             } else if ( !( modificationDate.length()>0 && Character.isDigit( modificationDate.charAt(0) ) ) ) {
                 try {
-                    String stime= TimeUtil.formatIso8601Time( ExtendedTimeUtil.parseTime( modificationDate ) );
+                    String stime= ExtendedTimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( modificationDate ) );
                     jo.put( "modificationDate", stime );
                 } catch (ParseException ex) {
                     throw new IllegalArgumentException(ex);

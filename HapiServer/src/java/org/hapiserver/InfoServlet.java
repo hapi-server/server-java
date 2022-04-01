@@ -158,7 +158,7 @@ public class InfoServlet extends HttpServlet {
                 String s= jo.toString(4);
                 out.write(s);
             } catch ( FileNotFoundException ex ) {
-                Util.raiseError( 1406, "bad id: "+id, response, out);
+                Util.raiseError( 1406, "HAPI error 1406: unknown dataset id " + id, response, out);
             } catch (IllegalArgumentException | ParseException ex) {
                 throw new RuntimeException(ex);
             }

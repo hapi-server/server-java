@@ -275,18 +275,48 @@ public class Util {
         }
     }
     
-/**
+    private static int httpForHapiStatusCode( int statusCode ) {
+        switch ( statusCode ) {
+            case 1200:
+            case 1201:
+                return 200;
+            case 1401:
+            case 1402:
+            case 1403:
+            case 1404:
+            case 1405:
+                return 400;
+            case 1406:
+            case 1407:
+                return 404;
+            case 1408:
+            case 1409:
+            case 1410:
+                return 400;                
+            case 1500:
+            case 1501:
+            default:
+                return 500;
+            
+        }
+    }
+    
+    /**
      * send an error response to the client.
      * @param statusCode
      * @param statusMessage
      * @param response the response object
      * @param out the print writer for the response object.
+     * @throws java.io.IOException
+     * @see https://github.com/hapi-server/data-specification/blob/master/hapi-3.0.1/HAPI-data-access-spec-3.0.1.md#4-status-codes
      */
-    public static void raiseError( int statusCode, String statusMessage, HttpServletResponse response, final PrintWriter out ) {
+    public static void raiseError( int statusCode, String statusMessage, HttpServletResponse response, final PrintWriter out ) 
+        throws IOException {
         try {
             JSONObject jo= createHapiResponse(statusCode,statusMessage);
             String s= jo.toString(4);
-            response.setStatus(404);
+            int httpStatus= httpForHapiStatusCode(statusCode);
+            response.setStatus( httpStatus, statusMessage );
             response.setContentType("application/json;charset=UTF-8");
             out.write(s);
             
