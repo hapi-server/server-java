@@ -3,7 +3,8 @@
     "catalog": [
         {
             "id": "wind_swe_2m",
-            "title": "Example data from https://cdaweb.gsfc.nasa.gov/pub/data/wind/swe/ascii/2-min/wind_swe_2m_sw2022.asc"
+            "title": "Wind SWE Data",
+            "x_documentation": "Example data from https://cdaweb.gsfc.nasa.gov/pub/data/wind/swe/ascii/2-min/wind_swe_2m_sw2022.asc"
         }
     ],
     "status": {
