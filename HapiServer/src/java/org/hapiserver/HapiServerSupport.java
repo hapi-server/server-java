@@ -138,6 +138,41 @@ public class HapiServerSupport {
         return jo;
     }
 
+    private static JSONObject resolveTimes( JSONObject jo ) throws JSONException {
+                // I had 2022-01-01 for my stopDate, and the verifier didn't like this format (no Z?)   
+        
+        jo= new JSONObject(jo.toString()); // copy JSONObject
+        
+        try {
+            jo.put( "startDate",  ExtendedTimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( jo.getString("startDate") ) ) );
+        } catch (ParseException ex) {
+            throw new RuntimeException(ex);
+        }
+        try {
+            jo.put( "stopDate",  ExtendedTimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( jo.getString("stopDate") ) ) );
+        } catch (ParseException ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        if ( jo.has("sampleStartDate" ) ) {
+            try {
+                jo.put( "sampleStartDate", 
+                    ExtendedTimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( jo.getString("sampleStartDate") ) ) );
+            } catch (ParseException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        if ( jo.has("sampleStopDate" ) ) {
+            try {
+                jo.put( "sampleStopDate", 
+                    ExtendedTimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( jo.getString("sampleStopDate") ) ) );
+            } catch (ParseException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        return jo;
+    }
+    
     /**
      * keep and monitor a cached version of the catalog in memory.
      * @param HAPI_HOME the location of the server definition
@@ -160,7 +195,9 @@ public class HapiServerSupport {
             InfoData infoData= cc.infoCache.get( id );
             if ( infoData!=null ) {
                 if ( infoData.infoTimeStamp==latestTimeStamp ) {
-                    return infoData.info;
+                    JSONObject jo= infoData.info;
+                    jo= resolveTimes(jo);
+                    return jo;
                 }
             }
         }
