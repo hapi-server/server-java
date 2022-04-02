@@ -61,16 +61,20 @@ public class CsvDataFormatter implements DataFormatter {
             types= new int[record.length()];
             int[] lens= Util.getNumberOfElements(info);
             JSONArray parameters= info.getJSONArray("parameters");
-            JSONObject parameter= parameters.getJSONObject(0);
             int iparam=0;
             int iele=0;
             
             for ( int i=0; i<record.length(); i++ ) {
-                parameter= parameters.getJSONObject(i);
+                JSONObject parameter= parameters.getJSONObject(i);
                 lengths[i]= parameter.has("length") ? parameter.getInt("length") : 1;
                 switch ( parameter.getString("type") ) {
                     case "isotime": 
                         types[i]= TYPE_ISOTIME; 
+                        String field= record.getIsoTime(i);
+                        if ( field.length()!=lengths[i] ) 
+                            throw new RuntimeException( String.format( "length of field is in correct, should be %d but is %d", 
+                                                                       lengths[i], field.length() ));
+                        if ( field.charAt(lengths[i]-1)!='Z' ) throw new RuntimeException("isotime should end in Z");
                         break;
                     case "double": {
                         if ( parameter.has("size") ) {
@@ -88,7 +92,7 @@ public class CsvDataFormatter implements DataFormatter {
                 }
             }
             for ( int i=0; i<record.length(); i++ ) {
-                parameter= parameters.getJSONObject(i);
+                JSONObject parameter= parameters.getJSONObject(i);
                 switch ( types[i] ) {
                     case TYPE_ISOTIME:
                     case TYPE_DOUBLE:
