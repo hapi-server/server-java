@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.HashMap;
@@ -185,10 +186,7 @@ public class DataServlet extends HttpServlet {
         logger.log(Level.FINE, "dataFiles(two): {0}", dataFiles);
         logger.log(Level.FINE, "dsiter: {0}", dsiter);
         
-        if ( !dsiter.hasNext() )  {
-            Util.raiseError( 1201, "HAPI error 1201: no data found " + id, response, new PrintWriter( response.getOutputStream() ) );
-            return;
-        }
+        boolean sentSomething= false;
         
         assert dataFiles==null; // caching is disabled
         if ( dataFiles!=null ) {
@@ -237,82 +235,9 @@ public class DataServlet extends HttpServlet {
                 jo= jo0;
             }
             
-            if ( include.equals("header") ) {
-                ByteArrayOutputStream boas= new ByteArrayOutputStream(10000);
-                PrintWriter pw= new PrintWriter(boas);
-                jo.put( "format", format ); // Thanks Bob's verifier for catching this.
-                pw.write( jo.toString(4) );
-                pw.close();
-                boas.close();
-                String[] ss= boas.toString("UTF-8").split("\n");
-                for ( String s: ss ) {
-                    out.write( "# ".getBytes("UTF-8") );
-                    out.write( s.getBytes("UTF-8") );
-                    out.write( (char)10 );
-                }
-            }
-            
-//            if ( dataFiles!=null ) {
-//                for ( File dataFile : dataFiles ) {
-//                    cachedDataCsv( jo, out, dataFile, dr, parameters, indexMap );
-//                }
-//                
-//                if ( out instanceof IdleClockOutputStream ) {
-//                    logger.log(Level.FINE, "request handled with cache in {0} ms, ", new Object[]{System.currentTimeMillis()-t0, 
-//                        ((IdleClockOutputStream)out).getStatsOneLine() });
-//                } else {
-//                    logger.log(Level.FINE, "request handled with cache in {0} ms.", System.currentTimeMillis()-t0);
-//                }
-//                return;
-//            }
-            
         } catch (JSONException ex) {
             throw new ServletException(ex);
         }
-
-//        // To cache days, post a single-day request for CSV of all parameters.
-//        boolean createCache= true;
-//        if ( createCache && 
-//                dataFormatter instanceof CsvDataFormatter &&
-//                parameters.equals("") &&
-//                TimeUtil.getSecondsSinceMidnight(dr.min())==0 && 
-//                TimeUtil.getSecondsSinceMidnight(dr.max())==0 && 
-//                dr.width().doubleValue(Units.seconds)==86400 || 
-//                dr.width().doubleValue(Units.seconds)==86401 ) {
-//            boolean proceed= true;
-//            
-//            File dataFileHome= new File( Util.getHapiHome(), "cache" );
-//            dataFileHome= new File( dataFileHome, id );
-//            if ( !dataFileHome.exists() ) {
-//                if ( !dataFileHome.mkdirs() ) {
-//                    logger.log(Level.FINE, "unable to mkdir {0}", dataFileHome);
-//                    proceed=false;
-//                }
-//            }
-//            if ( proceed && dataFileHome.exists() ) {
-//                TimeParser tp= TimeParser.create( "$Y/$m/$Y$m$d.csv.gz");
-//                String s= tp.format(dr);
-//                File ff= new File( dataFileHome, s );
-//                if ( !ff.getParentFile().exists() ) {
-//                    if ( !ff.getParentFile().mkdirs() ) {
-//                        logger.log(Level.FINE, "unable to mkdir {0}", ff.getParentFile());
-//                        proceed= false;
-//                    }
-//                }
-//                if ( !ff.exists() && !ff.getParentFile().canWrite() ) {
-//                    proceed= false;
-//                }
-//                if ( proceed ) {
-//                    FileOutputStream fout= new FileOutputStream(ff);
-//                    GZIPOutputStream gzout= new GZIPOutputStream(fout);
-//                    org.apache.commons.io.output.TeeOutputStream tout= new TeeOutputStream( out, gzout );
-//                    out= tout;
-//                    logger.log( Level.FINE, "wrote cache file {0}", ff );
-//                } else {
-//                    logger.log( Level.FINE, "unable to write file {0}", ff );
-//                }
-//            }
-//        }
         
         boolean verify= true;
         
@@ -346,6 +271,16 @@ public class DataServlet extends HttpServlet {
                 String stopTime= TimeUtil.reformatIsoTime( first.getIsoTime(0), timeMax );
         
                 if ( first.getIsoTime(0).compareTo( startTime )>=0 && first.getIsoTime(0).compareTo( stopTime )<0 ) {
+                    if ( sentSomething==false ) {
+                        if ( include.equals("header") ) {
+                            try {
+                                sendHeader( jo, format, out);
+                            } catch (JSONException | UnsupportedEncodingException ex) {
+                                logger.log(Level.SEVERE, null, ex);
+                            }
+                        }
+                        sentSomething= true;
+                    }
                     dataFormatter.sendRecord( out, first );
                 }
                 while ( dsiter.hasNext() ) {
@@ -356,11 +291,15 @@ public class DataServlet extends HttpServlet {
                     }
                 }
             }
+
+            if ( !sentSomething ) {
+                Util.raiseError( 1201, "HAPI error 1201: no data found " + id, response, out );   
+            }
             
             dataFormatter.finalize(out);
             
         } catch ( RuntimeException ex ) {
-            Util.raiseError( 1500, ex.getMessage(), response, new PrintWriter(out) );
+            Util.raiseError( 1500, ex.getMessage(), response, out );
             
         } finally {
             
@@ -370,6 +309,21 @@ public class DataServlet extends HttpServlet {
         
         logger.log(Level.FINE, "request handled in {0} ms.", System.currentTimeMillis()-t0);
 
+    }
+
+    private void sendHeader(JSONObject jo, String format, OutputStream out) throws JSONException, IOException, UnsupportedEncodingException {
+        ByteArrayOutputStream boas= new ByteArrayOutputStream(10000);
+        PrintWriter pw= new PrintWriter(boas);
+        jo.put( "format", format ); // Thanks Bob's verifier for catching this.
+        pw.write( jo.toString(4) );
+        pw.close();
+        boas.close();
+        String[] ss= boas.toString("UTF-8").split("\n");
+        for ( String s: ss ) {
+            out.write( "# ".getBytes("UTF-8") );
+            out.write( s.getBytes("UTF-8") );
+            out.write( (char)10 );
+        }
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
