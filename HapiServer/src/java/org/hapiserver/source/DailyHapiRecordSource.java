@@ -69,7 +69,11 @@ public class DailyHapiRecordSource extends AbstractHapiRecordSource {
         }
         String file= String.format( fileFormat, range );
         try {
-            Iterator<String> iter= SourceUtil.getFileLines( new File(file) );
+            File ff= new File(file);
+            if ( !ff.exists() ) {
+                return SourceUtil.getEmptyHapiRecordIterator();
+            }
+            Iterator<String> iter= SourceUtil.getFileLines( ff );
             return new Iterator<HapiRecord>() {
                 @Override
                 public boolean hasNext() {

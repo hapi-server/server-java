@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Logger;
 import org.hapiserver.ExtendedTimeUtil;
+import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.Util;
 
@@ -52,6 +53,22 @@ public class SourceUtil {
         return new AsciiFileIterator(f);
     }
     
+    /**
+     * return an empty iterator whose hasNext trivially returns false.
+     * @return an iterator
+     */
+    public static Iterator<HapiRecord> getEmptyHapiRecordIterator() {
+        return new Iterator<HapiRecord>() {
+            @Override
+            public boolean hasNext() {
+                return false;
+            }
+            @Override
+            public HapiRecord next() {
+                throw new UnsupportedOperationException("iterator is used improperly");
+            }
+        };
+    }
     /**
      * return an iterator counting from start to stop in increments.  For example, 
      * if digit is 2 (d of YmdHMSN), then this will count off days.  The first 

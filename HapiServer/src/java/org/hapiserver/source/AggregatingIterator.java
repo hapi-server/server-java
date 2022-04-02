@@ -5,6 +5,7 @@ import java.util.Iterator;
 import org.hapiserver.ExtendedTimeUtil;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
+import org.hapiserver.TimeUtil;
 
 /**
  * Often we have granules of data which when "aggregated" together form the 
@@ -27,16 +28,23 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
         if ( granuleIterator.hasNext() ) {
             this.granule= granuleIterator.next();
             this.hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule) );
-            while ( !this.hapiRecordIterator.hasNext() ) {
-                this.granule= granuleIterator.next();
-                if ( this.granule==null ) break;
-                this.hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule) );
-            }
+            findNextRecord();
         } else {
             this.granule= null;
         }
     }
     
+    private void findNextRecord() {
+        while ( !this.hapiRecordIterator.hasNext() ) {
+            if ( !granuleIterator.hasNext() ) {
+                this.granule=null; // we're done
+                break;
+            } else {
+                this.granule= granuleIterator.next();
+            }
+            this.hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule) );
+        }
+    }
     @Override
     public boolean hasNext() {
         return this.granule!=null && this.hapiRecordIterator.hasNext();
@@ -46,13 +54,7 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
     public HapiRecord next() {
         HapiRecord next= this.hapiRecordIterator.next();
         if ( !this.hapiRecordIterator.hasNext() ) {
-            this.granule= this.granuleIterator.next();
-            this.hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule) );
-            while ( !this.hapiRecordIterator.hasNext() ) {
-                this.granule= granuleIterator.next();
-                if ( this.granule==null ) break;
-                this.hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule) );
-            }
+            findNextRecord();
         }
         return next;
     }
