@@ -13,6 +13,41 @@ import java.time.format.DateTimeFormatter;
 public class ExtendedTimeUtil {
     
     /**
+     * year component position in seven element decomposed time array
+     */
+    public static final int YEAR = 0;
+    
+    /**
+     * month component position in seven element decomposed time array
+     */
+    public static final int MONTH = 1;
+    
+    /**
+     * day component position in seven element decomposed time array
+     */
+    public static final int DAY = 2;
+    
+    /**
+     * hour component position in seven element decomposed time array
+     */
+    public static final int HOUR = 3;
+    
+    /**
+     * minute component position in seven element decomposed time array
+     */
+    public static final int MINUTE = 4;
+    
+    /**
+     * second component position in seven element decomposed time array
+     */
+    public static final int SECOND = 5;
+    
+    /**
+     * nanosecond component position in seven element decomposed time array
+     */
+    public static final int NANOSECOND = 6;
+    
+    /**
      * parse the time which is known to the developer to be valid.  A runtime 
      * error is thrown if it it not valid.
      * @param time
@@ -38,6 +73,7 @@ public class ExtendedTimeUtil {
             throw new IllegalArgumentException("empty time string");
         } else {
             if ( Character.isDigit(time.charAt(0) ) ) {
+                //TODO: I didn't realize parseISO8601Time handles the now and last extensions.  This needs review.
                 return TimeUtil.parseISO8601Time(time);
             } else {
                 return labelledTime( time );

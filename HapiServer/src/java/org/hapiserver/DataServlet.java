@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.exceptions.BadIdException;
+import org.hapiserver.source.AggregatingIterator;
 
 /**
  * Data servlet sends the data
@@ -136,7 +137,7 @@ public class DataServlet extends HttpServlet {
             throw new RuntimeException(ex);
         }
                 
-        boolean allowStream= !stream.equals("false");
+        // boolean allowStream= !stream.equals("false");
 
         OutputStream out = response.getOutputStream();
         
@@ -149,30 +150,7 @@ public class DataServlet extends HttpServlet {
         File[] dataFiles= null; // cached data files
         dsiter= null;
         
-        // Look to see if we can cover the time range using cached files.  These files
-        // must: be csv, contain all data, cover all data within $Y$m$d
-        boolean allowCache= false; //dataFormatter instanceof CsvDataFormatter;
-        if ( allowCache ) {
-//            File dataFileHome= new File( Util.getHapiHome(), "cache" );
-//            dataFileHome= new File( dataFileHome, Util.fileSystemSafeName(id) );
-//            if ( dataFileHome.exists() ) {
-//                FileStorageModel fsm= FileStorageModel.create( FileSystem.create(dataFileHome.toURI()), "$Y/$m/$Y$m$d.csv.gz" );
-//                File[] files= fsm.getFilesFor(dr); 
-//                // make sure we have all files.
-//                if ( files.length>0 ) {
-//                    DatumRange dr1= fsm.getRangeFor(fsm.getNameFor(files[0]));
-//                    while ( dr1.min().gt(dr.min()) ) dr1= dr1.previous();
-//                    int nfiles= 0;
-//                    while ( dr1.min().lt(dr.max()) ) {
-//                        nfiles++;
-//                        dr1= dr1.next();
-//                    }
-//                    if ( nfiles==files.length ) { // we have all files.
-//                        dataFiles= files;
-//                    }
-//                }
-//            }
-        }
+        // allowCache code was here
         
         logger.log(Level.FINE, "dataFiles(one): {0}", dataFiles);
         
@@ -181,10 +159,20 @@ public class DataServlet extends HttpServlet {
             try {
                 logger.log(Level.FINER, "data files is null at {0} ms.", System.currentTimeMillis()-t0);
                 //dsiter= checkAutoplotSource( id, dr, allowStream );
+                
                 if ( id.equals("wind_swe_2m") ) {
                     dsiter= new WindSwe2mIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
                 } else {
-                    throw new IllegalArgumentException("only wind_swe_2m supported");
+                    HapiRecordSource source= SourceRegistery.getInstance().getSource(id);
+                    if ( source.hasGranuleIterator() ) {
+                        dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr) );
+                    } else {
+                        dsiter= source.getIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
+                    }
+                    
+                    if ( dsiter==null ) {
+                        Util.raiseError( 1500, "HAPI error 1500: internal server error, id has no reader " + id, response, new PrintWriter( response.getOutputStream() ) );
+                    }
                 }
                 
                 logger.log(Level.FINER, "have dsiter {0} ms.", System.currentTimeMillis()-t0);
