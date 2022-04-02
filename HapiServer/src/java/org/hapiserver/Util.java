@@ -34,6 +34,8 @@ public class Util {
     
     private static final Logger logger= Logger.getLogger("hapi");
     
+    private static final Charset CHARSET= Charset.forName("UTF-8");
+
     /**
      * return true if the client is trusted and additional information about
      * the server for debugging can be included in the response.
@@ -287,6 +289,7 @@ public class Util {
             case 1405:
                 return 400;
             case 1406:
+                return 404;
             case 1407:
                 return 404;
             case 1408:
@@ -321,6 +324,32 @@ public class Util {
             response.setStatus( httpStatus, statusMessage );
             response.setContentType("application/json;charset=UTF-8");
             out.write(s);
+            
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    /**
+     * send an error response to the client. The document 
+     * <a href="https://github.com/hapi-server/data-specification/blob/master/hapi-3.0.1/HAPI-data-access-spec-3.0.1.md#42-status-codes">status codes</a>
+     * talks about the status codes.
+     * @param statusCode
+     * @param statusMessage
+     * @param response the response object
+     * @param out the output stream from the response object.
+     * @throws java.io.IOException
+     * @see https://github.com/hapi-server/data-specification/blob/master/hapi-3.0.1/HAPI-data-access-spec-3.0.1.md#42-status-codes
+     */
+    public static void raiseError( int statusCode, String statusMessage, HttpServletResponse response, final OutputStream out ) 
+        throws IOException {
+        try {
+            JSONObject jo= createHapiResponse(statusCode,statusMessage);
+            String s= jo.toString(4);
+            int httpStatus= httpForHapiStatusCode(statusCode);
+            response.setStatus( httpStatus, statusMessage );
+            response.setContentType("application/json;charset=UTF-8");
+            out.write(s.getBytes(CHARSET));
             
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
