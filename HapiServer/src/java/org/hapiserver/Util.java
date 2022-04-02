@@ -302,13 +302,15 @@ public class Util {
     }
     
     /**
-     * send an error response to the client.
+     * send an error response to the client. The document 
+     * <a href="https://github.com/hapi-server/data-specification/blob/master/hapi-3.0.1/HAPI-data-access-spec-3.0.1.md#42-status-codes">status codes</a>
+     * talks about the status codes.
      * @param statusCode
      * @param statusMessage
      * @param response the response object
      * @param out the print writer for the response object.
      * @throws java.io.IOException
-     * @see https://github.com/hapi-server/data-specification/blob/master/hapi-3.0.1/HAPI-data-access-spec-3.0.1.md#4-status-codes
+     * @see https://github.com/hapi-server/data-specification/blob/master/hapi-3.0.1/HAPI-data-access-spec-3.0.1.md#42-status-codes
      */
     public static void raiseError( int statusCode, String statusMessage, HttpServletResponse response, final PrintWriter out ) 
         throws IOException {
