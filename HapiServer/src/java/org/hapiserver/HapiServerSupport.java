@@ -181,6 +181,13 @@ public class HapiServerSupport {
                 }
             }
         }
+        
+        JSONObject status= new JSONObject();
+        status.put( "code", 1200 );
+        status.put( "message", "OK request successful");
+                
+        jo.put( "status", status );
+        
         cc= catalogCache.get( HAPI_HOME );
         if ( cc==null ) {
             getCatalog(HAPI_HOME); // create a cache entry
