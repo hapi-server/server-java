@@ -172,6 +172,7 @@ public class DataServlet extends HttpServlet {
                     
                     if ( dsiter==null ) {
                         Util.raiseError( 1500, "HAPI error 1500: internal server error, id has no reader " + id, response, new PrintWriter( response.getOutputStream() ) );
+                        return;
                     }
                 }
                 
@@ -183,6 +184,11 @@ public class DataServlet extends HttpServlet {
         
         logger.log(Level.FINE, "dataFiles(two): {0}", dataFiles);
         logger.log(Level.FINE, "dsiter: {0}", dsiter);
+        
+        if ( !dsiter.hasNext() )  {
+            Util.raiseError( 1201, "HAPI error 1201: no data found " + id, response, new PrintWriter( response.getOutputStream() ) );
+            return;
+        }
         
         assert dataFiles==null; // caching is disabled
         if ( dataFiles!=null ) {
@@ -352,6 +358,9 @@ public class DataServlet extends HttpServlet {
             }
             
             dataFormatter.finalize(out);
+            
+        } catch ( RuntimeException ex ) {
+            Util.raiseError( 1500, ex.getMessage(), response, new PrintWriter(out) );
             
         } finally {
             
