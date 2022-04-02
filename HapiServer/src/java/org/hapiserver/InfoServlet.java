@@ -67,7 +67,7 @@ public class InfoServlet extends HttpServlet {
                 String s= jo.toString(4);
                 out.write(s);
             } catch ( BadIdException ex ) {
-                Util.raiseError( 1406, "HAPI error 1406: unknown dataset id " + id, response, out);
+                Util.raiseError( 1406, "Bad request - unknown dataset id " + id, response, out);
             }
         } catch ( JSONException ex ) {
             throw new ServletException(ex);
