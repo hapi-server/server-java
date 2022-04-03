@@ -96,7 +96,9 @@ public class DataServlet extends HttpServlet {
         //String timer= getParam(params, "_timer", "false", "service request with timing output stream", PATTERN_TRUE_FALSE);
         
         if ( !params.isEmpty() ) {
-            throw new ServletException("unrecognized parameters: "+params);
+            Util.raiseError( 1401, "Bad request - unknown API parameter name " + params.entrySet().iterator().next().getKey(), 
+                response, new PrintWriter( response.getOutputStream() ) );
+            return;
         }
         
         logger.log(Level.FINE, "data request for {0} {1}/{2}", new Object[]{id, timeMin, timeMax});
