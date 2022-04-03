@@ -97,7 +97,7 @@ public class DataServlet extends HttpServlet {
         
         if ( !params.isEmpty() ) {
             Util.raiseError( 1401, "Bad request - unknown API parameter name " + params.entrySet().iterator().next().getKey(), 
-                response, new PrintWriter( response.getOutputStream() ) );
+                response, response.getOutputStream() );
             return;
         }
         
@@ -134,7 +134,7 @@ public class DataServlet extends HttpServlet {
         try {
             jo= HapiServerSupport.getInfo( HAPI_HOME, id );
         } catch ( BadIdException ex ) {
-            Util.raiseError( 1406, "HAPI error 1406: unknown dataset id " + id, response, new PrintWriter( response.getOutputStream() ) );
+            Util.raiseError( 1406, "HAPI error 1406: unknown dataset id " + id, response, response.getOutputStream() );
             return;
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
@@ -174,7 +174,8 @@ public class DataServlet extends HttpServlet {
                     }
                     
                     if ( dsiter==null ) {
-                        Util.raiseError( 1500, "HAPI error 1500: internal server error, id has no reader " + id, response, new PrintWriter( response.getOutputStream() ) );
+                        Util.raiseError( 1500, "HAPI error 1500: internal server error, id has no reader " + id, 
+                            response, response.getOutputStream() );
                         return;
                     }
                 }

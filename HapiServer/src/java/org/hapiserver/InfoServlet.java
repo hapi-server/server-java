@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.hapiserver.exceptions.BadIdException;
 
 /**
  * Info servlet describes a data set.
@@ -55,20 +54,23 @@ public class InfoServlet extends HttpServlet {
         response.setHeader("Access-Control-Allow-Origin", "* " );
         response.setHeader("Access-Control-Allow-Methods","GET" );
         response.setHeader("Access-Control-Allow-Headers","Content-Type" );
+
+        JSONObject jo;
+        try {
+            jo = HapiServerSupport.getInfo( HAPI_HOME, id );
+        } catch ( JSONException ex ) {
+            Util.raiseError( 1406, "HAPI error 1406: unknown dataset id", response, response.getOutputStream() );
+            return;
+        }
         
         try (PrintWriter out = response.getWriter()) {
-            try {
-                JSONObject jo= HapiServerSupport.getInfo( HAPI_HOME, id );
-                String parameters= request.getParameter("parameters");
-                if ( parameters!=null) {
-                    jo= Util.subsetParams(jo,parameters);
-                }
-                jo.setEscapeForwardSlashAlways(false);
-                String s= jo.toString(4);
-                out.write(s);
-            } catch ( BadIdException ex ) {
-                Util.raiseError( 1406, "HAPI error 1406: unknown dataset id", response, out);
+            String parameters= request.getParameter("parameters");
+            if ( parameters!=null) {
+                jo= Util.subsetParams(jo,parameters);
             }
+            jo.setEscapeForwardSlashAlways(false);
+            String s= jo.toString(4);
+            out.write(s);
         } catch ( JSONException ex ) {
             throw new ServletException(ex);
         }
