@@ -2,15 +2,15 @@
 package org.hapiserver;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import org.codehaus.jettison.json.JSONObject;
-import org.hapiserver.source.AbstractHapiRecordSource;
 import org.hapiserver.source.DailyHapiRecordSource;
-import org.hapiserver.source.SourceUtil;
 
 /**
- *
+ * The source registry will be used to look up the object used to
+ * service the data request.  This may be a Java class or a 
+ * Java class which wraps a Unix process.
+ * 
  * @author jbf
  */
 public class SourceRegistery {
