@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.hapiserver.exceptions.BadIdException;
 
 /**
  * Info servlet describes a data set.
@@ -58,9 +59,11 @@ public class InfoServlet extends HttpServlet {
         JSONObject jo;
         try {
             jo = HapiServerSupport.getInfo( HAPI_HOME, id );
-        } catch ( JSONException ex ) {
+        } catch ( BadIdException ex ) {
             Util.raiseError( 1406, "HAPI error 1406: unknown dataset id", response, response.getOutputStream() );
             return;
+        } catch ( JSONException ex ) {
+            throw new RuntimeException(ex);
         }
         
         try (PrintWriter out = response.getWriter()) {
