@@ -240,6 +240,7 @@ public class DataServlet extends HttpServlet {
         }
         
         boolean verify= true;
+        boolean sendHeader= include.equals("header");
         
         try {
             assert dsiter!=null;
@@ -251,18 +252,7 @@ public class DataServlet extends HttpServlet {
                 dataFormatter.initialize( jo, out, first );
                 
                 if ( verify ) {
-                    ByteArrayOutputStream testOut= new ByteArrayOutputStream(1024);
-                    dataFormatter.sendRecord( testOut, first);
-                    byte[] bb= testOut.toByteArray();
-                    try {
-                        int len= jo.getJSONArray("parameters").getJSONObject(0).getInt("length");
-                        if ( bb[len-1]!='Z' ) {
-                            logger.log(Level.WARNING,
-                                "time is not the correct length or Z is missing, expected Z at byte offset {0}", len);
-                        }
-                    } catch (JSONException ex) {
-                        Logger.getLogger(DataServlet.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                    doVerify(dataFormatter, first, jo);
                     verify= false;
                 }
                 
@@ -272,7 +262,7 @@ public class DataServlet extends HttpServlet {
         
                 if ( first.getIsoTime(0).compareTo( startTime )>=0 && first.getIsoTime(0).compareTo( stopTime )<0 ) {
                     if ( sentSomething==false ) {
-                        if ( include.equals("header") ) {
+                        if ( sendHeader ) {
                             try {
                                 sendHeader( jo, format, out);
                             } catch (JSONException | UnsupportedEncodingException ex) {
@@ -286,7 +276,17 @@ public class DataServlet extends HttpServlet {
                 while ( dsiter.hasNext() ) {
                     HapiRecord record= dsiter.next();
                     String isoTime= record.getIsoTime(0);
-                    if ( isoTime.compareTo( startTime )>=0 && isoTime.compareTo( stopTime )<0 ) {
+                    if ( isoTime.compareTo( startTime )>=0 && isoTime.compareTo( stopTime )<0 ) { //TODO: repeat code, consider do..while
+                        if ( sentSomething==false ) {
+                            if ( sendHeader ) {
+                                try {
+                                    sendHeader( jo, format, out);
+                                } catch (JSONException | UnsupportedEncodingException ex) {
+                                    logger.log(Level.SEVERE, null, ex);
+                                }
+                            }
+                            sentSomething= true;
+                        }
                         dataFormatter.sendRecord( out,record );
                     }
                 }
@@ -309,6 +309,28 @@ public class DataServlet extends HttpServlet {
         
         logger.log(Level.FINE, "request handled in {0} ms.", System.currentTimeMillis()-t0);
 
+    }
+
+    /**
+     * verify that the output of the data formatter is consistent with the info response.
+     * @param dataFormatter
+     * @param first
+     * @param jo
+     * @throws IOException 
+     */
+    private void doVerify(DataFormatter dataFormatter, HapiRecord first, JSONObject jo) throws IOException {
+        ByteArrayOutputStream testOut= new ByteArrayOutputStream(1024);
+        dataFormatter.sendRecord( testOut, first);
+        byte[] bb= testOut.toByteArray();
+        try {
+            int len= jo.getJSONArray("parameters").getJSONObject(0).getInt("length");
+            if ( bb[len-1]!='Z' ) {
+                logger.log(Level.WARNING,
+                    "time is not the correct length or Z is missing, expected Z at byte offset {0}", len);
+            }
+        } catch (JSONException ex) {
+            logger.log(Level.WARNING, null, ex);
+        }
     }
 
     private void sendHeader(JSONObject jo, String format, OutputStream out) throws JSONException, IOException, UnsupportedEncodingException {
