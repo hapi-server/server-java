@@ -13,11 +13,11 @@ import org.hapiserver.source.DailyHapiRecordSource;
  * 
  * @author jbf
  */
-public class SourceRegistery {
+public class SourceRegistry {
     
-    private static SourceRegistery instance= new SourceRegistery();
+    private static SourceRegistry instance= new SourceRegistry();
     
-    public static SourceRegistery getInstance() {
+    public static SourceRegistry getInstance() {
         return instance;
     }
     
