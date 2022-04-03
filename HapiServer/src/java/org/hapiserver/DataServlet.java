@@ -166,7 +166,8 @@ public class DataServlet extends HttpServlet {
                 if ( id.equals("wind_swe_2m") ) {
                     dsiter= new WindSwe2mIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
                 } else {
-                    HapiRecordSource source= SourceRegistery.getInstance().getSource(id);
+                    HapiRecordSource source= SourceRegistery.getInstance().getSource(id, jo);
+                    
                     if ( source.hasGranuleIterator() ) {
                         dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr) );
                     } else {

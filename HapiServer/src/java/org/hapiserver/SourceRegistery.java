@@ -4,6 +4,7 @@ package org.hapiserver;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.source.AbstractHapiRecordSource;
 import org.hapiserver.source.DailyHapiRecordSource;
 import org.hapiserver.source.SourceUtil;
@@ -25,15 +26,28 @@ public class SourceRegistery {
     /**
      * return the record source for the id.
      * @param id the HAPI id
+     * @param info the info for the data
      * @return null or the record source
      */
-    public HapiRecordSource getSource( String id ) {
-        if ( id.equals("28.FF6319A21705") ) {
-            String s= "/home/jbf/data/gardenhouse/data/28.FF6319A21705/" + 
-                "%1$04d/28.FF6319A21705.%1$04d%2$02d%3$02d.csv" ;
-            return new DailyHapiRecordSource(s,2,2);
+    public HapiRecordSource getSource( String id, JSONObject info ) {
+        String source= info.optString( "x_source", "" );
+        if ( source.length()==0 ) {
+            if ( id.equals("28.FF6319A21705_") ) {
+                String s= "/home/jbf/data/gardenhouse/data/28.FF6319A21705/" + 
+                    "%1$04d/28.FF6319A21705.%1$04d%2$02d%3$02d.csv" ;
+                return new DailyHapiRecordSource(s,2,2);
+            } else {
+                return sources.get(id);
+            }
         } else {
-            return sources.get(id);
+            if ( source.startsWith("aggregation:") ) {
+                String agg= source.substring(12);
+                int nfields= info.optJSONArray("parameters").length();
+                if ( nfields==0 ) throw new IllegalArgumentException("no parameters found");
+                return DailyHapiRecordSource.fromAggregation(agg,nfields);
+            } else {
+                throw new IllegalArgumentException("unable to handle source");
+            }
         }
     }
     

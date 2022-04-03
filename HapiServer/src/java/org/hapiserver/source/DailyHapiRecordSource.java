@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import org.hapiserver.AbstractHapiRecord;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.HapiRecordSource;
 import org.hapiserver.TimeUtil;
 
 /**
@@ -14,6 +15,57 @@ import org.hapiserver.TimeUtil;
  * @author jbf
  */
 public class DailyHapiRecordSource extends AbstractHapiRecordSource {
+
+    /**
+     * take a string like "/tmp/$Y/$Y$m$d.csv" and convert it into a
+     * template used with String.format, so that DailyHapiRecordSource 
+     * can be used.  Note this does not support all of the aggregations
+     * possible with URI_Templates, only $Y, $m, $d, $H, $M, $S are
+     * allowed, and only CSV-formatted files which match the info
+     * response are allowed.  Also, $(Y;end) $(m;end) $(d;end) are supported.
+     * 
+     * String ins= "$Y/28.FF6319A21705.$Y$m$d.csv" ;
+     * String out= "%1$04d/28.FF6319A21705.%1$04d%2$02d%3$02d.csv" ;
+     * @param agg
+     * @param nfield number of fields in each file
+     * @return 
+     */
+    public static HapiRecordSource fromAggregation(String agg,int nfield) {
+        String[] ss= agg.split("\\$",-2);
+        StringBuilder build= new StringBuilder(ss[0]);
+        boolean end=false;
+        boolean begin=!end;
+        int resolution= -1;
+        String nonCodeStuff;
+        
+        for ( int i=1; i<ss.length; i++ ) {
+            String s= ss[i];
+            if ( s.length()==0 ) throw new IllegalArgumentException("$$ cannot be in template");
+            char c= s.charAt(0);
+            if ( c=='(' ) {
+                if ( s.length()==7 && s.substring(2,7).equals(";end)") ) {
+                    begin= false;
+                    c= s.charAt(1);
+                    nonCodeStuff= s.substring(7);
+                } else {
+                    throw new IllegalArgumentException("unable to parse parenthesis with "+s);
+                }
+            } else {
+                nonCodeStuff= s.substring(1);
+            }
+            switch ( c ) {
+                case 'Y': build.append( begin ? "%1$04d" : "%8$04d"); resolution=Math.max(0,resolution); break;
+                case 'm': build.append( begin ? "%2$02d" : "%9$02d"); resolution=Math.max(1,resolution); break;
+                case 'd': build.append( begin ? "%3$02d" : "%10$02d"); resolution=Math.max(2,resolution); break;
+                case 'H': build.append( begin ? "%4$02d" : "%11$02d"); resolution=Math.max(3,resolution); break;
+                case 'M': build.append( begin ? "%5$02d" : "%12$02d"); resolution=Math.max(5,resolution); break;
+                case 'S': build.append( begin ? "%6$02d" : "%13$02d"); resolution=Math.max(5,resolution); break;
+            }
+            build.append(nonCodeStuff);
+        }
+        
+        return new DailyHapiRecordSource( build.toString(), nfield, resolution );
+    }
 
     String fileFormat;
     int digit;
