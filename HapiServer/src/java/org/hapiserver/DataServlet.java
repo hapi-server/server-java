@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -150,76 +152,55 @@ public class DataServlet extends HttpServlet {
         //    out= new IdleClockOutputStream(out);
         //}
                 
-        File[] dataFiles= null; // cached data files
         dsiter= null;
         
         // allowCache code was here
         
-        logger.log(Level.FINE, "dataFiles(one): {0}", dataFiles);
-        
-        assert dataFiles==null; // caching is disabled
-        if ( dataFiles==null ) {
-            try {
-                logger.log(Level.FINER, "data files is null at {0} ms.", System.currentTimeMillis()-t0);
-                //dsiter= checkAutoplotSource( id, dr, allowStream );
-                
-                if ( id.equals("wind_swe_2m") ) {
-                    dsiter= new WindSwe2mIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
-                } else {
-                    HapiRecordSource source= SourceRegistry.getInstance().getSource(jo, id);
-                    
-                    if ( source.hasGranuleIterator() ) {
-                        dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr) );
-                    } else {
-                        dsiter= source.getIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
-                    }
-                    
-                    if ( dsiter==null ) {
-                        Util.raiseError( 1500, "HAPI error 1500: internal server error, id has no reader " + id, 
-                            response, response.getOutputStream() );
-                        return;
+        try {
+            logger.log(Level.FINER, "data files is null at {0} ms.", System.currentTimeMillis()-t0);
+            //dsiter= checkAutoplotSource( id, dr, allowStream );
+
+            if ( id.equals("wind_swe_2m") ) {
+                dsiter= new WindSwe2mIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
+            } else {
+                HapiRecordSource source= SourceRegistry.getInstance().getSource(jo, id);
+
+                String ifModifiedSince= request.getHeader("If-Modified-Since");
+
+                if ( ifModifiedSince!=null ) {
+                    String ts= source.getTimeStamp( dr, ExtendedTimeUtil.getStopTime(dr) );
+                    if ( ts!=null ) { // this will often be null.
+                        String clientModifiedTime= parseTime(ifModifiedSince);
+                        if ( clientModifiedTime.compareTo(ts)>=0 ) {
+                            response.setStatus( HttpServletResponse.SC_NOT_MODIFIED ); //304
+                            out.close();
+                            return;
+                        }
                     }
                 }
-                
-                logger.log(Level.FINER, "have dsiter {0} ms.", System.currentTimeMillis()-t0);
-            } catch ( Exception ex ) {
-                throw new IllegalArgumentException("Exception thrown by data read", ex);
+
+                if ( source.hasGranuleIterator() ) {
+                    dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr) );
+                } else {
+                    dsiter= source.getIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
+                }
+
+                if ( dsiter==null ) {
+                    Util.raiseError( 1500, "HAPI error 1500: internal server error, id has no reader " + id, 
+                        response, response.getOutputStream() );
+                    return;
+                }
             }
+
+            logger.log(Level.FINER, "have dsiter {0} ms.", System.currentTimeMillis()-t0);
+        } catch ( Exception ex ) {
+            throw new IllegalArgumentException("Exception thrown by data read", ex);
         }
         
-        logger.log(Level.FINE, "dataFiles(two): {0}", dataFiles);
         logger.log(Level.FINE, "dsiter: {0}", dsiter);
         
         boolean sentSomething= false;
-        
-        assert dataFiles==null; // caching is disabled
-        if ( dataFiles!=null ) {
-//            // implement if-modified-since logic, where a 302 can be used instead of expensive data response.
-//            String ifModifiedSince= request.getHeader("If-Modified-Since");
-//            logger.log(Level.FINE, "If-Modified-Since: {0}", ifModifiedSince);
-//            if ( ifModifiedSince!=null ) {
-//                try {
-//                    long requestIfModifiedSinceMs1970= parseTime(ifModifiedSince);
-//                    boolean can304= true;
-//                    for ( File f: dataFiles ) {
-//                        if ( f.lastModified()-requestIfModifiedSinceMs1970 > 0 ) {
-//                            logger.log(Level.FINER, "file is newer than ifModifiedSince header: {0}", f);
-//                            can304= false;
-//                        }
-//                    }
-//                    logger.log(Level.FINE, "If-Modified-Since allows 304 response: {0}", can304);
-//                    if ( can304 ) {
-//                        response.setStatus( HttpServletResponse.SC_NOT_MODIFIED ); //304
-//                        out.close();
-//                        return;
-//                    }
-//                } catch ( ParseException ex ) {
-//                    response.setHeader("X-WARNING-IF-MODIFIED-SINCE", "date cannot be parsed.");
-//                }
-//
-//            }
-        }
-        
+                
         response.setStatus( HttpServletResponse.SC_OK );
                 
         JSONObject jo0;
@@ -350,6 +331,32 @@ public class DataServlet extends HttpServlet {
             out.write( s.getBytes("UTF-8") );
             out.write( (char)10 );
         }
+    }
+    
+        
+    /**
+     * parse RFC 822, RFC 850, and asctime format.
+     * @return the time in milliseconds since 1970-01-01T00:00Z.
+     */
+    private static String parseTime(String str) throws ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat( "EEE, dd MMM yyyy HH:mm:ss z");
+        Date result;
+        try {
+            result= dateFormat.parse(str);
+        } catch ( ParseException ex ) {
+            dateFormat = new SimpleDateFormat( "EEE MMM dd HH:mm:ss yyyy" );
+            try {
+                result= dateFormat.parse(str);
+            } catch ( ParseException ex2 ) {
+                dateFormat = new SimpleDateFormat( "E, dd-MMM-yyyy HH:mm:ss z" );
+                try {
+                    result= dateFormat.parse(str);
+                } catch ( ParseException ex3 ) {
+                    return str;
+                }
+            }
+        }
+        return ExtendedTimeUtil.fromMillisecondsSince1970(result.getTime());
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
