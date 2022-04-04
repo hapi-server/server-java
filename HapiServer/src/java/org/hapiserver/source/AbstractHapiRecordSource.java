@@ -17,18 +17,22 @@ public abstract class AbstractHapiRecordSource implements HapiRecordSource {
     }
 
     @Override
-    public abstract Iterator<int[]> getGranuleIterator(int[] start, int[] stop);
+    public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
+        throw new UnsupportedOperationException("not used");
+    }
 
     @Override
     public boolean hasParamSubsetIterator() {
-        return false;
+        return true;
     }
 
     @Override
     public abstract Iterator<HapiRecord> getIterator(String[] params, int[] start, int[] stop);
 
     @Override
-    public abstract Iterator<HapiRecord> getIterator(int[] start, int[] stop);
+    public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
+        throw new UnsupportedOperationException("not used");
+    }
 
     @Override
     public String getTimeStamp(int[] start, int[] stop) {

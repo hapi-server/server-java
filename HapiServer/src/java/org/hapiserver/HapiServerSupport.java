@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.exceptions.BadIdException;
@@ -353,4 +354,42 @@ public class HapiServerSupport {
 //        }
 //    }
     
+    /**
+     * combine the parameters into a comma-delimited string, also checking for validity.  The parameters
+     * must be a subset of the parameters found in info, and must be in the same order.
+     * @param info the JSONObject for the server
+     * @param params array of parameter names
+     * @return comma-delimited string, including the time if it wasn't found
+     * @throws RuntimeException
+     */
+    public static String joinParams( JSONObject info, String[] params )  {
+        try {
+            JSONArray jsonArray= info.getJSONArray("parameters");
+            JSONObject time= jsonArray.getJSONObject(0);
+            StringBuilder build= new StringBuilder();
+            int i=1;
+            int iparam=0;
+            if ( params.length==0 || params[0].equals(time.getString("name")) ) {
+                build.append(time.getString("name"));
+                i=0;
+            } else {
+                build.append(params[0]);
+                iparam++;
+            }
+            for ( ; i<params.length; i++ ) {
+                if ( params[i].contains(",") ) throw new IllegalArgumentException("parameter contains comma: "+params[i]);
+                while ( iparam<params.length && !params[i].equals(jsonArray.getJSONObject(iparam).getString("name")) ) {
+                    iparam++;
+                }
+                if ( iparam==params.length ) throw new IllegalArgumentException("parameter not found: "+params[i]);
+                build.append(",");
+                build.append(params[i]);
+                iparam++;
+            }
+            return build.toString();
+
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 }
