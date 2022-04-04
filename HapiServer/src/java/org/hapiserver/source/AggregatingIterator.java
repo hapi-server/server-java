@@ -59,28 +59,28 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
     private void findNextRecord() {
         while ( !this.hapiRecordIterator.hasNext() ) {
             if ( !granuleIterator.hasNext() ) {
-                this.granule=null; // we're done
+                granule=null; // we're done
                 break;
             } else {
-                this.granule= granuleIterator.next();
+                granule= granuleIterator.next();
             }
             if ( this.parameters==null ) {
-                this.hapiRecordIterator= source.getIterator( this.granule, ExtendedTimeUtil.getStopTime(this.granule) );
+                hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule) );
             } else {
-                this.hapiRecordIterator= source.getIterator(                    this.granule, ExtendedTimeUtil.getStopTime(this.granule), this.parameters );
+                hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule), parameters );
             }
         }
     }
     
     @Override
     public boolean hasNext() {
-        return this.granule!=null && this.hapiRecordIterator.hasNext();
+        return granule!=null && hapiRecordIterator.hasNext();
     }
 
     @Override
     public HapiRecord next() {
-        HapiRecord next= this.hapiRecordIterator.next();
-        if ( !this.hapiRecordIterator.hasNext() ) {
+        HapiRecord next= hapiRecordIterator.next();
+        if ( !hapiRecordIterator.hasNext() ) {
             findNextRecord();
         }
         return next;
