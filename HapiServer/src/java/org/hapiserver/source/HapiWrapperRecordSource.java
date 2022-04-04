@@ -1,17 +1,12 @@
 
 package org.hapiserver.source;
 
-import java.io.IOException;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.HapiRecord;
-import org.hapiserver.HapiServerSupport;
 
 /**
- *
+ * RecordSource which simply wraps another HAPI server.
  * @author jbf
  */
 public class HapiWrapperRecordSource extends AbstractHapiRecordSource {
@@ -32,7 +27,7 @@ public class HapiWrapperRecordSource extends AbstractHapiRecordSource {
     }
     
     @Override
-    public Iterator<HapiRecord> getIterator(String[] params, int[] start, int[] stop) {
+    public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
         return new HapiWrapperIterator( hapiServer, id, info, params, start, stop );
     }
 

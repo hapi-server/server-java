@@ -19,14 +19,37 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
     int[] granule;
     Iterator<int[]> granuleIterator;
     Iterator<HapiRecord> hapiRecordIterator;
+    String[] parameters;
     HapiRecordSource source;
     
+    /**
+     * construct an iterator which will use the source create and go through a set of iterators, one for each granule.
+     * @param source the source of data
+     * @param start the start time
+     * @param stop the stop time
+     */
     public AggregatingIterator( HapiRecordSource source, int[] start, int[] stop ) {
+        this( source, start, stop, null );
+    }
+    
+    /**
+     * construct an iterator which will use the source create and go through a set of iterators, one for each granule.
+     * @param source the source of data
+     * @param start the start time
+     * @param stop the stop time
+     * @param parameters null or the parameters to subset.
+     */
+    public AggregatingIterator( HapiRecordSource source, int[] start, int[] stop, String[] parameters ) {
         this.source= source;
         this.granuleIterator= source.getGranuleIterator(start, stop);
+        this.parameters= parameters;
         if ( granuleIterator.hasNext() ) {
             this.granule= granuleIterator.next();
-            this.hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule) );
+            if ( this.parameters==null ) {
+                this.hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule) );
+            } else {
+                this.hapiRecordIterator= source.getIterator(granule, ExtendedTimeUtil.getStopTime(granule), this.parameters );
+            }
             findNextRecord();
         } else {
             this.granule= null;
@@ -41,7 +64,11 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
             } else {
                 this.granule= granuleIterator.next();
             }
-            this.hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule) );
+            if ( this.parameters==null ) {
+                this.hapiRecordIterator= source.getIterator( this.granule, ExtendedTimeUtil.getStopTime(this.granule) );
+            } else {
+                this.hapiRecordIterator= source.getIterator(                    this.granule, ExtendedTimeUtil.getStopTime(this.granule), this.parameters );
+            }
         }
     }
     

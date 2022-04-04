@@ -108,7 +108,7 @@ public class DailyHapiRecordSource extends AbstractHapiRecordSource {
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(String[] params, int[] start, int[] stop) {
+    public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
         throw new IllegalArgumentException("not supported");
     }
 

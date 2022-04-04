@@ -34,12 +34,12 @@ public interface HapiRecordSource {
     
     /**
      * return the iterator the subsets the parameters, or throw an IllegalArgumentException when this is not supported.
-     * @param params
      * @param start
      * @param stop
+     * @param params
      * @return the iterator
      */
-    public Iterator<HapiRecord> getIterator( String[] params, int[] start, int[] stop );
+    public Iterator<HapiRecord> getIterator( int[] start, int[] stop, String[] params);
     
     /**
      * return the iterator that returns all the parameters, or throw an IllegalArgumentException when this is not supported.

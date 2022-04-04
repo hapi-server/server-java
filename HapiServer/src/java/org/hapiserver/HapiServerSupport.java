@@ -355,6 +355,32 @@ public class HapiServerSupport {
 //    }
     
     /**
+     * split the parameters into an array of parameters, adding time when it is implicit.
+     * @param info
+     * @param parameters
+     * @return 
+     */
+    public static String[] splitParams( JSONObject info, String parameters )  {
+        String[] ss= parameters.split(",");
+        try {
+            JSONArray jsonArray= info.getJSONArray("parameters");
+            JSONObject time= jsonArray.getJSONObject(0);
+            if ( ss[0].equals(time.getString("name") ) ) {
+                return ss;
+            } else {
+                String[] result= new String[ss.length+1];
+                result[0]= time.getString("name");
+                System.arraycopy( ss, 0, result, 1, ss.length );
+                return result;
+            }
+
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+
+    }
+    
+    /**
      * combine the parameters into a comma-delimited string, also checking for validity.  The parameters
      * must be a subset of the parameters found in info, and must be in the same order.
      * @param info the JSONObject for the server
@@ -369,12 +395,13 @@ public class HapiServerSupport {
             StringBuilder build= new StringBuilder();
             int i=1;
             int iparam=0;
-            if ( params.length==0 || params[0].equals(time.getString("name")) ) {
-                build.append(time.getString("name"));
-                i=0;
-            } else {
+            if ( params[0].equals(time.getString("name")) ) {
                 build.append(params[0]);
                 iparam++;
+                i=1;
+            } else {
+                build.append(time.getString("name"));
+                i=0;
             }
             for ( ; i<params.length; i++ ) {
                 if ( params[i].contains(",") ) throw new IllegalArgumentException("parameter contains comma: "+params[i]);

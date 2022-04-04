@@ -27,7 +27,7 @@ public abstract class AbstractHapiRecordSource implements HapiRecordSource {
     }
 
     @Override
-    public abstract Iterator<HapiRecord> getIterator(String[] params, int[] start, int[] stop);
+    public abstract Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params);
 
     @Override
     public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {

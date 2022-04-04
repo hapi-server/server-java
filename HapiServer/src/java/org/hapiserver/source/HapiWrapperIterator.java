@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.CSVHapiRecord;
@@ -17,6 +18,7 @@ import org.hapiserver.CSVHapiRecordConverter;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiServerSupport;
 import org.hapiserver.TimeUtil;
+import org.hapiserver.Util;
 
 /**
  * Use another HAPI server as a source of HapiRecords.
@@ -24,6 +26,8 @@ import org.hapiserver.TimeUtil;
  */
 public class HapiWrapperIterator implements Iterator<HapiRecord> {
 
+    private static Logger logger= Util.getLogger();
+    
     boolean initialized= false;
     
     String server;
@@ -42,13 +46,23 @@ public class HapiWrapperIterator implements Iterator<HapiRecord> {
         this.info= info;
         this.params= params;
         String surl;
+        try {
+            JSONArray parameters= info.getJSONArray("parameters");
+            if ( parameters.length()!=params.length ) {
+                this.info= Util.subsetParams( info, HapiServerSupport.joinParams( info, params ) );
+            }
+        } catch (JSONException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
+        
         if ( params==null ) {
             surl= String.format( "%s/data?id=%s&time.min=%s&time.max=%s", 
                 server, id, TimeUtil.formatIso8601Time(start), TimeUtil.formatIso8601Time(stop) );
         } else {
             String sparams= HapiServerSupport.joinParams(info,params);
-            surl= String.format( "%s/data?id=%s&time.min=%s&time.max=%s&params=%s", 
+            surl= String.format( "%s/data?id=%s&time.min=%s&time.max=%s&parameters=%s", 
                 server, id, TimeUtil.formatIso8601Time(start), TimeUtil.formatIso8601Time(stop), sparams );
+            logger.log(Level.INFO, "upstream url: {0}", surl);
         }
         try {
             request= new URL( surl );
