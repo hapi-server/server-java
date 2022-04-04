@@ -153,6 +153,7 @@ public class DataServlet extends HttpServlet {
         //}
                 
         dsiter= null;
+        boolean dataNeedsParameterSubsetting;
         
         // allowCache code was here
         
@@ -162,6 +163,8 @@ public class DataServlet extends HttpServlet {
 
             if ( id.equals("wind_swe_2m") ) {
                 dsiter= new WindSwe2mIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
+                dataNeedsParameterSubsetting= true;
+                
             } else {
                 HapiRecordSource source= SourceRegistry.getInstance().getSource(jo, id);
 
@@ -178,13 +181,34 @@ public class DataServlet extends HttpServlet {
                         }
                     }
                 }
-
-                if ( source.hasGranuleIterator() ) {
-                    dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr) );
+                
+                if ( parameters.equals("") ) {
+                    dataNeedsParameterSubsetting= false;                    
+                    if ( source.hasGranuleIterator() ) {
+                        dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr) );
+                    } else {
+                        dsiter= source.getIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
+                    }
                 } else {
-                    dsiter= source.getIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
+                    if ( source.hasParamSubsetIterator() ) {
+                        dataNeedsParameterSubsetting= false;
+                        String[] parametersSplit= HapiServerSupport.splitParams( jo, parameters );
+                        if ( source.hasGranuleIterator() ) {
+                            dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr), parametersSplit );
+                        } else {
+                            dsiter= source.getIterator(dr, ExtendedTimeUtil.getStopTime(dr), parametersSplit );
+                        }                    
+                    } else {
+                        dataNeedsParameterSubsetting= true;                    
+                        if ( source.hasGranuleIterator() ) {
+                            dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr) );
+                        } else {
+                            dsiter= source.getIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
+                        }
+                    }
+                    
                 }
-
+                    
                 if ( dsiter==null ) {
                     Util.raiseError( 1500, "HAPI error 1500: internal server error, id has no reader " + id, 
                         response, response.getOutputStream() );
@@ -197,6 +221,7 @@ public class DataServlet extends HttpServlet {
             throw new IllegalArgumentException("Exception thrown by data read", ex);
         }
         
+        assert dsiter!=null;
         logger.log(Level.FINE, "dsiter: {0}", dsiter);
         
         boolean sentSomething= false;
@@ -213,7 +238,7 @@ public class DataServlet extends HttpServlet {
             if ( !parameters.equals("") ) {
                 jo= Util.subsetParams( jo0, parameters );
                 indexMap= (int[])jo.get("x_indexmap");
-                if ( dsiter!=null ) {
+                if ( dataNeedsParameterSubsetting ) {
                     dsiter= new SubsetFieldsDataSetIterator( dsiter, indexMap );
                 }
             } else {
