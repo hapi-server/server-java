@@ -12,7 +12,7 @@ public class CSVHapiRecord implements HapiRecord {
         
     String[] fields;
     Map<Integer,Integer> indexMap;
-
+    
     public CSVHapiRecord( JSONObject info, String[] fields ) {
         this.fields= fields;   
     }

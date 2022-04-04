@@ -71,9 +71,14 @@ public class CsvDataFormatter implements DataFormatter {
                     case "isotime": 
                         types[i]= TYPE_ISOTIME; 
                         String field= record.getIsoTime(i);
-                        if ( field.length()!=lengths[i] ) 
-                            throw new RuntimeException( String.format( "length of field is in correct, should be %d but is %d", 
+                        if ( field.length()!=lengths[i] ) {
+                            if ( field.length()==lengths[i]-1 && field.charAt(field.length()-1)!='Z' ) {
+                                field= field+"Z";
+                            } else {
+                                throw new RuntimeException( String.format( "length of field is in correct, should be %d but is %d", 
                                                                        lengths[i], field.length() ));
+                            }
+                        }
                         if ( field.charAt(lengths[i]-1)!='Z' ) throw new RuntimeException("isotime should end in Z");
                         break;
                     case "double": {
