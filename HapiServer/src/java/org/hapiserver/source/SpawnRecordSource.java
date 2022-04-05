@@ -11,6 +11,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.CSVHapiRecordConverter;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
+import org.hapiserver.HapiServerSupport;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.Util;
 
@@ -94,34 +95,42 @@ public class SpawnRecordSource implements HapiRecordSource {
          */
         public SpawnRecordSourceIterator( String hapiHome, String id, JSONObject info, String command, int[] start, int[] stop, String[] params ) {
             try {
-                String[] ss= command.split("\\s+");
+                String[] ss= command.split("\\$\\{");
                 for ( int i=0; i<ss.length; i++ ) {
-                    switch (ss[i]) {
-                        case "${parameters}":
-                            if ( params==null ) throw new IllegalArgumentException("parameters found in command, server implementation error");
-                            ss[i]= String.join(",",params);
-                            break;
-                        case "${id}":
-                            if ( params==null ) throw new IllegalArgumentException("parameters found in command, server implementation error");
-                            if ( !Util.constrainedId(id) ) throw new IllegalArgumentException("id is not conformant");
-                            ss[i]= id;
-                            break;
-                        case "${start}":
-                            ss[i]= TimeUtil.formatIso8601Time( start );
-                            break;
-                        case "${stop}":
-                            ss[i]= TimeUtil.formatIso8601Time( stop );
-                            break;
-                        case "${format}":
-                            ss[i]= "csv";
-                            break;
-                        default:
-                            break;
-                    }
-                    if ( ss[i].contains("${HAPI_HOME}") ) {
-                        ss[i]= ss[i].replaceAll("\\$\\{HAPI_HOME}", hapiHome );
+                    String s1= ss[i];
+                    if ( s1.startsWith("start") ) {
+                        if ( s1.length()>5 && s1.charAt(5)=='}' ) {
+                            ss[i]= TimeUtil.formatIso8601Time( start ) + ss[i].substring(6);
+                        } else {
+                            throw new IllegalArgumentException("not supported: "+command);
+                        }
+                    } else if ( s1.startsWith("stop") ) {
+                        if ( s1.length()>4 && s1.charAt(4)=='}' ) {
+                            ss[i]= TimeUtil.formatIso8601Time( stop ) + ss[i].substring(5);
+                        } else {
+                            throw new IllegalArgumentException("not supported: "+command);
+                        }
+                    } else if ( s1.startsWith("parameters}") ) {
+                        if ( params==null ) throw new IllegalArgumentException("parameters found in command, server implementation error");
+                        ss[i]= HapiServerSupport.joinParams( info, params ) + s1.substring(11);
+                        
+                    } else if ( s1.startsWith("id}") ) {
+                        if ( !Util.constrainedId(id) ) throw new IllegalArgumentException("id is not conformant");
+                        ss[i]= id + s1.substring(3);
+                        
+                    } else if ( s1.startsWith("format}" ) ) {
+                        ss[i]= "csv" + s1.substring(7); // we always parse and reformat, and output must be csv for now
+                        
+                    } else if ( s1.startsWith("HAPI_HOME}" ) ) {
+                        ss[i]= hapiHome + s1.substring(10);
+                        
                     }
                 }
+                
+                command= String.join("",ss);
+                
+                ss= command.split("\\s+");
+                
                 ProcessBuilder pb= new ProcessBuilder( ss );
                 process= pb.start();
                 reader= new BufferedReader( new InputStreamReader( process.getInputStream() ) );
