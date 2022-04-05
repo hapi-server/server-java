@@ -48,7 +48,7 @@ public class HapiWrapperIterator implements Iterator<HapiRecord> {
         String surl;
         try {
             JSONArray parameters= info.getJSONArray("parameters");
-            if ( parameters.length()!=params.length ) {
+            if ( params!=null && parameters.length()!=params.length ) {
                 this.info= Util.subsetParams( info, HapiServerSupport.joinParams( info, params ) );
             }
         } catch (JSONException ex) {
