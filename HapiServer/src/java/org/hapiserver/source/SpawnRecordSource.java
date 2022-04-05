@@ -102,7 +102,11 @@ public class SpawnRecordSource implements HapiRecordSource {
                         if ( s1.length()>5 && s1.charAt(5)=='}' ) {
                             ss[i]= TimeUtil.formatIso8601Time( start ) + ss[i].substring(6);
                         } else {
-                            throw new IllegalArgumentException("not supported: "+command);
+                            if ( s1.substring(5).startsWith(";format=" ) ) {
+                                throw new IllegalArgumentException("should this support URI_Templates? Wait until JS version...");
+                            } else {
+                                throw new IllegalArgumentException("not supported: "+command);
+                            }
                         }
                     } else if ( s1.startsWith("stop") ) {
                         if ( s1.length()>4 && s1.charAt(4)=='}' ) {
