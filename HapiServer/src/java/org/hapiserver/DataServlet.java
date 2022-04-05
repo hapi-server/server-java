@@ -183,11 +183,21 @@ public class DataServlet extends HttpServlet {
                 }
                 
                 if ( parameters.equals("") ) {
-                    dataNeedsParameterSubsetting= false;                    
-                    if ( source.hasGranuleIterator() ) {
-                        dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr) );
+                    if ( source.hasParamSubsetIterator() ) {
+                        String[] parametersArray= HapiServerSupport.getAllParameters( jo );
+                        dataNeedsParameterSubsetting= false;
+                        if ( source.hasGranuleIterator() ) {
+                            dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr), parametersArray );
+                        } else {
+                            dsiter= source.getIterator( dr, ExtendedTimeUtil.getStopTime(dr), parametersArray );
+                        }
                     } else {
-                        dsiter= source.getIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
+                        dataNeedsParameterSubsetting= false;                    
+                        if ( source.hasGranuleIterator() ) {
+                            dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr) );
+                        } else {
+                            dsiter= source.getIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
+                        }
                     }
                 } else {
                     if ( source.hasParamSubsetIterator() ) {
