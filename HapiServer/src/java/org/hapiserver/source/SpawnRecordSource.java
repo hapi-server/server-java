@@ -139,8 +139,6 @@ public class SpawnRecordSource implements HapiRecordSource {
                 
                 command= String.join("",ss);
                 
-                System.err.println("command: "+command );
-                
                 ss= command.split("\\s+");
                 
                 ProcessBuilder pb= new ProcessBuilder( ss );
