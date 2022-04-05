@@ -361,4 +361,25 @@ public class Util {
     public static Logger getLogger() {
         return logger;
     }
+
+    /**
+     * returns true if the id is safe to include in a unix command,
+     * not containing spaces or ..
+     * @param id
+     * @return 
+     */
+    public static boolean constrainedId(String id) {
+        if ( id.length()==0 ) {
+            throw new IllegalArgumentException("dataset id length is zero");
+        } else {
+            if ( Pattern.compile("[a-zA-Z0-9.,_.~/:]+").matcher(id).matches() ) {
+                if ( id.contains("..") ) {
+                    throw new IllegalArgumentException("dataset id cannot contain ..");
+                }
+                return true;
+            } else {
+                throw new IllegalArgumentException("must match [a-zA-Z0-9.,_.~/:]+");
+            }
+        }
+    }
 }

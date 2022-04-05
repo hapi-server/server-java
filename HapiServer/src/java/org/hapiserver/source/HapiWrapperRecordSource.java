@@ -11,12 +11,18 @@ import org.hapiserver.HapiRecord;
  */
 public class HapiWrapperRecordSource extends AbstractHapiRecordSource {
 
-    private String hapiServer;
-    private String id;
-    private JSONObject info;
+    private final String hapiServer;
+    private final String id;
+    private final JSONObject info;
     
-    public HapiWrapperRecordSource( JSONObject info, String hapiServer, String id ) {
-        this.hapiServer= hapiServer;
+    public HapiWrapperRecordSource( String id, JSONObject info, String source )  {
+        String hapiServ = source.substring(11);
+        int i= hapiServ.indexOf("/info?id=");
+        if ( i!=-1 ) {
+            id= hapiServ.substring(i+9);
+            hapiServ= hapiServ.substring(0,i);
+        }
+        this.hapiServer= hapiServ;
         this.id= id;
         this.info= info;
     }

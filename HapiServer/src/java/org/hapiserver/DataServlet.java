@@ -166,7 +166,7 @@ public class DataServlet extends HttpServlet {
                 dataNeedsParameterSubsetting= true;
                 
             } else {
-                HapiRecordSource source= SourceRegistry.getInstance().getSource(jo, id);
+                HapiRecordSource source= SourceRegistry.getInstance().getSource(HAPI_HOME, id, jo);
 
                 String ifModifiedSince= request.getHeader("If-Modified-Since");
 

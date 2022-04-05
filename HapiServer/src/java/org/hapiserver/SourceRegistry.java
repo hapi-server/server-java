@@ -6,6 +6,7 @@ import java.util.Map;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.source.DailyHapiRecordSource;
 import org.hapiserver.source.HapiWrapperRecordSource;
+import org.hapiserver.source.SpawnRecordSource;
 
 /**
  * The source registry will be used to look up the object used to
@@ -30,11 +31,12 @@ public class SourceRegistry {
      * <li>aggregation:... to aggregation of complete CSV records
      * <li>hapiserver:... data is provided by another server.
      * </ul>
+     * @param hapiHome the root of the hapi server configuration, containing files like "catalog.json" 
      * @param info the info for the data
      * @param id the HAPI id
      * @return null or the record source
      */
-    public HapiRecordSource getSource( JSONObject info, String id ) {
+    public HapiRecordSource getSource( String hapiHome, String id, JSONObject info) {
         String source= info.optString( "x_source", "" );
         if ( source.length()==0 ) {
             if ( id.equals("28.FF6319A21705_") ) {
@@ -51,13 +53,9 @@ public class SourceRegistry {
                 if ( nfields==0 ) throw new IllegalArgumentException("no parameters found");
                 return DailyHapiRecordSource.fromAggregation(agg,nfields);
             } else if ( source.startsWith("hapiserver:") ) {
-                String agg= source.substring(11);
-                int i= agg.indexOf("/info?id=");
-                if ( i!=-1 ) {
-                    id= agg.substring(i+9);
-                    agg= agg.substring(0,i);
-                }
-                return new HapiWrapperRecordSource( info, agg, id );
+                return new HapiWrapperRecordSource( id, info, source );
+            } else if ( source.startsWith("spawn:") ) {
+                return new SpawnRecordSource( hapiHome, id, info, source );
             } else {
                 throw new IllegalArgumentException("unable to handle source");
             }

@@ -29,7 +29,7 @@ public class DailyHapiRecordSource extends AbstractHapiRecordSource {
      * String out= "%1$04d/28.FF6319A21705.%1$04d%2$02d%3$02d.csv" ;
      * @param agg the aggregation specification.
      * @param nfield number of fields in each file
-     * @return 
+     * @return the HapiRecordSource
      */
     public static HapiRecordSource fromAggregation(String agg,int nfield) {
         String[] ss= agg.split("\\$",-2);
@@ -74,8 +74,8 @@ public class DailyHapiRecordSource extends AbstractHapiRecordSource {
     
     /**
      * create a RecordSource which iterates through the records in the daily pre-formatted CSV files.
-     * @param fileFormat
-     * @param nfield the number of fields
+     * @param fileFormat the file format, such as "%1$04d/28.FF6319A21705.%1$04d%2$02d%3$02d.csv"
+     * @param nfield the number of fields in each record
      */
     public DailyHapiRecordSource( String fileFormat, int nfield ) {
         this( fileFormat, 2, nfield );
@@ -83,9 +83,9 @@ public class DailyHapiRecordSource extends AbstractHapiRecordSource {
     
     /**
      * create a RecordSource  which iterates through the records in the pre-formatted CSV file.
-     * @param fileFormat
-     * @param digit
-     * @param nfield 
+     * @param fileFormat the file format, such as "%1$04d/28.FF6319A21705.%1$04d%2$02d%3$02d.csv"
+     * @param digit the size of each granule, for example 0 means yearly, 1 means monthly, 2 means daily, etc.
+     * @param nfield the number of fields in each record
      */
     public DailyHapiRecordSource( String fileFormat, int digit, int nfield ) {
         this.digit= digit;
