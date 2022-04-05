@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -62,7 +63,12 @@ public class SpawnRecordSource implements HapiRecordSource {
 
     @Override
     public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
-        return new SpawnRecordSourceIterator( hapiHome, id, info, command, start, stop, params );
+        try {
+            JSONObject infoSubset= Util.subsetParams( info, HapiServerSupport.joinParams( info, params ) );
+            return new SpawnRecordSourceIterator( hapiHome, id, infoSubset, command, start, stop, params );
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
@@ -132,6 +138,8 @@ public class SpawnRecordSource implements HapiRecordSource {
                 }
                 
                 command= String.join("",ss);
+                
+                System.err.println("command: "+command );
                 
                 ss= command.split("\\s+");
                 
