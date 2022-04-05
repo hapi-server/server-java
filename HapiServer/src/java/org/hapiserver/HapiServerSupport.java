@@ -405,10 +405,10 @@ public class HapiServerSupport {
             }
             for ( ; i<params.length; i++ ) {
                 if ( params[i].contains(",") ) throw new IllegalArgumentException("parameter contains comma: "+params[i]);
-                while ( iparam<params.length && !params[i].equals(jsonArray.getJSONObject(iparam).getString("name")) ) {
+                while ( iparam<jsonArray.length() && !params[i].equals(jsonArray.getJSONObject(iparam).getString("name")) ) {
                     iparam++;
                 }
-                if ( iparam==params.length ) throw new IllegalArgumentException("parameter not found: "+params[i]);
+                if ( iparam==jsonArray.length() ) throw new IllegalArgumentException("parameter not found: "+params[i]);
                 build.append(",");
                 build.append(params[i]);
                 iparam++;
