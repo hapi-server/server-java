@@ -94,6 +94,24 @@ public class HapiServerSupport {
         }
     }
 
+    /**
+     * for the info, return all the parameters as a string array of the names
+     * @param jo
+     * @return 
+     */
+    public static String[] getAllParameters(JSONObject jo) {
+        try {
+            JSONArray array = jo.getJSONArray("parameters");
+            String[] result= new String[array.length()];
+            for ( int i=0; i<array.length(); i++ ) {
+                result[i]= array.getJSONObject(i).getString("name");
+            }
+            return result;
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     private static class CatalogData {
         public CatalogData( JSONObject catalog, long catalogTimeStamp ) {
             this.catalog= catalog;
