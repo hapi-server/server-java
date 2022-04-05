@@ -11,7 +11,7 @@ import org.hapiserver.HapiRecordSource;
 import org.hapiserver.TimeUtil;
 
 /**
- * given one ASCII file with time and double, return iterator
+ * given one ASCII file with time and double, return iterator.  This will likely be deprecated.
  * @author jbf
  */
 public class DailyHapiRecordSource extends AbstractHapiRecordSource {
@@ -22,11 +22,12 @@ public class DailyHapiRecordSource extends AbstractHapiRecordSource {
      * can be used.  Note this does not support all of the aggregations
      * possible with URI_Templates, only $Y, $m, $d, $H, $M, $S are
      * allowed, and only CSV-formatted files which match the info
-     * response are allowed.  Also, $(Y;end) $(m;end) $(d;end) are supported.
+     * response are allowed.  Also, $(Y;end) $(m;end) $(d;end) $(H;end) $(M;end) $(S;end) are supported.
+     * Note $j is not supported.
      * 
      * String ins= "$Y/28.FF6319A21705.$Y$m$d.csv" ;
      * String out= "%1$04d/28.FF6319A21705.%1$04d%2$02d%3$02d.csv" ;
-     * @param agg
+     * @param agg the aggregation specification.
      * @param nfield number of fields in each file
      * @return 
      */

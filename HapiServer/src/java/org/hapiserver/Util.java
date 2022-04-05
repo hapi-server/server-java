@@ -338,7 +338,7 @@ public class Util {
      * properly trim the byte array containing a UTF-8 String to a limit
      * @param bytes the bytes
      * @param k the number of bytes
-     * @return 
+     * @return the bytes properly trimmed.
      */
     public static byte[] trimUTF8( byte[] bytes, int k ) {
         if ( bytes.length==k ) return bytes;
@@ -356,7 +356,7 @@ public class Util {
     
     /**
      * return the logger used for the web application
-     * @return 
+     * @return the logger
      */
     public static Logger getLogger() {
         return logger;
