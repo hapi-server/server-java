@@ -259,7 +259,7 @@ const simpleFloat = new RegExp("\\d?\\.?\\d+");
 
 /**
   * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
-  */
+ */
 const iso8601durationPattern = new RegExp("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?");
 
 /**
@@ -281,15 +281,14 @@ const iso8601durationPattern = new RegExp("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\
 function parseISO8601Duration(stringIn) {
     const m= iso8601durationPattern.exec(stringIn);
     if ( m ) {
-        var dsec = parseDouble(m.group(13), 0);
+        var dsec = parseDouble(m[13], 0);
         var sec = (dsec | 0);
         var nanosec = (((dsec - sec) * 1.0E9) | 0);
-        return [ parseInt(m.group(2), 0), parseInt(m.group(4), 0), parseInt(m.group(6), 0), parseInt(m.group(9), 0), parseInt(m.group(11), 0), sec, nanosec];
+        return [ parseInt(m[2], 0), parseInt(m[4], 0), parseInt(m[6], 0), parseInt(m[9], 0), parseInt(m[11], 0), sec, nanosec];
     } else {
         if ( /* contains */(stringIn.indexOf("P") != -1) && /* contains */ (stringIn.indexOf("S") != -1) && !(stringIn.indexOf("T") != -1)) {
             throw Error("ISO8601 duration expected but not found.  Was the T missing before S?");
-        }
-        else {
+        } else {
             throw Error("ISO8601 duration expected but not found.");
         }
     }
