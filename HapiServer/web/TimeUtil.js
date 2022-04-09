@@ -615,6 +615,60 @@ function isoTimeToArray(time) {
 };
 
 /**
+ * return the day of year for the given year, month, and day. For example, in
+ * Jython:
+ * <pre>
+ * {@code
+ * from org.hapiserver.TimeUtil import *
+ * print dayOfYear( 2020, 4, 21 ) # 112
+ * }
+ * </pre>
+ *
+ * @param {number} year the year
+ * @param {number} month the month, from 1 to 12.
+ * @param {number} day the day in the month.
+ * @return {number} the day of year.
+ */
+function dayOfYear(year, month, day) {
+    if (month === 1) {
+        return day;
+    }
+    if (month < 1) {
+        throw new Error("month must be greater than 0.");
+    }
+    if (month > 12) {
+        throw new Error("month must be less than 12.");
+    }
+    if (day > 366) {
+        throw new Error("day (" + day + ") must be less than 366.");
+    }
+    var leap = isLeapYear(year) ? 1 : 0;
+    return DAY_OFFSET[leap][month] + day;
+}
+
+/**
+ * return "2" (February) for 45 for example.
+ * @param {number} year the year
+ * @param {number} doy the day of year.
+ * @return {number} the month 1-12 of the day.
+ */
+function monthForDayOfYear(year, doy) {
+    var leap = isLeapYear(year) ? 1 : 0;
+    var dayOffset = DAY_OFFSET[leap];
+    if (doy < 1)
+        throw new Error("doy must be 1 or more");
+    if (doy > dayOffset[13]) {
+        throw new Error("doy must be less than or equal to " + dayOffset[13]);
+    }
+    for (var i = 12; i > 1; i--) {
+        if (dayOffset[i] < doy) {
+            return i;
+        }
+    }
+    return 1;
+}
+
+/**
  * return the julianDay for the year month and day. This was verified
  * against another calculation (julianDayWP, commented out above) from
  * http://en.wikipedia.org/wiki/Julian_day. Both calculations have 20
