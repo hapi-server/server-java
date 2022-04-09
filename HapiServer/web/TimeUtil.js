@@ -440,62 +440,6 @@ function now() {
 }
 
 /**
- * return the julianDay for the year month and day. This was verified
- * against another calculation (julianDayWP, commented out above) from
- * http://en.wikipedia.org/wiki/Julian_day. Both calculations have 20
- * operations.
- *
- * @param {number} year calendar year greater than 1582.
- * @param {number} month the month number 1 through 12.
- * @param {number} day day of month. For day of year, use month=1 and doy for day.
- * @return {number} the Julian day
- * @see #fromJulianDay(int)
- */
-function julianDay(year, month, day) {
-    if (year <= 1582) {
-        throw Error("year must be more than 1582");
-    }
-    var jd = 367 * year - (7 * (year + ((month + 9) / 12 | 0)) / 4 | 0) 
-            - (3 * (((year + ((month - 9) / 7 | 0)) / 100 | 0) + 1) / 4 | 0) 
-            + (275 * month / 9 | 0) + day + 1721029;
-    return jd;
-};
-
-/**
- * Break the Julian day apart into month, day year. This is based on
- * http://en.wikipedia.org/wiki/Julian_day (GNU Public License), and was
- * introduced when toTimeStruct failed when the year was 1886.
- *
- * @see #julianDay( int year, int mon, int day )
- * @param {number} julian the (integer) number of days that have elapsed since the
- * initial epoch at noon Universal Time (UT) Monday, January 1, 4713 BC
- * @return {int[]} a TimeStruct with the month, day and year fields set.
- */
-function fromJulianDay(julian) {
-    var j = julian + 32044;
-    var g = (j / 146097 | 0);
-    var dg = j % 146097;
-    var c = (((dg / 36524 | 0) + 1) * 3 / 4 | 0);
-    var dc = dg - c * 36524;
-    var b = (dc / 1461 | 0);
-    var db = dc % 1461;
-    var a = (((db / 365 | 0) + 1) * 3 / 4 | 0);
-    var da = db - a * 365;
-    var y = g * 400 + c * 100 + b * 4 + a;
-    var m = ((da * 5 + 308) / 153 | 0) - 2;
-    var d = da - ((m + 4) * 153 / 5 | 0) + 122;
-    var Y = y - 4800 + ((m + 2) / 12 | 0);
-    var M = (m + 2) % 12 + 1;
-    var D = d + 1;
-    var result = (function (s) { var a = []; while (s-- > 0)
-        a.push(0); return a; })(TIME_DIGITS);
-    result[0] = Y;
-    result[1] = M;
-    result[2] = D;
-    return result;
-};
-
-/**
  * return seven-element array [ year, months, days, hours, minutes, seconds, nanoseconds ]
  * preserving the day of year notation if this was used. See the class
  * documentation for allowed time formats, which are a subset of ISO8601
@@ -542,14 +486,14 @@ function isoTimeToArray(time) {
             remainder = time.substring(3);
         }
         else {
-            var p = java.util.regex.Pattern.compile("last([a-z]+)([\\+|\\-]P.*)?");
-            var m = p.matcher(time);
-            if (m.matches()) {
+            var re = new RegExp("last([a-z]+)([\\+|\\-]P.*)?");
+            var m = re.exec(time);
+            if (m) {
                 n = now();
-                var unit = m.group(1);
-                remainder = m.group(2);
-                var idigit = void 0;
-                switch ((unit)) {
+                var unit = m[1];
+                remainder = m[2];
+                var idigit = 0;
+                switch (unit) {
                     case "year":
                         idigit = 1;
                         break;
@@ -667,6 +611,62 @@ function isoTimeToArray(time) {
         }
         normalizeTime(result);
     }
+    return result;
+};
+
+/**
+ * return the julianDay for the year month and day. This was verified
+ * against another calculation (julianDayWP, commented out above) from
+ * http://en.wikipedia.org/wiki/Julian_day. Both calculations have 20
+ * operations.
+ *
+ * @param {number} year calendar year greater than 1582.
+ * @param {number} month the month number 1 through 12.
+ * @param {number} day day of month. For day of year, use month=1 and doy for day.
+ * @return {number} the Julian day
+ * @see #fromJulianDay(int)
+ */
+function julianDay(year, month, day) {
+    if (year <= 1582) {
+        throw Error("year must be more than 1582");
+    }
+    var jd = 367 * year - (7 * (year + ((month + 9) / 12 | 0)) / 4 | 0) 
+            - (3 * (((year + ((month - 9) / 7 | 0)) / 100 | 0) + 1) / 4 | 0) 
+            + (275 * month / 9 | 0) + day + 1721029;
+    return jd;
+};
+
+/**
+ * Break the Julian day apart into month, day year. This is based on
+ * http://en.wikipedia.org/wiki/Julian_day (GNU Public License), and was
+ * introduced when toTimeStruct failed when the year was 1886.
+ *
+ * @see #julianDay( int year, int mon, int day )
+ * @param {number} julian the (integer) number of days that have elapsed since the
+ * initial epoch at noon Universal Time (UT) Monday, January 1, 4713 BC
+ * @return {int[]} a TimeStruct with the month, day and year fields set.
+ */
+function fromJulianDay(julian) {
+    var j = julian + 32044;
+    var g = (j / 146097 | 0);
+    var dg = j % 146097;
+    var c = (((dg / 36524 | 0) + 1) * 3 / 4 | 0);
+    var dc = dg - c * 36524;
+    var b = (dc / 1461 | 0);
+    var db = dc % 1461;
+    var a = (((db / 365 | 0) + 1) * 3 / 4 | 0);
+    var da = db - a * 365;
+    var y = g * 400 + c * 100 + b * 4 + a;
+    var m = ((da * 5 + 308) / 153 | 0) - 2;
+    var d = da - ((m + 4) * 153 / 5 | 0) + 122;
+    var Y = y - 4800 + ((m + 2) / 12 | 0);
+    var M = (m + 2) % 12 + 1;
+    var D = d + 1;
+    var result = (function (s) { var a = []; while (s-- > 0)
+        a.push(0); return a; })(TIME_DIGITS);
+    result[0] = Y;
+    result[1] = M;
+    result[2] = D;
     return result;
 };
             
