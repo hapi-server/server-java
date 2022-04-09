@@ -96,14 +96,14 @@ function format9( d ) {
      */
 function reformatIsoTime(exampleForm, time) {
     var c = exampleForm.charAt(8);
-    var nn = TimeUtil.isoTimeToArray(TimeUtil.normalizeTimeString(time));
+    var nn = isoTimeToArray(normalizeTimeString(time));
     if ( c==='T' ) {
-        nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2]);
+        nn[2] = dayOfYear(nn[0], nn[1], nn[2]);
         nn[1] = 1;
         time = format4( nn[0] ) + "-" + format3(nn[2]) + 
                 "T" + format2( nn[3] ) +":" + format2( nn[4] ) + ":" + format2( nn[5] ) + '.' + format9(nn[6]) + "Z";
     } else if ( c==='Z' ) {
-        nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2]);
+        nn[2] = dayOfYear(nn[0], nn[1], nn[2]);
         nn[1] = 1;
         time = format4( nn[0] ) + "-" + format3(nn[2]) +  "Z";
     } else {
@@ -128,10 +128,10 @@ function reformatIsoTime(exampleForm, time) {
     }
 };
 
-monthNames = {
+monthNames = [
     "jan", "feb", "mar", "apr", "may", "jun",
     "jul", "aug", "sep", "oct", "nov", "dec"
-};
+];
 
 /**
  * return the English month name, abbreviated to three letters, for the
@@ -172,6 +172,129 @@ DAYS_IN_MONTH = [[0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0],
 DAY_OFFSET = [[0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365], 
     [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]];
 
+/**
+ * fast parser requires that each character of string is a digit.  Note this 
+ * does not check the the numbers are digits!
+ *
+ * @param s string containing an integer
+ * @return the integer
+ */
+function parseInt(s) {
+    var result;
+    var len = s.length;
+    for (var i = 0; i < len; i++) {
+        var c = s.charAt(i);
+        if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(c) < 48 || (function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(c) >= 58) {
+            throw "only digits are allowed in string";
+        }
+    }
+    switch ((len)) {
+        case 2:
+            result = 10 * ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(0)) - 48) + ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(1)) - 48);
+            return result;
+        case 3:
+            result = 100 * ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(0)) - 48) + 10 * ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(1)) - 48) + ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(2)) - 48);
+            return result;
+        default:
+            result = 0;
+            for (var i = 0; i < s.length; i++) {
+                result = 10 * result + ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(i)) - 48);
+            }
+            return result;
+    }
+};
+  
+/**
+ * fast parser requires that each character of string is a digit.
+ *
+ * @param s the number, containing 1 or more digits.
+ * @return the int value
+ */  
+function parseInt(s, deft) {
+    if (s == null) {
+        return deft;
+    }
+    var result;
+    for (var i = 0; i < s.length; i++) {
+        var c = s.charAt(i);
+        if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(c) < 48 || (function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(c) >= 58) {
+            throw Error("only digits are allowed in string");
+        }
+    }
+    switch ((s.length)) {
+        case 2:
+            result = 10 * ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(0)) - 48) + ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(1)) - 48);
+            return result;
+        case 3:
+            result = 100 * ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(0)) - 48) + 10 * ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(1)) - 48) + ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(2)) - 48);
+            return result;
+        default:
+            result = 0;
+            for (var i = 0; i < s.length; i++) {
+                result = 10 * result + ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(s.charAt(i)) - 48);
+            }
+            return result;
+    }
+};
+
+function parseDouble(val, deft) {
+    if (val == null) {
+        if (deft !== -99) {
+            return deft;
+        }
+        else {
+            throw Error("bad digit");
+        }
+    }
+    var n = val.length - 1;
+    if ( /* isLetter *//[a-zA-Z]/.test(val.charAt(n)[0])) {
+        return /* parseDouble */ parseFloat(val.substring(0, n));
+    }
+    else {
+        return /* parseDouble */ parseFloat(val);
+    }
+};
+
+const simpleFloat = new RegExp("\\d?\\.?\\d+");
+
+/**
+  * Pattern matching valid ISO8601 durations, like "P1D" and "PT3H15M"
+  */
+const iso8601durationPattern = new RegExp("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d?\\.?\\d+)S)?)?");
+
+/**
+ * returns a 7 element array with [year,mon,day,hour,min,sec,nanos]. Note
+ * this does not allow fractional day, hours or minutes! Examples
+ * include:<ul>
+ * <li>P1D - one day
+ * <li>PT1M - one minute
+ * <li>PT0.5S - 0.5 seconds
+ * </ul>
+ * TODO: there exists more complete code elsewhere.
+ *
+ * @param {string} stringIn theISO8601 duration.
+ * @return {int[]} 7-element array with [year,mon,day,hour,min,sec,nanos]
+ * @throws ParseException if the string does not appear to be valid.
+ * @see #iso8601duration
+ * @see #TIME_DIGITS
+ */
+function parseISO8601Duration(stringIn) {
+    const m= iso8601durationPattern.exec(stringIn);
+    if ( m ) {
+        var dsec = parseDouble(m.group(13), 0);
+        var sec = (dsec | 0);
+        var nanosec = (((dsec - sec) * 1.0E9) | 0);
+        return [ parseInt(m.group(2), 0), parseInt(m.group(4), 0), parseInt(m.group(6), 0), parseInt(m.group(9), 0), parseInt(m.group(11), 0), sec, nanosec];
+    } else {
+        if ( /* contains */(stringIn.indexOf("P") != -1) && /* contains */ (stringIn.indexOf("S") != -1) && !(stringIn.indexOf("T") != -1)) {
+            throw Error("ISO8601 duration expected but not found.  Was the T missing before S?");
+        }
+        else {
+            throw Error("ISO8601 duration expected but not found.");
+        }
+    }
+};
+            
 function isLeapYear(year) {
     if (year < 1582 || year > 2400) {
         throw "year must be between 1582 and 2400";
@@ -223,7 +346,7 @@ function normalizeTime(time) {
         time[1] += time[1] + 12;
     }
     if (time[3] > 24) {
-        throw error("time[3] is greater than 24 (hours)");
+        throw Error("time[3] is greater than 24 (hours)");
     }
     if (time[1] > 12) {
         time[0] = time[0] + 1;
@@ -251,12 +374,59 @@ function normalizeTime(time) {
             time[2] -= d;
             d = DAYS_IN_MONTH[leap][time[1]];
             if (time[1] > 12) {
-                throw error("time[2] is too big");
+                throw Error("time[2] is too big");
             }
         }
     };
     return time;
 }
+
+/**
+ * calculate the day of week, where 0 means Monday, 1 means Tuesday, etc.  For example,
+ * 2022-03-12 is a Saturday, so 5 is returned.
+ * @param {number} year the year
+ * @param {number} month the month
+ * @param {number} day the day of the month
+ * @return {number} the day of the week.
+ */
+function dayOfWeek(year, month, day) {
+    var jd = julianDay(year, month, day);
+    var daysSince2022 = jd - julianDay(2022, 1, 1);
+    var mod7 = (daysSince2022 - 2) % 7;
+    if (mod7 < 0)
+        mod7 = mod7 + 7;
+    return mod7;
+};
+
+/**
+ * calculate the week of year, inserting the month into time[1] and day into time[2]
+ * for the Monday which is the first day of that week.  Note week 0 is excluded from
+ * ISO8601, but since the Linux date command returns this in some cases, it is allowed to
+ * mean the same as week 52 of the previous year.  See
+ * <a href='https://en.wikipedia.org/wiki/ISO_8601#Week_dates' target='_blank'>Wikipedia ISO8601#Week_dates</a>.
+ *
+ * @param {number} year the year of the week.
+ * @param {number} weekOfYear the week of the year, where week 01 is starting with the Monday in the period 29 December - 4 January.
+ * @param {int[]} time the result is placed in here, where time[0] is the year provided, and the month and day are calculated.
+ */
+function fromWeekOfYear(year, weekOfYear, time) {
+    time[0] = year;
+    var day = dayOfWeek(year, 1, 1);
+    var doy;
+    if (day < 4) {
+        doy = (weekOfYear * 7 - 7 - day) + 1;
+        if (doy < 1) {
+            time[0] = time[0] - 1;
+            doy = doy + (isLeapYear(time[0]) ? 366 : 365);
+        }
+    }
+    else {
+        doy = weekOfYear * 7 - day + 1;
+    }
+    time[1] = 1;
+    time[2] = doy;
+    normalizeTime(time);
+};
 
 function now() {
     var p = new Date( Date.now() );
@@ -283,7 +453,7 @@ function now() {
  */
 function julianDay(year, month, day) {
     if (year <= 1582) {
-        throw error("year must be more than 1582");
+        throw Error("year must be more than 1582");
     }
     var jd = 367 * year - (7 * (year + ((month + 9) / 12 | 0)) / 4 | 0) 
             - (3 * (((year + ((month - 9) / 7 | 0)) / 100 | 0) + 1) / 4 | 0) 
@@ -318,13 +488,188 @@ function fromJulianDay(julian) {
     var M = (m + 2) % 12 + 1;
     var D = d + 1;
     var result = (function (s) { var a = []; while (s-- > 0)
-        a.push(0); return a; })(TimeUtil.TIME_DIGITS);
+        a.push(0); return a; })(TIME_DIGITS);
     result[0] = Y;
     result[1] = M;
     result[2] = D;
     return result;
 };
 
+/**
+ * return seven-element array [ year, months, days, hours, minutes, seconds, nanoseconds ]
+ * preserving the day of year notation if this was used. See the class
+ * documentation for allowed time formats, which are a subset of ISO8601
+ * times.  This also supports "now", "now-P1D", and other simple extensions.  Note
+ * ISO8601-1:2019 disallows 24:00 to be used for the time, but this is still allowed here.
+ * The following are valid inputs:<ul>
+ * <li>2021
+ * <li>2020-01-01
+ * <li>2020-01-01Z
+ * <li>2020-01-01T00Z
+ * <li>2020-01-01T00:00Z
+ * <li>2022-W08
+ * <li>now
+ * <li>now-P1D
+ * <li>lastday-P1D
+ * <li>lasthour-PT1H
+ * </ul>
+ *
+ * @param {string} time isoTime to decompose
+ * @return {int[]} the decomposed time
+ * @throws IllegalArgumentException when the time cannot be parsed.
+ * @see #isoTimeFromArray(int[])
+ * @see #parseISO8601Time(java.lang.String)
+ */
+function isoTimeToArray(time) {
+    var result;
+    if (time.length === 4) {
+        result = [ parseInt(time), 1, 1, 0, 0, 0, 0];
+    }
+    else if ( /* startsWith */(function (str, searchString, position) {
+        if (position === void 0) { position = 0; }
+        return str.substr(position, searchString.length) === searchString;
+    })(time, "now") || /* startsWith */ (function (str, searchString, position) {
+        if (position === void 0) { position = 0; }
+        return str.substr(position, searchString.length) === searchString;
+    })(time, "last")) {
+        var n = void 0;
+        var remainder = void 0;
+        if ( /* startsWith */(function (str, searchString, position) {
+            if (position === void 0) { position = 0; }
+            return str.substr(position, searchString.length) === searchString;
+        })(time, "now")) {
+            n = now();
+            remainder = time.substring(3);
+        }
+        else {
+            var p = java.util.regex.Pattern.compile("last([a-z]+)([\\+|\\-]P.*)?");
+            var m = p.matcher(time);
+            if (m.matches()) {
+                n = now();
+                var unit = m.group(1);
+                remainder = m.group(2);
+                var idigit = void 0;
+                switch ((unit)) {
+                    case "year":
+                        idigit = 1;
+                        break;
+                    case "month":
+                        idigit = 2;
+                        break;
+                    case "day":
+                        idigit = 3;
+                        break;
+                    case "hour":
+                        idigit = 4;
+                        break;
+                    case "minute":
+                        idigit = 5;
+                        break;
+                    case "second":
+                        idigit = 6;
+                        break;
+                    default:
+                        throw Error("unsupported unit: " + unit);
+                }
+                for (var id = Math.max(1, idigit); id < DATE_DIGITS; id++) {
+                    n[id] = 1;
+                }
+                for (var id = Math.max( DATE_DIGITS, idigit); id < TIME_DIGITS; id++) {
+                    n[id] = 0;
+                }
+            }
+            else {
+                throw Error("expected lastday+P1D, etc");
+            }
+        }
+        if (remainder == null || remainder.length === 0) {
+            return n;
+        }
+        else if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(remainder.charAt(0)) == '-'.charCodeAt(0)) {
+            try {
+                return subtract(n, parseISO8601Duration(remainder.substring(1)));
+            }
+            catch (ex) {
+                throw new Error(ex.message);
+            }
+        }
+        else if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(remainder.charAt(0)) == '+'.charCodeAt(0)) {
+            try {
+                return add(n, parseISO8601Duration(remainder.substring(1)));
+            }
+            catch (ex) {
+                throw new Error(ex.message);
+            }
+        }
+        return now();
+    }
+    else {
+        if (time.length < 7) {
+            throw new Error("time must have 4 or greater than 7 elements");
+        }
+        if (time.length === 7) {
+            if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(time.charAt(4)) == 'W'.charCodeAt(0)) {
+                var year = parseInt(time.substring(0, 4));
+                var week = parseInt(time.substring(5));
+                result = [year, 0, 0, 0, 0, 0, 0];
+                fromWeekOfYear(year, week, result);
+                time = "";
+            }
+            else {
+                result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), 1, 0, 0, 0, 0];
+                time = "";
+            }
+        }
+        else if (time.length === 8) {
+            if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(time.charAt(5)) == 'W'.charCodeAt(0)) {
+                var year = parseInt(time.substring(0, 4));
+                var week = parseInt(time.substring(6));
+                result = [year, 0, 0, 0, 0, 0, 0];
+                fromWeekOfYear(year, week, result);
+                time = "";
+            }
+            else {
+                result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+                time = "";
+            }
+        }
+        else if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(time.charAt(8)) == 'T'.charCodeAt(0)) {
+            result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+            time = time.substring(9);
+        }
+        else if ((function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(time.charAt(8)) == 'Z'.charCodeAt(0)) {
+            result = [parseInt(time.substring(0, 4)), 1, parseInt(time.substring(5, 8)), 0, 0, 0, 0];
+            time = time.substring(9);
+        }
+        else {
+            result = [parseInt(time.substring(0, 4)), parseInt(time.substring(5, 7)), parseInt(time.substring(8, 10)), 0, 0, 0, 0];
+            if (time.length === 10) {
+                time = "";
+            }
+            else {
+                time = time.substring(11);
+            }
+        }
+        if ( /* endsWith */(function (str, searchString) { var pos = str.length - searchString.length; var lastIndex = str.indexOf(searchString, pos); return lastIndex !== -1 && lastIndex === pos; })(time, "Z")) {
+            time = time.substring(0, time.length - 1);
+        }
+        if (time.length >= 2) {
+            result[3] = parseInt(time.substring(0, 2));
+        }
+        if (time.length >= 5) {
+            result[4] = parseInt(time.substring(3, 5));
+        }
+        if (time.length >= 8) {
+            result[5] = parseInt(time.substring(6, 8));
+        }
+        if (time.length > 9) {
+            result[6] = ((Math.pow(10, 18 - time.length)) | 0) * parseInt(time.substring(9));
+        }
+        normalizeTime(result);
+    }
+    return result;
+};
+            
 /**
  * subtract the offset from the base time.
  *
@@ -354,10 +699,10 @@ function subtract(base, offset) {
  */
 function add(base, offset) {
     var result = (function (s) { var a = []; while (s-- > 0)
-        a.push(0); return a; })(TimeUtil.TIME_DIGITS);
-    for (var i = 0; i < TimeUtil.TIME_DIGITS; i++) {
+        a.push(0); return a; })(TIME_DIGITS);
+    for (var i = 0; i < TIME_DIGITS; i++) {
         result[i] = base[i] + offset[i];
     }
-    TimeUtil.normalizeTime(result);
+    normalizeTime(result);
     return result;
 };
