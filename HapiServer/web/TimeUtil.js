@@ -21,7 +21,7 @@ TIME_DIGITS = 7;
  */
 DATE_DIGITS = 3;
     
-function format2( d ) {
+function format2( d ) { // private
     if ( d<10 ) {
         return '0'+d;
     } else {
@@ -29,7 +29,7 @@ function format2( d ) {
     }
 }
 
-function format3( d ) {
+function format3( d ) { // private
     if ( d<10 ) {
         return '00'+d;
     } else if ( d<100 ) {
@@ -39,7 +39,7 @@ function format3( d ) {
     }
 }
 
-function format4( d ) {
+function format4( d ) { // private
     if ( d<10 ) {
         return '000'+d;
     } else if ( d<100 ) {
@@ -51,7 +51,7 @@ function format4( d ) {
     }
 }
 
-function format9( d ) {
+function format9( d ) { // private
     if ( d<10 ) {
         return '00000000'+d;
     } else if ( d<100 ) {
@@ -73,7 +73,7 @@ function format9( d ) {
     }
 }
 
-function format6( d ) {
+function format6( d ) { // private
     if ( d<10 ) {
         return '00000'+d;
     } else if ( d<100 ) {
@@ -87,6 +87,23 @@ function format6( d ) {
     } else {
         return ''+d;
     }
+}
+
+function startsWith( str, searchString, position ) { // private
+    if (position === void 0) { position = 0; }
+    return str.substr(position, searchString.length) === searchString;
+}
+
+function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
+    if (srcPts !== dstPts || dstOff >= srcOff + size) {
+        while (--size >= 0)
+            dstPts[dstOff++] = srcPts[srcOff++];
+    }
+    else {
+        var tmp = srcPts.slice(srcOff, srcOff + size);
+        for (var i = 0; i < size; i++)
+            dstPts[dstOff++] = tmp[i];
+    } 
 }
 
     /**
@@ -603,80 +620,34 @@ function parseISO8601TimeRange(stringIn) {
     }
     var result = (function (s) { var a = []; while (s-- > 0)
         a.push(0); return a; })(14);
-    if ( /* startsWith */(function (str, searchString, position) {
-        if (position === void 0) { position = 0; }
-        return str.substr(position, searchString.length) === searchString;
-    })(ss[0], "P")) {
+    if ( startsWith(ss[0], "P") ) {
         var duration = parseISO8601Duration(ss[0]);
         var time = isoTimeToArray(ss[1]);
         for (var i = 0; i < TIME_DIGITS; i++) {
             result[i] = time[i] - duration[i];
         }
         normalizeTime(result);
-        /* arraycopy */ (function (srcPts, srcOff, dstPts, dstOff, size) { if (srcPts !== dstPts || dstOff >= srcOff + size) {
-            while (--size >= 0)
-                dstPts[dstOff++] = srcPts[srcOff++];
-        }
-        else {
-            var tmp = srcPts.slice(srcOff, srcOff + size);
-            for (var i = 0; i < size; i++)
-                dstPts[dstOff++] = tmp[i];
-        } })(time, 0, result, TIME_DIGITS, TIME_DIGITS);
+        arraycopy(time, 0, result, TIME_DIGITS, TIME_DIGITS);
         return result;
     }
-    else if ( /* startsWith */(function (str, searchString, position) {
-        if (position === void 0) { position = 0; }
-        return str.substr(position, searchString.length) === searchString;
-    })(ss[1], "P")) {
+    else if ( startsWith(ss[1], "P") ) {
         var time = isoTimeToArray(ss[0]);
         var duration = parseISO8601Duration(ss[1]);
-        /* arraycopy */ (function (srcPts, srcOff, dstPts, dstOff, size) { if (srcPts !== dstPts || dstOff >= srcOff + size) {
-            while (--size >= 0)
-                dstPts[dstOff++] = srcPts[srcOff++];
-        }
-        else {
-            var tmp = srcPts.slice(srcOff, srcOff + size);
-            for (var i = 0; i < size; i++)
-                dstPts[dstOff++] = tmp[i];
-        } })(time, 0, result, 0, TIME_DIGITS);
+        arraycopy(time, 0, result, 0, TIME_DIGITS);
         var stoptime = (function (s) { var a = []; while (s-- > 0)
             a.push(0); return a; })(TIME_DIGITS);
         for (var i = 0; i < TIME_DIGITS; i++) {
             stoptime[i] = time[i] + duration[i];
         }
         normalizeTime(stoptime);
-        /* arraycopy */ (function (srcPts, srcOff, dstPts, dstOff, size) { if (srcPts !== dstPts || dstOff >= srcOff + size) {
-            while (--size >= 0)
-                dstPts[dstOff++] = srcPts[srcOff++];
-        }
-        else {
-            var tmp = srcPts.slice(srcOff, srcOff + size);
-            for (var i = 0; i < size; i++)
-                dstPts[dstOff++] = tmp[i];
-        } })(stoptime, 0, result, TIME_DIGITS, TIME_DIGITS);
+        arraycopy(stoptime, 0, result, TIME_DIGITS, TIME_DIGITS);
         return result;
     }
     else {
         var starttime = isoTimeToArray(ss[0]);
         var stoptime = isoTimeToArray(ss[1]);
-        /* arraycopy */ (function (srcPts, srcOff, dstPts, dstOff, size) { if (srcPts !== dstPts || dstOff >= srcOff + size) {
-            while (--size >= 0)
-                dstPts[dstOff++] = srcPts[srcOff++];
-        }
-        else {
-            var tmp = srcPts.slice(srcOff, srcOff + size);
-            for (var i = 0; i < size; i++)
-                dstPts[dstOff++] = tmp[i];
-        } })(starttime, 0, result, 0, TIME_DIGITS);
-        /* arraycopy */ (function (srcPts, srcOff, dstPts, dstOff, size) { if (srcPts !== dstPts || dstOff >= srcOff + size) {
-            while (--size >= 0)
-                dstPts[dstOff++] = srcPts[srcOff++];
-        }
-        else {
-            var tmp = srcPts.slice(srcOff, srcOff + size);
-            for (var i = 0; i < size; i++)
-                dstPts[dstOff++] = tmp[i];
-        } })(stoptime, 0, result, TIME_DIGITS, TIME_DIGITS);
+        arraycopy(starttime, 0, result, 0, TIME_DIGITS);
+        arraycopy(stoptime, 0, result, TIME_DIGITS, TIME_DIGITS);
         return result;
     }
 };
