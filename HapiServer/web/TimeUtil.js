@@ -73,6 +73,22 @@ function format9( d ) {
     }
 }
 
+function format6( d ) {
+    if ( d<10 ) {
+        return '00000'+d;
+    } else if ( d<100 ) {
+        return '0000'+d;
+    } else if ( d<1000 ) {
+        return '000'+d;
+    } else if ( d<10000 ) {
+        return '00'+d;
+    } else if ( d<100000 ) {
+        return '0'+d;
+    } else {
+        return ''+d;
+    }
+}
+
     /**
      * Rewrite the time using the format of the example time, which must start with
      * $Y-$jT, $Y-$jZ, or $Y-$m-$d. For example,
@@ -449,6 +465,67 @@ function formatIso8601Time(nn, offset) {
     }
 };
 
+/**
+ * format the duration into human-readable time, for example
+ * [ 0, 0, 7, 0, 0, 6 ] is formatted into "P7DT6S"
+ * @param {int[]} nn seven-element array of [ Y m d H M S nanos ]
+ * @return {string} ISO8601 duration
+ */
+function formatIso8601Duration(nn) {
+    var units = ['Y', 'M', 'D', 'H', 'M', 'S'];
+    if (nn.length > 7)
+        throw new Error("decomposed time can have at most 7 digits");
+    var sb = { str: "P", toString: function () { return this.str; } };
+    var n = (nn.length < 5) ? nn.length : 5;
+    var needT = false;
+    var _loop_1 = function (i) {
+        {
+            if (i === 3)
+                needT = true;
+            if (nn[i] > 0) {
+                if (needT) {
+                    /* append */ (function (sb) { sb.str += "T"; return sb; })(sb);
+                    needT = false;
+                }
+                /* append */ (function (sb) { sb.str += units[i]; return sb; })(/* append */ (function (sb) { sb.str += nn[i]; return sb; })(sb));
+            }
+        }
+        ;
+    };
+    for (var i = 0; i < n; i++) {
+        _loop_1(i);
+    }
+    if (nn.length > 5 && nn[5] > 0 || nn.length > 6 && nn[6] > 0 || /* length */ sb.str.length === 2) {
+        if (needT) {
+            /* append */ (function (sb) { sb.str += "T"; return sb; })(sb);
+        }
+        var seconds_1 = nn[5];
+        var nanoseconds_1 = nn.length === 7 ? nn[6] : 0;
+        if (nanoseconds_1 === 0) {
+            /* append */ (function (sb) { sb.str += seconds_1; return sb; })(sb);
+        }
+        else if (nanoseconds_1 % 1000000 === 0) {
+            /* append */ (function (sb) { sb.str += "" + seconds_1 + "." + format3( nanoseconds_1 / 1.0E6 | 0 ); return sb; })(sb);
+        }
+        else if (nanoseconds_1 % 1000 === 0) {
+            /* append */ (function (sb) { sb.str += "" + seconds_1 + "." + format6( nanoseconds_1 / 1.0E3 | 0 ); return sb; })(sb);
+        }
+        else {
+            /* append */ (function (sb) { sb.str += "" + seconds_1 + "." + format9( nanoseconds_1 ); return sb; })(sb);
+        }
+        /* append */ (function (sb) { sb.str += "S"; return sb; })(sb);
+    }
+    if ( /* length */sb.str.length === 1) {
+        if (nn.length > 3) {
+            /* append */ (function (sb) { sb.str += "T0S"; return sb; })(sb);
+        }
+        else {
+            /* append */ (function (sb) { sb.str += "0D"; return sb; })(sb);
+        }
+    }
+    return /* toString */ sb.str;
+};
+
 
 const simpleFloat = new RegExp("\\d?\\.?\\d+");
 
@@ -626,7 +703,7 @@ function fromWeekOfYear(year, weekOfYear, time) {
 function now() {
     var p = new Date( Date.now() );
     return [ p.getUTCFullYear(), 
-        p.getUTCMonth(), 
+        p.getUTCMonth()+1, 
         p.getUTCDate(), 
         p.getUTCHours(), 
         p.getUTCMinutes(), 
