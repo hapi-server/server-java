@@ -94,6 +94,12 @@ function startsWith( str, searchString, position ) { // private
     return str.substr(position, searchString.length) === searchString;
 }
 
+function endsWith(str, searchString) { // private
+    var pos = str.length - searchString.length; 
+    var lastIndex = str.indexOf(searchString, pos); 
+    return lastIndex !== -1 && lastIndex === pos; 
+}
+        
 function arraycopy( srcPts, srcOff, dstPts, dstOff, size) {  // private
     if (srcPts !== dstPts || dstOff >= srcOff + size) {
         while (--size >= 0)
@@ -606,16 +612,10 @@ function parseISO8601TimeRange(stringIn) {
     if (ss.length !== 2) {
         throw new Error("expected one slash (/) splitting start and stop times.");
     }
-    if (ss[0].length === 0 || !( /* isDigit *//\d/.test(ss[0].charAt(0)[0]) || (function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(ss[0].charAt(0)) == 'P'.charCodeAt(0) || /* startsWith */ (function (str, searchString, position) {
-        if (position === void 0) { position = 0; }
-        return str.substr(position, searchString.length) === searchString;
-    })(ss[0], "now"))) {
+    if (ss[0].length === 0 || !( /* isDigit *//\d/.test(ss[0].charAt(0)[0]) || (function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(ss[0].charAt(0)) == 'P'.charCodeAt(0) || startsWith(ss[0], "now"))) {
         throw new Error("first time/duration is misformatted.  Should be ISO8601 time or duration like P1D.");
     }
-    if (ss[1].length === 0 || !( /* isDigit *//\d/.test(ss[1].charAt(0)[0]) || (function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(ss[1].charAt(0)) == 'P'.charCodeAt(0) || /* startsWith */ (function (str, searchString, position) {
-        if (position === void 0) { position = 0; }
-        return str.substr(position, searchString.length) === searchString;
-    })(ss[1], "now"))) {
+    if (ss[1].length === 0 || !( /* isDigit *//\d/.test(ss[1].charAt(0)[0]) || (function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(ss[1].charAt(0)) == 'P'.charCodeAt(0) || startsWith(ss[1], "now"))) {
         throw new Error("second time/duration is misformatted.  Should be ISO8601 time or duration like P1D.");
     }
     var result = (function (s) { var a = []; while (s-- > 0)
@@ -849,19 +849,10 @@ function isoTimeToArray(time) {
     if (time.length === 4) {
         result = [ parseInt(time), 1, 1, 0, 0, 0, 0];
     }
-    else if ( /* startsWith */(function (str, searchString, position) {
-        if (position === void 0) { position = 0; }
-        return str.substr(position, searchString.length) === searchString;
-    })(time, "now") || /* startsWith */ (function (str, searchString, position) {
-        if (position === void 0) { position = 0; }
-        return str.substr(position, searchString.length) === searchString;
-    })(time, "last")) {
+    else if ( startsWith(time, "now") || startsWith(time, "last") ) {
         var n = void 0;
         var remainder = void 0;
-        if ( /* startsWith */(function (str, searchString, position) {
-            if (position === void 0) { position = 0; }
-            return str.substr(position, searchString.length) === searchString;
-        })(time, "now")) {
+        if ( startsWith(time, "now")) {
             n = now();
             remainder = time.substring(3);
         }
@@ -974,7 +965,7 @@ function isoTimeToArray(time) {
                 time = time.substring(11);
             }
         }
-        if ( /* endsWith */(function (str, searchString) { var pos = str.length - searchString.length; var lastIndex = str.indexOf(searchString, pos); return lastIndex !== -1 && lastIndex === pos; })(time, "Z")) {
+        if ( endsWith(time, "Z") ) {
             time = time.substring(0, time.length - 1);
         }
         if (time.length >= 2) {
