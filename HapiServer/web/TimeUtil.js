@@ -255,6 +255,25 @@ function parseDouble(val, deft) {
     }
 };
 
+/**
+ * return the array formatted as ISO8601 time, formatted to nanoseconds.
+ * For example,  int[] nn = new int[] { 1999, 12, 31, 23, 0, 0, 0  } is
+ * formatted to "1999-12-31T23:00:00.000000000Z";
+ * @param {int[]} nn the decomposed time
+ * @return {string} the formatted time.
+ * @see #isoTimeToArray(java.lang.String)
+ */
+function isoTimeFromArray(nn) {
+    if (nn[1] === 1 && nn[2] > 31) {
+        var month = monthForDayOfYear(nn[0], nn[2]);
+        var dom1 = dayOfYear(nn[0], month, 1);
+        nn[2] = nn[2] - dom1 + 1;
+        nn[1] = month;
+    }
+    return "" + nn[0] + "-" + format2(nn[1]) + "-" + format2(nn[2]) + "T"
+          + format2(nn[3]) + ":" + format2(nn[4]) + ":" + format2(nn[5]) + "." + format9(nn[6]) + "Z";
+};
+    
 const simpleFloat = new RegExp("\\d?\\.?\\d+");
 
 /**
@@ -293,7 +312,8 @@ function parseISO8601Duration(stringIn) {
         }
     }
 };
-            
+
+
 function isLeapYear(year) {
     if (year < 1582 || year > 2400) {
         throw "year must be between 1582 and 2400";
