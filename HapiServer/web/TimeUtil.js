@@ -166,12 +166,118 @@ function monthNumber(s) {
     throw "Unable to parse month"
 }
     
+/**
+ * the number of days in each month.
+ */
 DAYS_IN_MONTH = [[0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0], 
     [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0]];
 
+/**
+  * the number of days to the first of each month.
+  */
 DAY_OFFSET = [[0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365], 
     [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]];
+  
+/**
+ * count off the days between startTime and stopTime, but not including
+ * stopTime.
+ *
+ * @param {string} startTime an iso time string
+ * @param {string} stopTime an iso time string
+ * @return {java.lang.String[]} array of times, complete days, in the form $Y-$m-$d
+ */
+function countOffDays(startTime, stopTime) {
+    if (stopTime.length < 10 || /* isDigit */ /\d/.test(stopTime.charAt(10)[0])) {
+        throw new Error("arguments must be $Y-$m-$dZ");
+    }
+    var result = ([]);
+    var time = normalizeTimeString(startTime).substring(0, 10) + 'Z';
+    stopTime = ceil(stopTime).substring(0, 10) + 'Z';
+    while (( /* compareTo */time.localeCompare(stopTime) < 0)) {
+        /* add */ (result.push(time.substring(0)) > 0);
+        time = nextDay(time);
+    }
+    return /* toArray */ result.slice(0);
+};
 
+/**
+ * return the next day boundary. Note hours, minutes, seconds and
+ * nanoseconds are ignored.
+ *
+ * @param {string} day any isoTime format string.
+ * @return {string} the next day in $Y-$m-$dZ
+ * @see #ceil(java.lang.String)
+ * @see #previousDay(java.lang.String)
+ */
+function nextDay(day) {
+    var nn = isoTimeToArray(day);
+    nn[2] = nn[2] + 1;
+    normalizeTime(nn);
+    return format4(nn[0])+format2(nn[1])+format2(nn2)+'Z';
+};
+
+/**
+ * return the previous day boundary. Note hours, minutes, seconds and
+ * nanoseconds are ignored.
+ *
+ * @param {string} day any isoTime format string.
+ * @return {string} the next day in $Y-$m-$dZ
+ * @see #floor(java.lang.String)
+ * @see #nextDay(java.lang.String)
+ */
+function previousDay(day) {
+    var nn = isoTimeToArray(day);
+    nn[2] = nn[2] - 1;
+    normalizeTime(nn);
+    return format4(nn[0])+format2(nn[1])+format2(nn2)+'Z';
+};
+
+/**
+ * return the $Y-$m-$dT00:00:00.000000000Z of the next boundary, or the same
+ * value (normalized) if we are already at a boundary.
+ *
+ * @param {string} time any isoTime format string.
+ * @return {string} the next midnight or the value if already at midnight.
+ */
+function ceil(time) {
+    time = normalizeTimeString(time);
+    if (time.substring(11) === ("00:00:00.000000000Z")) {
+        return time;
+    }
+    else {
+        return nextDay(time.substring(0, 11)).substring(0, 10) + "T00:00:00.000000000Z";
+    }
+};
+/**
+ * return the $Y-$m-$dT00:00:00.000000000Z of the next boundary, or the same
+ * value (normalized) if we are already at a boundary.
+ *
+ * @param {string} time any isoTime format string.
+ * @return {string} the previous midnight or the value if already at midnight.
+ */
+function floor(time) {
+    time = normalizeTimeString(time);
+    if (time.substring(11) === ("00:00:00.000000000Z")) {
+        return time;
+    }
+    else {
+        return time.substring(0, 10) + "T00:00:00.000000000Z";
+    }
+};
+
+/**
+ * return $Y-$m-$dT$H:$M:$S.$(subsec,places=9)Z
+ *
+ * @param {string} time any isoTime format string.
+ * @return {string} the time in standard form.
+ */
+function normalizeTimeString(time) {
+    var nn = isoTimeToArray(time);
+    normalizeTime(nn);
+    return format4( nn[0] ) + "-" + format3(nn[2]) + 
+        "T" + format2( nn[3] ) +":" + format2( nn[4] ) + ":" + format2( nn[5] ) + '.' + format9(nn[6]) + "Z";
+};
+            
 /**
  * fast parser requires that each character of string is a digit.  Note this 
  * does not check the the numbers are digits!
@@ -273,7 +379,77 @@ function isoTimeFromArray(nn) {
     return "" + nn[0] + "-" + format2(nn[1]) + "-" + format2(nn[2]) + "T"
           + format2(nn[3]) + ":" + format2(nn[4]) + ":" + format2(nn[5]) + "." + format9(nn[6]) + "Z";
 };
-    
+   
+   
+/**
+ * format the time range components into iso8601 time range.
+ * @param {int[]} nn 14-element time range
+ * @return {string} efficient representation of the time range
+ */
+function formatIso8601TimeRange(nn) {
+    var ss1 = isoTimeFromArray(nn);
+    var ss2 = formatIso8601Time$int_A$int(nn, TIME_DIGITS);
+    var firstNonZeroDigit = 7;
+    while ((firstNonZeroDigit > 3 && nn[firstNonZeroDigit - 1] === 0 && nn[firstNonZeroDigit + TimeUtil.TIME_DIGITS - 1] === 0)) {
+        firstNonZeroDigit--;
+    }
+    switch ((firstNonZeroDigit)) {
+        case 2:
+            return ss1.substring(0, 10) + "/" + ss2.substring(0, 10);
+        case 3:
+            return ss1.substring(0, 10) + "/" + ss2.substring(0, 10);
+        case 4:
+            return ss1.substring(0, 16) + "Z/" + ss2.substring(0, 16) + "Z";
+        case 5:
+            return ss1.substring(0, 16) + "Z/" + ss2.substring(0, 16) + "Z";
+        case 6:
+            return ss1.substring(0, 19) + "Z/" + ss2.substring(0, 19) + "Z";
+        default:
+            return ss1 + "/" + ss2;
+    }
+};
+            
+            function formatIso8601Time$int_A$int(nn, offset) {
+                switch ((offset)) {
+                    case 0:
+                        return isoTimeFromArray(nn);
+                    case 7:
+                        var copy = [0, 0, 0, 0, 0, 0, 0];
+                        /* arraycopy */ (function (srcPts, srcOff, dstPts, dstOff, size) { if (srcPts !== dstPts || dstOff >= srcOff + size) {
+                            while (--size >= 0)
+                                dstPts[dstOff++] = srcPts[srcOff++];
+                        }
+                        else {
+                            var tmp = srcPts.slice(srcOff, srcOff + size);
+                            for (var i = 0; i < size; i++)
+                                dstPts[dstOff++] = tmp[i];
+                        } })(nn, offset, copy, 0, 7);
+                        return isoTimeFromArray(copy);
+                    default:
+                        throw new Error("offset must be 0 or 7");
+                }
+            };
+/**
+ * return the string as a formatted string, which can be at an offset of seven positions
+ * to format the end date.
+ * @param {int[]} nn fourteen-element array of [ Y m d H M S nanos Y m d H M S nanos ]
+ * @param {number} offset 0 or 7
+ * @return {string} formatted time "1999-12-31T23:00:00.000000000Z"
+ * @see #isoTimeFromArray(int[])
+ */
+function formatIso8601Time(nn, offset) {
+    if (((nn != null && nn instanceof Array && (nn.length == 0 || nn[0] == null || (typeof nn[0] === 'number'))) || nn === null) && ((typeof offset === 'number') || offset === null)) {
+        return formatIso8601Time$int_A$int(nn, offset);
+    }
+    else if (((nn != null && nn instanceof Array && (nn.length == 0 || nn[0] == null || (typeof nn[0] === 'number'))) || nn === null) && offset === undefined) {
+        return isoTimeFromArray(nn);
+    }
+    else {
+        throw new Error('invalid overload');
+    }
+};
+
+
 const simpleFloat = new RegExp("\\d?\\.?\\d+");
 
 /**
