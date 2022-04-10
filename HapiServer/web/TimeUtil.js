@@ -690,6 +690,28 @@ function isLeapYear(year) {
 };
 
 /**
+ * return the time as milliseconds since 1970-01-01T00:00Z. This does not
+ * include leap seconds. For example, in Jython:
+ * <pre>
+ * {@code
+ * from org.hapiserver.TimeUtil import *
+ * x= toMillisecondsSince1970('2000-01-02T00:00:00.0Z')
+ * print x / 86400000   # 10958.0 days
+ * print x % 86400000   # and no milliseconds
+ * }
+ * </pre>
+ *
+ * @param {string} time the isoTime, which is parsed using
+ * DateTimeFormatter.ISO_INSTANT.parse.
+ * @return {number} number of non-leap-second milliseconds since 1970-01-01T00:00Z.
+ * @see DateTimeFormatter#parse
+ */
+function toMillisecondsSince1970(time) {
+    dd= parseISO8601Time(time);
+    return Date.UTC( dd[0], dd[1]-1, dd[2], dd[3], dd[4], dd[5], dd[6]/1000000 ).valueOf();
+};
+
+/**
  * normalize the decomposed (seven digit) time by expressing day of year and month and day
  * of month, and moving hour="24" into the next day. This also handles day
  * increment or decrements, by:<ul>
