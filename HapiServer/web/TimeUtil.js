@@ -252,7 +252,7 @@ function nextDay(day) {
     var nn = isoTimeToArray(day);
     nn[2] = nn[2] + 1;
     normalizeTime(nn);
-    return format4(nn[0])+format2(nn[1])+format2(nn2)+'Z';
+    return format4(nn[0])+'-'+format2(nn[1])+'-'+format2(nn[2])+'Z';
 };
 
 /**
@@ -268,7 +268,7 @@ function previousDay(day) {
     var nn = isoTimeToArray(day);
     nn[2] = nn[2] - 1;
     normalizeTime(nn);
-    return format4(nn[0])+format2(nn[1])+format2(nn2)+'Z';
+    return format4(nn[0])+'-'+format2(nn[1])+'-'+format2(nn[2])+'Z';
 };
 
 /**
@@ -845,6 +845,9 @@ function now() {
  * @see #parseISO8601Time(java.lang.String)
  */
 function isoTimeToArray(time) {
+    if ( typeof(time)!='string' ) {
+        throw new Error('time must be a string, it is '+time)
+    }
     var result;
     if (time.length === 4) {
         result = [ parseInt(time), 1, 1, 0, 0, 0, 0];
