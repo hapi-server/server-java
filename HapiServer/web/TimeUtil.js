@@ -406,7 +406,7 @@ function formatIso8601TimeRange(nn) {
     var ss1 = isoTimeFromArray(nn);
     var ss2 = formatIso8601Time$int_A$int(nn, TIME_DIGITS);
     var firstNonZeroDigit = 7;
-    while ((firstNonZeroDigit > 3 && nn[firstNonZeroDigit - 1] === 0 && nn[firstNonZeroDigit + TimeUtil.TIME_DIGITS - 1] === 0)) {
+    while ((firstNonZeroDigit > 3 && nn[firstNonZeroDigit - 1] === 0 && nn[firstNonZeroDigit + TIME_DIGITS - 1] === 0)) {
         firstNonZeroDigit--;
     }
     switch ((firstNonZeroDigit)) {
@@ -563,6 +563,121 @@ function parseISO8601Duration(stringIn) {
         } else {
             throw Error("ISO8601 duration expected but not found.");
         }
+    }
+};
+
+/**
+ * use consistent naming so that the parser is easier to find.
+ * @param {string} string iso8601 time like "2022-03-12T11:17" (Z is assumed).
+ * @return {int[]} seven-element decomposed time [ Y, m, d, H, M, S, N ]
+ * @throws ParseException when the string cannot be parsed.
+ * @see #isoTimeToArray(java.lang.String)
+ */
+function parseISO8601Time(string) {
+    return isoTimeToArray(string);
+};
+
+/**
+ * parse the ISO8601 time range, like "1998-01-02/1998-01-17", into
+ * start and stop times, returned in a 14 element array of ints.
+ * @param {string} stringIn string to parse, like "1998-01-02/1998-01-17"
+ * @return {int[]} the time start and stop [ Y,m,d,H,M,S,nano, Y,m,d,H,M,S,nano ]
+ * @throws ParseException when the string cannot be used
+ */
+function parseISO8601TimeRange(stringIn) {
+    var ss = stringIn.split("/");
+    if (ss.length !== 2) {
+        throw new Error("expected one slash (/) splitting start and stop times.");
+    }
+    if (ss[0].length === 0 || !( /* isDigit *//\d/.test(ss[0].charAt(0)[0]) || (function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(ss[0].charAt(0)) == 'P'.charCodeAt(0) || /* startsWith */ (function (str, searchString, position) {
+        if (position === void 0) { position = 0; }
+        return str.substr(position, searchString.length) === searchString;
+    })(ss[0], "now"))) {
+        throw new Error("first time/duration is misformatted.  Should be ISO8601 time or duration like P1D.");
+    }
+    if (ss[1].length === 0 || !( /* isDigit *//\d/.test(ss[1].charAt(0)[0]) || (function (c) { return c.charCodeAt == null ? c : c.charCodeAt(0); })(ss[1].charAt(0)) == 'P'.charCodeAt(0) || /* startsWith */ (function (str, searchString, position) {
+        if (position === void 0) { position = 0; }
+        return str.substr(position, searchString.length) === searchString;
+    })(ss[1], "now"))) {
+        throw new Error("second time/duration is misformatted.  Should be ISO8601 time or duration like P1D.");
+    }
+    var result = (function (s) { var a = []; while (s-- > 0)
+        a.push(0); return a; })(14);
+    if ( /* startsWith */(function (str, searchString, position) {
+        if (position === void 0) { position = 0; }
+        return str.substr(position, searchString.length) === searchString;
+    })(ss[0], "P")) {
+        var duration = parseISO8601Duration(ss[0]);
+        var time = isoTimeToArray(ss[1]);
+        for (var i = 0; i < TIME_DIGITS; i++) {
+            result[i] = time[i] - duration[i];
+        }
+        normalizeTime(result);
+        /* arraycopy */ (function (srcPts, srcOff, dstPts, dstOff, size) { if (srcPts !== dstPts || dstOff >= srcOff + size) {
+            while (--size >= 0)
+                dstPts[dstOff++] = srcPts[srcOff++];
+        }
+        else {
+            var tmp = srcPts.slice(srcOff, srcOff + size);
+            for (var i = 0; i < size; i++)
+                dstPts[dstOff++] = tmp[i];
+        } })(time, 0, result, TIME_DIGITS, TIME_DIGITS);
+        return result;
+    }
+    else if ( /* startsWith */(function (str, searchString, position) {
+        if (position === void 0) { position = 0; }
+        return str.substr(position, searchString.length) === searchString;
+    })(ss[1], "P")) {
+        var time = isoTimeToArray(ss[0]);
+        var duration = parseISO8601Duration(ss[1]);
+        /* arraycopy */ (function (srcPts, srcOff, dstPts, dstOff, size) { if (srcPts !== dstPts || dstOff >= srcOff + size) {
+            while (--size >= 0)
+                dstPts[dstOff++] = srcPts[srcOff++];
+        }
+        else {
+            var tmp = srcPts.slice(srcOff, srcOff + size);
+            for (var i = 0; i < size; i++)
+                dstPts[dstOff++] = tmp[i];
+        } })(time, 0, result, 0, TIME_DIGITS);
+        var stoptime = (function (s) { var a = []; while (s-- > 0)
+            a.push(0); return a; })(TIME_DIGITS);
+        for (var i = 0; i < TIME_DIGITS; i++) {
+            stoptime[i] = time[i] + duration[i];
+        }
+        normalizeTime(stoptime);
+        /* arraycopy */ (function (srcPts, srcOff, dstPts, dstOff, size) { if (srcPts !== dstPts || dstOff >= srcOff + size) {
+            while (--size >= 0)
+                dstPts[dstOff++] = srcPts[srcOff++];
+        }
+        else {
+            var tmp = srcPts.slice(srcOff, srcOff + size);
+            for (var i = 0; i < size; i++)
+                dstPts[dstOff++] = tmp[i];
+        } })(stoptime, 0, result, TIME_DIGITS, TIME_DIGITS);
+        return result;
+    }
+    else {
+        var starttime = isoTimeToArray(ss[0]);
+        var stoptime = isoTimeToArray(ss[1]);
+        /* arraycopy */ (function (srcPts, srcOff, dstPts, dstOff, size) { if (srcPts !== dstPts || dstOff >= srcOff + size) {
+            while (--size >= 0)
+                dstPts[dstOff++] = srcPts[srcOff++];
+        }
+        else {
+            var tmp = srcPts.slice(srcOff, srcOff + size);
+            for (var i = 0; i < size; i++)
+                dstPts[dstOff++] = tmp[i];
+        } })(starttime, 0, result, 0, TIME_DIGITS);
+        /* arraycopy */ (function (srcPts, srcOff, dstPts, dstOff, size) { if (srcPts !== dstPts || dstOff >= srcOff + size) {
+            while (--size >= 0)
+                dstPts[dstOff++] = srcPts[srcOff++];
+        }
+        else {
+            var tmp = srcPts.slice(srcOff, srcOff + size);
+            for (var i = 0; i < size; i++)
+                dstPts[dstOff++] = tmp[i];
+        } })(stoptime, 0, result, TIME_DIGITS, TIME_DIGITS);
+        return result;
     }
 };
 
