@@ -6,7 +6,16 @@ import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.HapiRecord;
 
 /**
- * RecordSource which simply wraps another HAPI server.
+ * RecordSource which simply wraps another HAPI server.  Its configuration 
+ * looks like this:
+ * <pre>
+ * "data": {
+ *      "source":"hapiserver",
+ *      "url": "http://hapi-server.org/servers/SSCWeb/hapi/info?id=hawkeye"
+ *  }
+ * </pre>
+ * If the id is missing, then the same ID will be used on the wrapped server.
+ * 
  * @author jbf
  */
 public class HapiWrapperRecordSource extends AbstractHapiRecordSource {
