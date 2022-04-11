@@ -153,7 +153,7 @@ public class ExtendedTimeUtil {
     public static boolean gt( int[] t1, int[] t2 ) {
         TimeUtil.normalizeTime(t1);
         TimeUtil.normalizeTime(t2);
-        for ( int i=0; i<7; i++ ) {
+        for ( int i=0; i<TimeUtil.TIME_DIGITS ; i++ ) {
             if ( t1[i]>t2[i] ) {
                 return true;
             } else if ( t1[i]<t2[i] ) {
@@ -175,8 +175,8 @@ public class ExtendedTimeUtil {
             throw new IllegalArgumentException("t1 is greater than t2");
         }
         int[] result= new int[TimeUtil.TIME_DIGITS*2];
-        System.arraycopy( t1, 0, result, 0, 7 );
-        System.arraycopy( t2, 0, result, 7, 7 );
+        System.arraycopy( t1, 0, result, 0, TimeUtil.TIME_DIGITS  );
+        System.arraycopy( t2, 0, result, TimeUtil.TIME_DIGITS , TimeUtil.TIME_DIGITS  );
         return result;
     }
     
@@ -188,8 +188,8 @@ public class ExtendedTimeUtil {
      * @return the stop time.
      */
     public static int[] getStopTime( int [] tr ) {
-        int[] result= new int[7];
-        System.arraycopy( tr, 7, result, 0, 7 );
+        int[] result= new int[ TimeUtil.TIME_DIGITS ];
+        System.arraycopy( tr, TimeUtil.TIME_DIGITS , result, 0, TimeUtil.TIME_DIGITS  );
         return result;
     }
     
@@ -224,7 +224,7 @@ public class ExtendedTimeUtil {
         
         String stime= TimeUtil.formatIso8601Time(time,offset);
         
-        int nanos= time[6+offset];
+        int nanos= time[ NANOSECOND+offset ];
         int micros= nanos % 1000;
         int millis= nanos % 10000000;
         
