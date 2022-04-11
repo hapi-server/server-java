@@ -15,8 +15,8 @@ public class HapiWrapperRecordSource extends AbstractHapiRecordSource {
     private final String id;
     private final JSONObject info;
     
-    public HapiWrapperRecordSource( String id, JSONObject info, String source )  {
-        String hapiServ = source.substring(11);
+    public HapiWrapperRecordSource( String id, JSONObject info, JSONObject data )  {
+        String hapiServ = data.optString("url");
         int i= hapiServ.indexOf("/info?id=");
         if ( i!=-1 ) {
             id= hapiServ.substring(i+9);

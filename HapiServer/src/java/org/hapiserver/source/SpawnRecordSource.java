@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -37,13 +36,16 @@ public class SpawnRecordSource implements HapiRecordSource {
      * @param hapiHome the server configuration directory, containing catalog.json
      * @param id the dataset id
      * @param info the info for the data set.
-     * @param source the source string 
+     * @param dataConfig
      */
-    public SpawnRecordSource( String hapiHome, String id, JSONObject info, String source ) {
+    public SpawnRecordSource( String hapiHome, String id, JSONObject info, JSONObject dataConfig ) {
         this.hapiHome= hapiHome;
         this.id= id;
         this.info= info;
-        this.command= source.substring(6);
+        this.command= dataConfig.optString("command","");
+        if ( this.command.equals("") ) {
+            throw new IllegalArgumentException("command not found for spawn");
+        }
     }
 
     @Override

@@ -5,6 +5,7 @@ import java.util.Iterator;
 import org.hapiserver.ExtendedTimeUtil;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
+import org.hapiserver.TimeUtil;
 
 /**
  * Often we have granules of data which when "aggregated" together form the 
@@ -45,6 +46,9 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
         this.parameters= parameters;
         if ( granuleIterator.hasNext() ) {
             this.granule= granuleIterator.next();
+            if ( this.granule.length!=TimeUtil.TIME_RANGE_DIGITS ) {
+                throw new IllegalArgumentException("implementation error, granule iterator did not return 14 time range digits");
+            }
             if ( this.parameters==null ) {
                 this.hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule) );
             } else {
