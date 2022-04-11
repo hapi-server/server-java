@@ -11,7 +11,7 @@ import org.hapiserver.HapiRecordSource;
 import org.hapiserver.TimeUtil;
 
 /**
- * given one ASCII file with time and double, return iterator.  This will likely be deprecated.
+ * given one pre-formatted CSV file with a known number of fields, return iterator.  This will likely be deprecated.
  * @author jbf
  */
 public class DailyHapiRecordSource extends AbstractHapiRecordSource {
@@ -92,7 +92,7 @@ public class DailyHapiRecordSource extends AbstractHapiRecordSource {
         this.nfield= nfield;
         this.fileFormat= fileFormat;
     }
-    
+
     @Override
     public boolean hasGranuleIterator() {
         return true;

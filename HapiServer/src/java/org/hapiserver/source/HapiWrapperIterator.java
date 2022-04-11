@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.hapiserver.CSVHapiRecord;
 import org.hapiserver.CSVHapiRecordConverter;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiServerSupport;
