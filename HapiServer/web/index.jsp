@@ -57,7 +57,9 @@
                 
                 JSONArray dss= catalog.getJSONArray("catalog");
                 
-                for ( int i=0; i<dss.length(); i++ ) {
+                int numDataSets= Math.min( dss.length(), 8 );
+                
+                for ( int i=0; i<numDataSets; i++ ) {
                     JSONObject ds= dss.getJSONObject(i);
 
                     String id= ds.getString("id");
@@ -75,11 +77,6 @@
                         title= id;
                     }
 
-                    File infoFile= new File( new File( HAPI_HOME, "info" ), Util.fileSystemSafeName(id)+".json" );
-                    if ( !infoFile.exists() ) {
-                        out.println( "<p style=\"background-color: #e0e0e0;\">misconfigured: "+id+" ("+Util.fileSystemSafeName(id)+")</p>\n" );
-                        continue;
-                    }
                     JSONObject info= HapiServerSupport.getInfo( HAPI_HOME, id );
 
                     int[] availableRange= HapiServerSupport.getRange(info);

@@ -29,14 +29,19 @@ public class TimeUtil {
     private static final Logger logger = Logger.getLogger("hapiserver.timeutil");
 
     /**
-     * Number of time digits: year, month, day, hour, minute, second, nanosecond
+     * Number of time components: year, month, day, hour, minute, second, nanosecond
      */
     public static final int TIME_DIGITS = 7;
     
     /**
-     * Number of digits in time representation: year, month, day
+     * Number of components in time representation: year, month, day
      */
     public static final int DATE_DIGITS = 3;
+    
+    /**
+     * Number of components in a time range, which is two times.
+     */
+    public static final int TIME_RANGE_DIGITS=14;
     
     /**
      * Rewrite the time using the format of the example time, which must start with

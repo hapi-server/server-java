@@ -27,6 +27,11 @@ public class Initialize {
             throw new RuntimeException("Unable to make hapi_home");
         }
 
+        File configDir= new File( hapiHome, "config" );
+        if ( !configDir.mkdirs() ) {
+            throw new RuntimeException("Unable to make config area");
+        }
+
         try {
             File aboutFile= new File( hapiHome, "about.json" );
             
@@ -47,12 +52,12 @@ public class Initialize {
         }
 
         try {
-            File catalogFile= new File( hapiHome, "catalog.json" );
+            File catalogFile= new File( new File( hapiHome, "config" ), "catalog.json" );
             
             logger.log(Level.INFO, "copy catalog.json from internal templates to {0}", catalogFile);
             
             InputStream in= Util.getTemplateAsStream("catalog.json");
-            File tmpFile= new File( hapiHome, "_catalog.json" );
+            File tmpFile= new File( new File( hapiHome, "config" ), "_catalog.json" );
             Util.transfer( in, new FileOutputStream(tmpFile), true );
             if ( !tmpFile.renameTo(catalogFile) ) {
                 logger.log(Level.SEVERE, "Unable to write to {0}", catalogFile);
@@ -69,10 +74,16 @@ public class Initialize {
         if ( !infoDir.mkdirs() ) {
             throw new RuntimeException("Unable to make info area");
         }
+        
+        File dataDir= new File( hapiHome, "data" );
+        if ( !dataDir.mkdirs() ) {
+            throw new RuntimeException("Unable to make data area");
+        }
+        
         String[] examples= new String[] { "wind_swe_2m" };
         
         for ( String s: examples ) {
-            File exampleData= new File( infoDir, s + ".json" );
+            File exampleData= new File( configDir, s + ".json" );
             try {
                 Util.transfer( Util.getTemplateAsStream( s+".json" ), new FileOutputStream(exampleData), true );
             } catch (IOException ex) {

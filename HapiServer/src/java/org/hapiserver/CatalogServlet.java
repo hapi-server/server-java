@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -12,6 +13,9 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+import org.hapiserver.exceptions.BadIdException;
 
 /**
  * Catalog servlet serves list of available data sets.
@@ -72,34 +76,24 @@ public class CatalogServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
 
-        response.setContentType("application/json;charset=UTF-8");
-                
-        response.setHeader("Access-Control-Allow-Origin", "* " );
-        response.setHeader("Access-Control-Allow-Methods","GET" );
-        response.setHeader("Access-Control-Allow-Headers","Content-Type" );
-        
-        File catalogFile= new File( HAPI_HOME, "catalog.json" );
-        if ( catalogFile.exists() ) {
-            logger.log(Level.FINE, "using cached about file {0}", catalogFile);
-            Util.sendFile(catalogFile, request, response );
+        try {
+            response.setContentType("application/json;charset=UTF-8");
             
-        } else {
-            synchronized ( this ) {
-                if ( !catalogFile.exists() ) { // double-check within synchronized block
-                    logger.log(Level.INFO, "copy catalog.json from internal templates to {0}", catalogFile);
-                    InputStream in= Util.getTemplateAsStream("catalog.json");
-                    File tmpFile= new File( HAPI_HOME, "_catalog.json" );
-                    Util.transfer( in, new FileOutputStream(tmpFile), true );
-                    if ( !tmpFile.renameTo(catalogFile) ) {
-                        logger.log(Level.SEVERE, "Unable to write to {0}", catalogFile);
-                        throw new IllegalArgumentException("unable to write catalog file");
-                    } else {
-                        logger.log(Level.FINE, "wrote cached catalog file {0}", catalogFile);
-                    }
-                }
-                logger.log(Level.FINE, "using cached catalog file {0}", catalogFile);
+            response.setHeader("Access-Control-Allow-Origin", "* " );
+            response.setHeader("Access-Control-Allow-Methods","GET" );
+            response.setHeader("Access-Control-Allow-Headers","Content-Type" );
+            
+            JSONObject catalog= HapiServerSupport.getCatalog(HAPI_HOME);
+            
+            try (PrintWriter out = response.getWriter()) {
+                catalog.setEscapeForwardSlashAlways(false);
+                String s= catalog.toString(4);
+                out.write(s);
+            } catch ( JSONException ex ) {
+                throw new ServletException(ex);
             }
-            Util.sendFile( catalogFile, request, response );
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
         }
         
     }

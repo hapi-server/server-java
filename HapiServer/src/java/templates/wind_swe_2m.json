@@ -1,4 +1,5 @@
 {
+  "info":{
     "HAPI": "3.0",
     "x_createdAt": "2017-02-21T17:27Z",
     "modificationDate": "lastyear",
@@ -35,4 +36,8 @@
     "sampleStopDate": "2019-365T23:30Z",
     "startDate": "1994-01-01",
     "stopDate": "2022-01-01"
+  },
+  "data": {
+    "source":"wind_swe_2m"    
+  }
 }

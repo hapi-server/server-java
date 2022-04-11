@@ -31,11 +31,7 @@ public class WindSwe2mIterator implements Iterator<HapiRecord> {
     String nextRecord=null;
     
     public WindSwe2mIterator( int[] startTime, int[] stopTime ) {
-        if ( stopTime[1]==1 && stopTime[2]==1 && stopTime[3]==0 && stopTime[4]==0 && stopTime[5]==0 && stopTime[6]==0 ) {
-            stopYear= stopTime[0]+1;
-        } else {
-            stopYear= stopTime[0];
-        }
+        
         currentYear= startTime[0];
         
         try {
@@ -60,17 +56,8 @@ public class WindSwe2mIterator implements Iterator<HapiRecord> {
     private void readNextRecord() {
         try {
             nextRecord= readerCurrentYear.readLine();
-            while ( nextRecord==null && currentYear<=stopYear) {
-                if ( nextRecord==null ) {
-                    readerCurrentYear.close();
-                    currentYear++;
-                    if ( currentYear<=stopYear ) {
-                        currentUrl= new URL( String.format( "file:/home/jbf/ct/data.backup/2022/wind_swe_2m/wind_swe_2m_sw%4d.asc",
-                            currentYear ) );
-                        readerCurrentYear= new BufferedReader( new URLReader( currentUrl ) );
-                        nextRecord= readerCurrentYear.readLine();
-                    }
-                } 
+            if ( nextRecord==null ) {
+                readerCurrentYear.close();
             }
         } catch ( IOException ex ) {
             logger.log(Level.SEVERE, null, ex);
