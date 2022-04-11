@@ -118,9 +118,10 @@ public class Util {
 
     /**
      * convert IDs and NAMEs into safe names which will work on all platforms.
-     * If the name is modified, it will start with an underscore (_). 
-     * <li>poolTemperature -> poolTemperature
-     * <li>Iowa City Conditions -> _Iowa+City+Conditions
+     * If the name is modified, it will start with an underscore (_). <ul>
+     * <li>poolTemperature &rarr; poolTemperature
+     * <li>Iowa City Conditions &rarr; _Iowa+City+Conditions
+     * </ul>
      * @param s
      * @return 
      */
@@ -313,7 +314,6 @@ public class Util {
      * @param response the response object
      * @param out the output stream from the response object.
      * @throws java.io.IOException
-     * @see https://github.com/hapi-server/data-specification/blob/master/hapi-3.0.1/HAPI-data-access-spec-3.0.1.md#42-status-codes
      */
     public static void raiseError( int statusCode, String statusMessage, HttpServletResponse response, final OutputStream out ) 
         throws IOException {
@@ -364,9 +364,9 @@ public class Util {
 
     /**
      * returns true if the id is safe to include in a unix command,
-     * not containing spaces or ..
-     * @param id
-     * @return 
+     * not containing spaces or dot-dot (..)
+     * @param id the dataset id.
+     * @return true if the id is safe to use, or throws IllegalArgumentException if it is not.
      */
     public static boolean constrainedId(String id) {
         if ( id.length()==0 ) {
