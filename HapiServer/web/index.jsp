@@ -57,8 +57,14 @@
                 
                 JSONArray dss= catalog.getJSONArray("catalog");
                 
-                int numDataSets= Math.min( dss.length(), 8 );
+                String autoplotServer= "https://jfaden.net/AutoplotServlet";
+                //String autoplotServer= "http://localhost:8084/AutoplotServlet";
+                    
+                String me= "http://spot9/hapi"; // TODO: address this, what is the public name for the server
+                boolean sparklines= false;      // don't draw sparklines using external server.
                 
+                int numDataSets= Math.min( dss.length(), 8 );
+                                
                 for ( int i=0; i<numDataSets; i++ ) {
                     JSONObject ds= dss.getJSONObject(i);
 
@@ -83,7 +89,8 @@
                     int[] exampleRange= HapiServerSupport.getExampleRange(info);
                     if ( exampleRange!=null ) {
                         title= title+ "<em> (available "+ TimeUtil.formatIso8601TimeRange(availableRange)
-                            + ", example range "+TimeUtil.formatIso8601TimeRange(exampleRange) + " shown)</em>";
+                            + ", example range "+TimeUtil.formatIso8601TimeRange(exampleRange) + 
+                            ( sparklines ? " shown)</em>" : "</em>" );
                     }
 
                     String exampleTimeRange= exampleRange==null ? null : 
@@ -98,12 +105,6 @@
                         out.println( String.format("[<a href=\"info?id=%s\">Info</a>] [Data]", 
                             ds.getString("id"), ds.getString("id") ) );
                     }
-
-                    String autoplotServer= "https://jfaden.net/AutoplotServlet";
-                    //String autoplotServer= "http://localhost:8084/AutoplotServlet";
-                    
-                    String me= "http://spot9/hapi"; // TODO: address this, what is the public name for the server
-                    boolean sparklines= false;      // don't draw sparklines using external server.
                     
                     out.println(" ");
                     JSONArray parameters= info.getJSONArray("parameters");
