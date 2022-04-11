@@ -2,6 +2,10 @@
 package org.hapiserver;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.source.DailyHapiRecordSource;
@@ -54,6 +58,21 @@ public class SourceRegistry {
                 return new SpawnRecordSource( hapiHome, id, info, data );
             case "hapiserver":
                 return new HapiWrapperRecordSource( id, info, data );
+            case "classpath":
+                String impl= data.optString("class");
+                try {
+                    Class c= SourceRegistry.class.forName(impl);
+                    Constructor constructor= c.getConstructor( String.class, String.class, JSONObject.class, JSONObject.class );
+                    Object o= constructor.newInstance( hapiHome, id, info, data );
+                    if ( !( o instanceof HapiRecordSource ) ) {
+                        throw new RuntimeException("classpath refers to class which is not an instance of HapiRecordSource");
+                    } else {
+                        HapiRecordSource result= (HapiRecordSource)o;
+                        return result;
+                    }
+                } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException ex) {
+                    throw new RuntimeException(ex);
+                }
             case "wind_swe_2m":
                 return new WindSwe2mDataSource( );
             default:
