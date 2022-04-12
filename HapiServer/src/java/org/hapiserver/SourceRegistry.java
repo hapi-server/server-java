@@ -6,6 +6,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServlet;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.source.DailyHapiRecordSource;
@@ -61,7 +62,7 @@ public class SourceRegistry {
             case "classpath":
                 String impl= data.optString("class");
                 try {
-                    Class c= SourceRegistry.class.forName(impl);
+                    Class c= Class.forName(impl);
                     Constructor constructor= c.getConstructor( String.class, String.class, JSONObject.class, JSONObject.class );
                     Object o= constructor.newInstance( hapiHome, id, info, data );
                     if ( !( o instanceof HapiRecordSource ) ) {
