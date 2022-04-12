@@ -41,7 +41,7 @@ public class HapiServerSupport {
      */
     public static final int[] firstValidTime= ExtendedTimeUtil.parseValidTime( "1900-01-01T00:00" );
 
-    private static final Charset CHARSET= Charset.forName("UTF-8");
+    public static final Charset CHARSET= Charset.forName("UTF-8");
     
     /**
      * return the range of available data. For example, Polar/Hydra data is available
@@ -126,6 +126,8 @@ public class HapiServerSupport {
         }
         JSONObject catalog;
         long catalogTimeStamp;
+        JSONObject about;
+        long aboutTimeStamp;
         Map<String,InfoData> infoCache= new HashMap<>();
         Map<String,ConfigData> configCache = new HashMap<>();
         Map<String,DataConfigData> dataConfigCache = new HashMap<>();
@@ -158,7 +160,7 @@ public class HapiServerSupport {
         JSONObject config;
         long configTimeStamp;
     }
-
+    
     /**
      * keep and monitor a cached version of the catalog in memory.
      * @param HAPI_HOME the location of the server definition
