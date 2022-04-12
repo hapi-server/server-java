@@ -1,10 +1,13 @@
 
 package org.hapiserver;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -12,6 +15,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 /**
  * Generate the HAPI server "about" response
@@ -79,7 +84,17 @@ public class AboutServlet extends HttpServlet {
         File aboutFile= new File( HAPI_HOME, "about.json" );
         if ( aboutFile.exists() ) {
             logger.log(Level.FINE, "using cached about file {0}", aboutFile);
-            Util.sendFile(aboutFile, request, response );
+            ByteArrayOutputStream outs= new ByteArrayOutputStream();
+            Files.copy( aboutFile.toPath(), outs );
+            try {
+                JSONObject jo= new JSONObject( new String( outs.toByteArray(), HapiServerSupport.CHARSET ) );
+                jo.setEscapeForwardSlashAlways(false);
+                jo.put( "x_hapi_home", HAPI_HOME );
+                Util.transfer( new ByteArrayInputStream( jo.toString(4).getBytes( HapiServerSupport.CHARSET) ), 
+                    response.getOutputStream(), true );
+            } catch (JSONException ex) {
+                logger.log(Level.SEVERE, null, ex);
+            }
             
         } else {
             synchronized ( this ) {
