@@ -344,7 +344,7 @@ public class SSCWebRecordSource {
         if (dataResult.getStatusCode() != 
             ResultStatusCode.SUCCESS) {
 
-            System.out.println("getData: dataResult.getStatusCode() = " +
+            System.err.println("getData: dataResult.getStatusCode() = " +
                 dataResult.getStatusCode());
         }
 
@@ -528,7 +528,7 @@ public class SSCWebRecordSource {
                 i < magneticStrength.size()) {
 
                 if (magneticStrength.get(i) == -1.0E31D) {
-                    System.out.print(",");
+                    System.out.printf(",%10.1e",-1.0E31D);
                 }
                 else {
                     System.out.printf(",%10.2f" ,
@@ -539,22 +539,18 @@ public class SSCWebRecordSource {
             if (ns != null && i < ns.size()) {
 
                 if (ns.get(i) == -1.0E31D) {
-
-                    System.out.printf(",%10s","");
+                    System.out.printf(",%10.1e",-1.0E31D);
                 }
                 else {
-
                     System.out.printf(",%10.2f" , ns.get(i));
                 }
             }
 
             if (bs != null && i < bs.size()) {
-
                 System.out.printf(",%10.2f" , bs.get(i));
             }
 
             if (mp != null && i < mp.size()) {
-
                 System.out.printf(",%10.2f" , mp.get(i));
             }
 
@@ -594,8 +590,7 @@ public class SSCWebRecordSource {
             if (bGseX != null && i < bGseX.size()) {
 
                 if (bGseX.get(i) == -1.0E31D) {
-
-                    System.out.printf(",%10s");
+                    System.out.printf(",%10.1e",-1.0E31D);
                 }
                 else {
 
@@ -606,11 +601,9 @@ public class SSCWebRecordSource {
             if (bGseY != null && i < bGseY.size()) {
 
                 if (bGseY.get(i) == -1.0E31D) {
-
-                    System.out.print(",");
+                    System.out.printf(",%10e",-1.0E31D);
                 }
                 else {
-
                     System.out.printf(",%10.2f" , bGseY.get(i));
                 }
             }
@@ -618,7 +611,7 @@ public class SSCWebRecordSource {
             if (bGseZ != null && i < bGseZ.size()) {
 
                 if (bGseZ.get(i) == -1.0E31D) {
-                    System.out.print(",");
+                    System.out.printf(",%10e",-1.0E31D);
                 }
                 else {
                     System.out.printf(",%10.2f" , bGseZ.get(i));
@@ -823,10 +816,18 @@ public class SSCWebRecordSource {
         
     }
     
+    public void printInfo( String satellite ) {
+        
+    }
+    
     public static void main( String[] args ) throws Exception {
         if ( args.length==0 ) {
             args= new String[] { "fast", "2008-02-02T00:00Z", "2008-02-03T00:00Z" };
         }
-        new SSCWebRecordSource().run( args[0], TimeUtil.parseISO8601Time(args[1]), TimeUtil.parseISO8601Time(args[2]) );
+        if ( args.length==2 ) {
+            new SSCWebRecordSource().printInfo( args[0] );
+        } else {
+            new SSCWebRecordSource().run( args[0], TimeUtil.parseISO8601Time(args[1]), TimeUtil.parseISO8601Time(args[2]) );
+        }
     }
 }
