@@ -18,6 +18,8 @@ import gov.nasa.gsfc.sscweb.schema.LocationFilter;
 import gov.nasa.gsfc.sscweb.schema.LocationFilterOptions;
 import gov.nasa.gsfc.sscweb.schema.MappedRegionFilterOptions;
 import gov.nasa.gsfc.sscweb.schema.ObjectFactory;
+import gov.nasa.gsfc.sscweb.schema.ObservatoryDescription;
+import gov.nasa.gsfc.sscweb.schema.ObservatoryResponse;
 import gov.nasa.gsfc.sscweb.schema.OutputOptions;
 import gov.nasa.gsfc.sscweb.schema.RegionFilterOptions;
 import gov.nasa.gsfc.sscweb.schema.RegionOptions;
@@ -31,6 +33,7 @@ import gov.nasa.gsfc.sscweb.schema.TimeInterval;
 import gov.nasa.gsfc.sscweb.schema.Tsyganenko89CBFieldModel;
 import gov.nasa.gsfc.sscweb.schema.Tsyganenko89CKp;
 import gov.nasa.gsfc.sscweb.schema.ValueOptions;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +48,9 @@ import javax.ws.rs.core.MediaType;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.TimeUtil;
 
 /**
@@ -768,14 +774,14 @@ public class SSCWebRecordSource {
         }
 
 
-        System.out.println(hdr1);
-        System.out.println(hdr2);
+        System.err.println(hdr1);
+        System.err.println(hdr2);
     }
 
     
     private static void print(SatelliteData data) {
 
-        System.out.println("  " + data.getId());
+        System.err.println("  " + data.getId());
 
         List<XMLGregorianCalendar> time = data.getTime();
         List<CoordinateData> coords = data.getCoordinates();
@@ -798,7 +804,7 @@ public class SSCWebRecordSource {
         List<Double> bGseZ = data.getBGseZ();
 
         printHeading(coords, radialLength, magneticStrength, ns, bs, mp,
-                     lv, il, sr, rtr, nbtr, sbtr, bGseX, bGseY, bGseZ);
+              lv, il, sr, rtr, nbtr, sbtr, bGseX, bGseY, bGseZ);
 
         print(time, coords, radialLength, magneticStrength, ns, bs, mp,
               lv, il, sr, rtr, nbtr, sbtr, bGseX, bGseY, bGseZ,
@@ -816,18 +822,71 @@ public class SSCWebRecordSource {
         
     }
     
+    public void printCatalog( ) {
+
+        try {
+            String url = ENDPOINT + "/observatories/";
+            
+            WebTarget ssc = client.target(url);
+            Invocation.Builder request =
+                ssc.request(MediaType.APPLICATION_XML);
+            Invocation invocation =
+                request.header("User-Agent", USER_AGENT).buildGet();
+            
+            ObservatoryResponse response =
+                invocation.invoke(ObservatoryResponse.class);
+            
+            List<ObservatoryDescription> dd=  response.getObservatory();
+            
+            JSONArray ids= new JSONArray();
+            
+            for ( ObservatoryDescription d : dd ) {
+                System.err.println(""+d.getId());
+                JSONObject id= new JSONObject();
+                id.put("id",d.getId());
+                id.put("title",d.getName());
+                ids.put( ids.length(), id );
+            }
+            
+            JSONObject catalog= new JSONObject();
+            catalog.put( "catalog", ids );
+            
+            
+            JSONObject status= new JSONObject();
+            status.put( "code", 1200 );
+            status.put( "message", "OK" );
+            
+            catalog.put( "status", status );
+            
+            System.out.println( catalog.toString(4) );
+            
+        } catch (JSONException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
+        
+
+    }
+    
     public void printInfo( String satellite ) {
         
     }
     
     public static void main( String[] args ) throws Exception {
         if ( args.length==0 ) {
-            args= new String[] { "fast", "2008-02-02T00:00Z", "2008-02-03T00:00Z" };
+            System.err.println("SSCWebRecordSource -- prints this help");
+            System.err.println("SSCWebRecordSource catalog");
+            System.err.println("SSCWebRecordSource info <sc>");
+            System.err.println("SSCWebRecordSource data <sc> <startTime> <stopTime>");
+            System.exit(1);
         }
-        if ( args.length==2 ) {
-            new SSCWebRecordSource().printInfo( args[0] );
+        if ( args[0].equals("catalog")) {
+            new SSCWebRecordSource().printCatalog();
+        } else if ( args[0].equals("info") ) {
+            new SSCWebRecordSource().printInfo( args[1] );
+        } else if ( args[1].equals("data") ) {
+            new SSCWebRecordSource().run( args[1], TimeUtil.parseISO8601Time(args[2]), TimeUtil.parseISO8601Time(args[3]) );
         } else {
-            new SSCWebRecordSource().run( args[0], TimeUtil.parseISO8601Time(args[1]), TimeUtil.parseISO8601Time(args[2]) );
+            main( new String[0] );
         }
     }
 }
