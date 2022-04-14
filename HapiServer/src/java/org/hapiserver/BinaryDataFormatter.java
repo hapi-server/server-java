@@ -233,11 +233,6 @@ public class BinaryDataFormatter implements DataFormatter {
                 
     }
     
-    /**
-     * perform any final operations to the stream.  This 
-     * DOES NOT close the stream!
-     * @param out 
-     */
     @Override
     public void finalize( OutputStream out ) {
         

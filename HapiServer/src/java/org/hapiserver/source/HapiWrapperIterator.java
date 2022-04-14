@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.hapiserver.CSVHapiRecordConverter;
+import org.hapiserver.CsvHapiRecordConverter;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiServerSupport;
 import org.hapiserver.TimeUtil;
@@ -37,7 +37,7 @@ public class HapiWrapperIterator implements Iterator<HapiRecord> {
     BufferedReader reader;
     String nextRecord;
     String[] params;
-    CSVHapiRecordConverter converter;
+    CsvHapiRecordConverter converter;
     
     public HapiWrapperIterator( String server, String id, JSONObject info, String[] params, int[] start, int[] stop) {
         this.server= server;
@@ -82,7 +82,7 @@ public class HapiWrapperIterator implements Iterator<HapiRecord> {
                 in= request.openStream();
                 reader= new BufferedReader( new InputStreamReader(in) );
                 nextRecord= reader.readLine();
-                converter= new CSVHapiRecordConverter(info);
+                converter= new CsvHapiRecordConverter(info);
             } catch (IOException | JSONException ex) {
                 throw new RuntimeException(ex);
             }

@@ -39,8 +39,8 @@ public class Util {
     /**
      * return true if the client is trusted and additional information about
      * the server for debugging can be included in the response.
-     * @param request
-     * @return 
+     * @param request the request
+     * @return true if the client is trusted 
      */
     public static final boolean isTrustedClient( HttpServletRequest request ) {
         String remoteAddr= request.getRemoteAddr();
@@ -54,15 +54,19 @@ public class Util {
     }
     
     /**
-     * send the file to the response.
-     * @param aboutFile
-     * @param request
-     * @param response
-     * @throws IllegalArgumentException
-     * @throws IOException 
+     * send the file to the response.  If the client is trusted, then also include HAPI_HOME in x_HAPI_SERVER_HOME
+     * to aid in debugging.
+     * 
+     * @param jsonFile the file containing JSON data.
+     * @param request the request 
+     * @param response the response
+     * @throws IllegalArgumentException when a JSONException occurs.
+     * @throws IOException any IOException
      */
-    public static void sendFile( File aboutFile, HttpServletRequest request, HttpServletResponse response) throws IllegalArgumentException, IOException {
-        byte[] bb= Files.readAllBytes( Paths.get( aboutFile.toURI() ) );
+    public static void sendFile( File jsonFile, HttpServletRequest request, HttpServletResponse response) 
+        throws IllegalArgumentException, IOException {
+        
+        byte[] bb= Files.readAllBytes( Paths.get( jsonFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         if ( Util.isTrustedClient(request) ) {
             // security says this should not be shown in production use, but include for localhost
@@ -122,8 +126,8 @@ public class Util {
      * <li>poolTemperature &rarr; poolTemperature
      * <li>Iowa City Conditions &rarr; _Iowa+City+Conditions
      * </ul>
-     * @param s
-     * @return 
+     * @param s the name of the ID.
+     * @return a file-system safe name, not containing spaces, spaces replaced by pluses.  If strange characters remain everything is escaped.
      */
     public static final String fileSystemSafeName( String s ) {
         Pattern p= Pattern.compile("[a-zA-Z0-9\\-\\+\\*\\._]+");
@@ -148,9 +152,9 @@ public class Util {
     
     /**
      * return the total number of elements of each parameter.
-     * @param info the info
+     * @param info the info the JSONObject for the info response
      * @return an int array with the number of elements in each parameter.
-     * @throws JSONException 
+     * @throws JSONException when required tags are missing
      */
     public static int[] getNumberOfElements( JSONObject info ) throws JSONException {
         JSONArray parameters= info.getJSONArray("parameters");
@@ -257,9 +261,9 @@ public class Util {
     }
     
     /**
-     * All HAPI responses have 
-     * @param statusCode
-     * @param message
+     * All HAPI responses have a status node, which is a JSONObject including a static code and message.
+     * @param statusCode HAPI status code, such as 1406
+     * @param message the message, such as "HAPI error 1406: unknown dataset id"
      * @return the JSON object ready to be completed
      */
     public static JSONObject createHapiResponse( int statusCode, String message ) {
@@ -309,11 +313,11 @@ public class Util {
      * send an error response to the client. The document 
      * <a href="https://github.com/hapi-server/data-specification/blob/master/hapi-3.0.1/HAPI-data-access-spec-3.0.1.md#42-status-codes">status codes</a>
      * talks about the status codes.
-     * @param statusCode
-     * @param statusMessage
+     * @param statusCode HAPI status code, such as 1406
+     * @param statusMessage the message, such as "HAPI error 1406: unknown dataset id"
      * @param response the response object
      * @param out the output stream from the response object.
-     * @throws java.io.IOException
+     * @throws java.io.IOException when there are errors in I/O
      */
     public static void raiseError( int statusCode, String statusMessage, HttpServletResponse response, final OutputStream out ) 
         throws IOException {

@@ -453,9 +453,9 @@ public class HapiServerSupport {
     
     /**
      * split the parameters into an array of parameters, adding time when it is implicit.
-     * @param info
-     * @param parameters
-     * @return 
+     * @param info the info object
+     * @param parameters the parameters, which might be provided by the client.
+     * @return the list of parameters, including the time parameter.
      */
     public static String[] splitParams( JSONObject info, String parameters )  {
         String[] ss= parameters.split(",");
@@ -483,7 +483,7 @@ public class HapiServerSupport {
      * @param info the JSONObject for the server
      * @param params array of parameter names
      * @return comma-delimited string, including the time if it wasn't found
-     * @throws RuntimeException
+     * @throws RuntimeException when JSONException occurs.
      */
     public static String joinParams( JSONObject info, String[] params )  {
         try {

@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.hapiserver.CSVHapiRecordConverter;
+import org.hapiserver.CsvHapiRecordConverter;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
 import org.hapiserver.HapiServerSupport;
@@ -36,7 +36,7 @@ public class SpawnRecordSource implements HapiRecordSource {
      * @param hapiHome the server configuration directory, containing catalog.json
      * @param id the dataset id
      * @param info the info for the data set.
-     * @param dataConfig
+     * @param dataConfig description of how data records are created
      */
     public SpawnRecordSource( String hapiHome, String id, JSONObject info, JSONObject dataConfig ) {
         this.hapiHome= hapiHome;
@@ -89,7 +89,7 @@ public class SpawnRecordSource implements HapiRecordSource {
         BufferedReader reader;
         String nextRecord;
         boolean initialized;
-        CSVHapiRecordConverter converter;
+        CsvHapiRecordConverter converter;
         
         /**
          * Create a new SpawnRecordSourceIterator
@@ -147,7 +147,7 @@ public class SpawnRecordSource implements HapiRecordSource {
                 process= pb.start();
                 reader= new BufferedReader( new InputStreamReader( process.getInputStream() ) );
                 nextRecord= reader.readLine();
-                converter= new CSVHapiRecordConverter(info);
+                converter= new CsvHapiRecordConverter(info);
             } catch (JSONException | IOException ex ) {
                 throw new RuntimeException(ex);
             }
