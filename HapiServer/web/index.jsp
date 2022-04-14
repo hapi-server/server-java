@@ -90,7 +90,7 @@
                     if ( exampleRange!=null ) {
                         title= title+ "<em> (available "+ TimeUtil.formatIso8601TimeRange(availableRange)
                             + ", example range "+TimeUtil.formatIso8601TimeRange(exampleRange) + 
-                            ( sparklines ? " shown)</em>" : "</em>" );
+                            ( sparklines ? " shown)</em>" : ")</em>" );
                     }
 
                     String exampleTimeRange= exampleRange==null ? null : 
