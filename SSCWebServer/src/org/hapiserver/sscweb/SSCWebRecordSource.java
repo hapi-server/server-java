@@ -347,8 +347,7 @@ public class SSCWebRecordSource {
 
         DataResult dataResult = (DataResult)dataResponse.getResult();
 
-        if (dataResult.getStatusCode() != 
-            ResultStatusCode.SUCCESS) {
+        if (dataResult.getStatusCode() != ResultStatusCode.SUCCESS) {
 
             System.err.println("getData: dataResult.getStatusCode() = " +
                 dataResult.getStatusCode());
@@ -464,8 +463,6 @@ public class SSCWebRecordSource {
             return "  None   ";
         }
     }
-
-
     
     private static void print(List<XMLGregorianCalendar> time,
         List<CoordinateData> coords, List<Double> radialLength,
@@ -494,134 +491,56 @@ public class SSCWebRecordSource {
                 List<Float> lon = coords.get(j).getLongitude();
                 List<Double> lt = coords.get(j).getLocalTime();
 
-                if (x != null && i < x.size()) {
+                System.out.printf(",%10.2f", x.get(i));
+                System.out.printf(",%10.2f", y.get(i));
+                System.out.printf(",%10.2f", z.get(i));
+                System.out.printf(",%10.3f", lat.get(i));
+                System.out.printf(",%10.3f", lon.get(i));
+                System.out.printf(",%10.6f", lt.get(i));
+            }
+            
+            System.out.printf(",%10.2f" , radialLength.get(i));
 
-                    System.out.printf(",%10.2f", x.get(i));
-                }
-
-                if (y != null && i < y.size()) {
-
-                    System.out.printf(",%10.2f", y.get(i));
-                }
-
-                if (z != null && i < z.size()) {
-
-                    System.out.printf(",%10.2f", z.get(i));
-                }
-
-                if (lat != null && i < lat.size()) {
-
-                    System.out.printf(",%10.2f", lat.get(i));
-                }
-
-                if (lon != null && i < lon.size()) {
-
-                    System.out.printf(",%10.2f", lon.get(i));
-                }
-
-                if (lt != null && i < lt.size()) {
-
-                    System.out.printf(",%10.2f", lt.get(i));
-                }
-            } // endfor each coords
-
-            if (radialLength != null && i < radialLength.size()) {
-
-                System.out.printf(",%10.2f" , radialLength.get(i));
+            if (magneticStrength.get(i) == -1.0E31D) {
+                System.out.printf(",%10.1e",-1.0E31D);
+            } else {
+                System.out.printf(",%10.2f", magneticStrength.get(i));
             }
 
-            if (magneticStrength != null &&
-                i < magneticStrength.size()) {
-
-                if (magneticStrength.get(i) == -1.0E31D) {
-                    System.out.printf(",%10.1e",-1.0E31D);
-                }
-                else {
-                    System.out.printf(",%10.2f" ,
-                        magneticStrength.get(i));
-                }
+            if (ns.get(i) == -1.0E31D) {
+                System.out.printf(",%10.1e",-1.0E31D);
+            } else {
+                System.out.printf(",%10.2f" , ns.get(i));
             }
 
-            if (ns != null && i < ns.size()) {
+            System.out.printf(",%10.2f" , bs.get(i));
+            System.out.printf(",%10.2f" , mp.get(i));
+            System.out.printf(",%10.2f" , lv.get(i));
+            System.out.printf(",%10.3f" , il.get(i));
 
-                if (ns.get(i) == -1.0E31D) {
-                    System.out.printf(",%10.1e",-1.0E31D);
-                }
-                else {
-                    System.out.printf(",%10.2f" , ns.get(i));
-                }
+            
+            System.out.printf(",%10s", getSpaceRegion(sr.get(i)));
+
+            System.out.printf(",%10s", getTracedRegion(rtr.get(i)));
+
+            System.out.printf(",%10s", getTracedRegion(nbtr.get(i)));
+
+            if (bGseX.get(i) == -1.0E31D) {
+                System.out.printf(",%10.1e",-1.0E31D);
+            } else {
+                System.out.printf(",%10.2f" , bGseX.get(i));
             }
 
-            if (bs != null && i < bs.size()) {
-                System.out.printf(",%10.2f" , bs.get(i));
+            if (bGseY.get(i) == -1.0E31D) {
+                System.out.printf(",%10.1e",-1.0E31D);
+            } else {
+                System.out.printf(",%10.2f" , bGseY.get(i));
             }
 
-            if (mp != null && i < mp.size()) {
-                System.out.printf(",%10.2f" , mp.get(i));
-            }
-
-            if (lv != null && i < lv.size()) {
-
-                System.out.printf(",%10.2f" , lv.get(i));
-            }
-
-            if (il != null && i < il.size()) {
-
-                System.out.printf(",%10.2f" , il.get(i));
-            }
-
-            if (sr != null && i < sr.size()) {
-
-                System.out.printf(",%10s", getSpaceRegion(sr.get(i)));
-            }
-
-            if (rtr != null && i < rtr.size()) {
-
-                System.out.printf(",%10s" ,
-                    getTracedRegion(rtr.get(i)));
-            }
-
-            if (nbtr != null && i < nbtr.size()) {
-
-                System.out.printf(",%10s" ,
-                    getTracedRegion(nbtr.get(i)));
-            }
-
-            if (sbtr != null && i < sbtr.size()) {
-
-                System.out.printf(",%10s" ,
-                    getTracedRegion(sbtr.get(i)));
-            }
-
-            if (bGseX != null && i < bGseX.size()) {
-
-                if (bGseX.get(i) == -1.0E31D) {
-                    System.out.printf(",%10.1e",-1.0E31D);
-                }
-                else {
-
-                    System.out.printf(",%10.2f" , bGseX.get(i));
-                }
-            }
-
-            if (bGseY != null && i < bGseY.size()) {
-
-                if (bGseY.get(i) == -1.0E31D) {
-                    System.out.printf(",%10e",-1.0E31D);
-                }
-                else {
-                    System.out.printf(",%10.2f" , bGseY.get(i));
-                }
-            }
-
-            if (bGseZ != null && i < bGseZ.size()) {
-
-                if (bGseZ.get(i) == -1.0E31D) {
-                    System.out.printf(",%10e",-1.0E31D);
-                }
-                else {
-                    System.out.printf(",%10.2f" , bGseZ.get(i));
-                }
+            if (bGseZ.get(i) == -1.0E31D) {
+                System.out.printf(",%10.1e",-1.0E31D);
+            } else {
+                System.out.printf(",%10.2f" , bGseZ.get(i));
             }
 
             System.out.println();
@@ -653,14 +572,14 @@ public class SSCWebRecordSource {
 
             if (x != null && x.size() > 0) {
 
-                hdr1.append("            ");
-                hdr2.append("         X  ");
+                hdr1.append("             ");
+                hdr2.append("           X ");
             }
 
             if (y != null && y.size() > 0) {
 
-                hdr1.append("            ");
-                hdr2.append("         Y  ");
+                hdr1.append("           ");
+                hdr2.append("         Y ");
             }
 
             hdr1.append(point.getCoordinateSystem() + "         ");
@@ -672,33 +591,33 @@ public class SSCWebRecordSource {
 
             if (lat != null && lat.size() > 0) {
 
-                hdr1.append("            ");
-                hdr2.append("       Lat  ");
+                hdr1.append("           ");
+                hdr2.append("      Lat  ");
             }
 
             if (lon != null && lon.size() > 0) {
 
-                hdr1.append("            ");
-                hdr2.append("       Lon  ");
+                hdr1.append("           ");
+                hdr2.append("      Lon  ");
             }
 
             if (lt != null && lt.size() > 0) {
 
-                hdr1.append("        Local  ");
-                hdr2.append("         Time  ");
+                hdr1.append("    Local  ");
+                hdr2.append("     Time  ");
             }
         } // endfor each coords
 
         if (radialLength != null && radialLength.size() > 0) {
 
-            hdr1.append("    Radial ");
-            hdr2.append("    Length ");
+            hdr1.append("   Radial ");
+            hdr2.append("   Length ");
         }
 
         if (magneticStrength != null && magneticStrength.size() > 0) {
 
-            hdr1.append("    Magnetic ");
-            hdr2.append("    Strength ");
+            hdr1.append(" Magnetic ");
+            hdr2.append(" Strength ");
         }
 
         if (ns != null && ns.size() > 0) {
@@ -715,14 +634,14 @@ public class SSCWebRecordSource {
 
         if (mp != null && mp.size() > 0) {
 
-            hdr1.append("    Magneto ");
-            hdr2.append("    Pause   ");
+            hdr1.append("  Magneto ");
+            hdr2.append("  Pause   ");
         }
 
         if (lv != null && lv.size() > 0) {
 
-            hdr1.append("    Dipole  ");
-            hdr2.append("    L Value ");
+            hdr1.append("   Dipole  ");
+            hdr2.append("   L Value ");
         }
 
         if (il != null && il.size() > 0) {
@@ -733,14 +652,14 @@ public class SSCWebRecordSource {
 
         if (sr != null && sr.size() > 0) {
 
-            hdr1.append("  Spacecraft ");
-            hdr2.append("  Region     ");
+            hdr1.append("S/C      ");
+            hdr2.append("Region   ");
         }
 
         if (rtr != null && rtr.size() > 0) {
 
-            hdr1.append("  Radial Trc ");
-            hdr2.append("  Region     ");
+            hdr1.append(" Radial Trc ");
+            hdr2.append(" Region     ");
         }
 
         if (nbtr != null && nbtr.size() > 0) {
@@ -780,8 +699,6 @@ public class SSCWebRecordSource {
 
     
     private static void print(SatelliteData data) {
-
-        System.err.println("  " + data.getId());
 
         List<XMLGregorianCalendar> time = data.getTime();
         List<CoordinateData> coords = data.getCoordinates();
@@ -823,7 +740,7 @@ public class SSCWebRecordSource {
     }
     
     public void printCatalog( ) {
-
+        
         try {
             String url = ENDPOINT + "/observatories/";
             
@@ -849,8 +766,8 @@ public class SSCWebRecordSource {
             }
             
             JSONObject catalog= new JSONObject();
+            catalog.put( "HAPI", "3.0" );
             catalog.put( "catalog", ids );
-            
             
             JSONObject status= new JSONObject();
             status.put( "code", 1200 );
@@ -867,8 +784,116 @@ public class SSCWebRecordSource {
 
     }
     
-    public void printInfo( String satellite ) {
+    private static String format( XMLGregorianCalendar cal ) {
+        return String.format( "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ", 
+            cal.getYear(), cal.getMonth(), cal.getDay(), 
+            cal.getHour(), cal.getMinute(), cal.getSecond(),
+            cal.getMillisecond() );
+    }
+    
+    private static JSONArray getParams() {
+
+        JSONArray result= new JSONArray();
         
+        String[] names= ( "time,X,Y,Z,lat,lon,lt,radius,"
+            + "magneticStrength,neutralSheetDistance,bowShockDistance,magnetoPauseDistance,"
+            + "lshell,invariantLatitude,"
+            + "spacecraftRegion,RadialTracedFootpointRegions,northBTracedFootpointRegions,southBTracedFootpointRegions,"
+            + "bGseX,bGseY,bGseZ" ).split(",",-2);
+        String[] types= ( "isotime:18,d,d,d,d,d,d,d,"
+            + "d,d,d,d,"
+            + "d,d,"
+            + "string:10,string:10,string:10,string:10,"
+            + "d,d,d" ).split(",",-2);
+        String[] units= ( ",R_E,R_E,R_E,R_E,,,,,"
+            + ",,,,"
+            + ",,"
+            + ",,,,"
+            + ",,," ).split(",",-2);
+        
+        try {
+            for ( int i=0; i<names.length; i++ ) {
+                JSONObject jo= new JSONObject();
+                jo.setEscapeForwardSlashAlways(false);
+                jo.put( "name", names[i] );
+                jo.put( "description", names[i] );
+                if ( types[i].equals("d") ) {
+                    jo.put( "type", "double" );
+                    jo.put( "fill", "-1E31" );
+                    jo.put( "units", units[i] );
+                } else if ( types[i].startsWith("isotime") ) {
+                    jo.put( "type", "isotime" ); 
+                    jo.put( "length", Integer.parseInt(types[i].substring(8)) ); 
+                    jo.put( "units", "UTC" );
+                } else if ( types[i].startsWith("string") ) {
+                    jo.put( "type", "string" );
+                    jo.put( "length", Integer.parseInt(types[i].substring(7)) ); 
+                    jo.put( "units", "dimensionless" );
+                }
+                result.put( i, jo );
+            }
+        } catch (JSONException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
+        return result;
+    
+    }
+    
+    public JSONObject getInfo( String satellite ) {
+        try {
+            String url = ENDPOINT + "/observatories/";
+
+            WebTarget ssc = client.target(url);
+            Invocation.Builder request =
+                ssc.request(MediaType.APPLICATION_XML);
+            Invocation invocation =
+                request.header("User-Agent", USER_AGENT).buildGet();
+
+            ObservatoryResponse response =
+                    invocation.invoke(ObservatoryResponse.class);
+
+            List<ObservatoryDescription> dd= response.getObservatory();
+
+            for ( ObservatoryDescription d: dd ) {
+                if ( d.getId().equals(satellite) ) {
+                    JSONObject jo= new JSONObject();
+                    jo.put( "HAPI", "3.0" );
+
+                    jo.put( "cadence", "PT"+d.getResolution()+ "S" );
+                    jo.put( "description", d.getName() + " ephemeris" );
+                    jo.put( "startDate", format( d.getStartTime() ) );
+                    jo.put( "stopDate", format( d.getEndTime() ) );
+                    
+                    JSONArray parameters= getParams();
+                    jo.put( "parameters", parameters );
+                    
+                    return jo;
+                    
+                }
+            }
+            
+        } catch (JSONException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
+        
+        throw new IllegalArgumentException("satallite not found: "+satellite);
+    }
+    
+    /**
+     * print the configuration file for the satellite
+     * @param satellite the satellite, like "ace"
+     * @return the config JSON to be put into the config directory.
+     */
+    public JSONObject getConfig( String satellite ) throws JSONException {
+        JSONObject config= new JSONObject();
+        config.setEscapeForwardSlashAlways(false);
+        config.put( "info", getInfo(satellite) );
+        JSONObject data= new JSONObject();
+        data.setEscapeForwardSlashAlways(false);
+        data.put( "source", "spawn" );
+        data.put( "command", "/home/jbf/ct/hapi/git/server-java/SSCWebServer/src/SSCWebRecordSource.sh data ace ${start} ${stop}" );
+        config.put( "data", data );
+        return config;
     }
     
     public static void main( String[] args ) throws Exception {
@@ -879,14 +904,24 @@ public class SSCWebRecordSource {
             System.err.println("SSCWebRecordSource data <sc> <startTime> <stopTime>");
             System.exit(1);
         }
-        if ( args[0].equals("catalog")) {
-            new SSCWebRecordSource().printCatalog();
-        } else if ( args[0].equals("info") ) {
-            new SSCWebRecordSource().printInfo( args[1] );
-        } else if ( args[1].equals("data") ) {
-            new SSCWebRecordSource().run( args[1], TimeUtil.parseISO8601Time(args[2]), TimeUtil.parseISO8601Time(args[3]) );
-        } else {
-            main( new String[0] );
+        switch (args[0]) {
+            case "catalog":
+                new SSCWebRecordSource().printCatalog();
+                break;
+            case "info":
+                JSONObject info= new SSCWebRecordSource().getInfo( args[1] );
+                System.out.println(info.toString(4));
+                break;
+            case "config":
+                JSONObject config= new SSCWebRecordSource().getConfig( args[1] );
+                System.out.println(config.toString(4));
+                break;
+            case "data":
+                new SSCWebRecordSource().run( args[1], TimeUtil.parseISO8601Time(args[2]), TimeUtil.parseISO8601Time(args[3]) );
+                break;
+            default:
+                main( new String[0] );
+                break;
         }
     }
 }
