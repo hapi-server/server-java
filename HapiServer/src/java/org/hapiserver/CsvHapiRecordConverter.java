@@ -10,14 +10,14 @@ import org.codehaus.jettison.json.JSONObject;
  * convert CSV records into HapiRecords.
  * @author jbf
  */
-public class CSVHapiRecordConverter {
+public class CsvHapiRecordConverter {
     
     Map<Integer,Integer> indexMap;
     JSONObject info;
     JSONArray params;
     int[] sizes;
     
-    public CSVHapiRecordConverter( JSONObject info ) throws JSONException {
+    public CsvHapiRecordConverter( JSONObject info ) throws JSONException {
         this.info= info;
         this.params= info.getJSONArray("parameters");
         this.sizes= new int[params.length()];
@@ -57,6 +57,6 @@ public class CSVHapiRecordConverter {
                 i+=sizes[j];
             }
         }
-        return new CSVHapiRecord(info,ff);
+        return new CsvHapiRecord(info,ff);
     }
 }

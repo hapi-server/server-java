@@ -12,14 +12,14 @@ import org.codehaus.jettison.json.JSONObject;
  *
  * @author jbf
  */
-public class HapiClientCSVIterator implements Iterator<HapiRecord> {
+public class HapiClientCsvIterator implements Iterator<HapiRecord> {
     
     private static final Logger logger= Logger.getLogger("org.hapiserver");
     
     String nextLine;
     JSONObject info;
     BufferedReader reader;
-    CSVHapiRecordConverter converter;
+    CsvHapiRecordConverter converter;
     
     /**
      * because JSON has been detected in the first line, read the rest of the
@@ -46,7 +46,7 @@ public class HapiClientCSVIterator implements Iterator<HapiRecord> {
      * @throws IOException when there is an issue reading the data.
      * @throws org.codehaus.jettison.json.JSONException
      */
-    public HapiClientCSVIterator(JSONObject info, BufferedReader reader) throws IOException, JSONException {
+    public HapiClientCsvIterator(JSONObject info, BufferedReader reader) throws IOException, JSONException {
         this.info= info;
         this.reader = reader;
         this.nextLine = this.reader.readLine();
@@ -69,7 +69,7 @@ public class HapiClientCSVIterator implements Iterator<HapiRecord> {
                 }
             }
         }
-        this.converter= new CSVHapiRecordConverter(info);
+        this.converter= new CsvHapiRecordConverter(info);
     }
 
     @Override

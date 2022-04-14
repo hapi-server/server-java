@@ -8,12 +8,12 @@ import org.codehaus.jettison.json.JSONObject;
  * HapiRecord backed by CSV response.
  * @author jbf
  */
-public class CSVHapiRecord implements HapiRecord {
+public class CsvHapiRecord implements HapiRecord {
         
     String[] fields;
     Map<Integer,Integer> indexMap;
     
-    public CSVHapiRecord( JSONObject info, String[] fields ) {
+    public CsvHapiRecord( JSONObject info, String[] fields ) {
         this.fields= fields;   
     }
     
