@@ -368,6 +368,28 @@ public class HapiServerSupport {
         return jo;
     }
     
+    /**
+     * verifies that the info object contains required tags.
+     * @param jo a JSONObject
+     * @return true if valid
+     * @throws IllegalArgumentException when not valid
+     */
+    public static boolean validInfoObject( JSONObject jo ) throws IllegalArgumentException {
+        String hapiVersion= jo.optString("HAPI","" );
+        if ( !hapiVersion.equals("3.0") ) throw new IllegalArgumentException("HAPI version must be 3.0");
+        if ( !jo.has("parameters") ) throw new IllegalArgumentException("Info must contain parameters");
+        if ( !jo.has("startDate") )  throw new IllegalArgumentException("Info must have startDate");
+        if ( !jo.has("stopDate") )  throw new IllegalArgumentException("Info must have stopDate");
+        if ( jo.has("cadence") ) {
+            String cadence= jo.optString("cadence","");
+            try {
+                TimeUtil.parseISO8601Duration(cadence);
+            } catch ( ParseException ex ) {
+                throw new IllegalArgumentException("cadence cannot be parsed: "+cadence);
+            }
+        }
+        return true;
+    }
     
     /**
      * keep and monitor a cached version of the catalog in memory.
@@ -393,10 +415,11 @@ public class HapiServerSupport {
             try {
                 JSONObject jo= new JSONObject(s);
                 jo= jo.getJSONObject("info");
+                validInfoObject(jo);
                 String infoString= jo.toString(4);
                 Files.copy( new ByteArrayInputStream( infoString.getBytes(CHARSET) ), infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
                 latestTimeStamp= infoFile.lastModified();
-            } catch ( JSONException ex ) {
+            } catch ( JSONException | IllegalArgumentException ex ) {
                 warnWebMaster(ex);
             }
         }
@@ -521,7 +544,7 @@ public class HapiServerSupport {
      * information needs to be conveyed to the HAPI website administrator.
      * @param ex 
      */
-    private static void warnWebMaster(JSONException ex) {
+    private static void warnWebMaster(Exception ex) {
         ex.printStackTrace();
     }
     
