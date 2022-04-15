@@ -184,7 +184,9 @@ public class HapiServerSupport {
                 .lines()
                 .collect(Collectors.joining("\n"));
             
-            return new JSONObject(text);
+            jo= new JSONObject(text);
+            jo.setEscapeForwardSlashAlways(false);
+            return jo;
             
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
@@ -213,7 +215,9 @@ public class HapiServerSupport {
                 .lines()
                 .collect(Collectors.joining("\n"));
             
-            return new JSONObject(text);
+            jo= new JSONObject(text);
+            jo.setEscapeForwardSlashAlways(false);
+            return jo;
             
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
@@ -400,8 +404,9 @@ public class HapiServerSupport {
             byte[] bb= Files.readAllBytes( Paths.get( dataConfigFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
             try {
-                JSONObject jo= new JSONObject(s);        
+                JSONObject jo= new JSONObject(s);
                 jo= jo.getJSONObject("data");
+                jo.setEscapeForwardSlashAlways(false);
                 String dataString= jo.toString(4);
                 Files.copy( new ByteArrayInputStream( dataString.getBytes(CHARSET) ), file.toPath(), StandardCopyOption.REPLACE_EXISTING );
                 latestTimeStamp= dataConfigFile.lastModified();
@@ -422,6 +427,7 @@ public class HapiServerSupport {
         byte[] bb= Files.readAllBytes( Paths.get( file.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         JSONObject jo= new JSONObject(s);
+        jo.setEscapeForwardSlashAlways(false);
         
         JSONObject status= new JSONObject();
         status.put( "code", 1200 );
@@ -528,6 +534,7 @@ public class HapiServerSupport {
         byte[] bb= Files.readAllBytes( Paths.get( infoFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         JSONObject jo= new JSONObject(s);
+        jo.setEscapeForwardSlashAlways(false);
         if ( jo.has("modificationDate") ) {
             String modificationDate= jo.getString("modificationDate");
             if ( modificationDate.length()==0 ) {
