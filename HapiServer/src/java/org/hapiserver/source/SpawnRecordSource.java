@@ -4,19 +4,35 @@ package org.hapiserver.source;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.CsvHapiRecordConverter;
+import org.hapiserver.ExtendedTimeUtil;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
 import org.hapiserver.HapiServerSupport;
 import org.hapiserver.TimeUtil;
+import org.hapiserver.URITemplate;
 import org.hapiserver.Util;
 
 /**
- * RecordSource that spawns command and reads the result
+ * RecordSource that spawns command and reads the result.  This is configured with a JSON object like so:
+ * <pre>
+ *   "data": {
+ *      "source": "spawn",
+ *      "command": "/home/jbf/ct/hapi/git/server-java/SSCWebServer/src/SSCWebRecordSource.sh data ace ${start} ${stop}",
+ *      "timeFormat": "$Y-$m-$d",
+ *      "granuleSize": "P1D"
+ *   }
+ * </pre>
+ * Here command is the command which is run on the command line, with start, stop, format, parameters, and HAPI_HOME macros.
+ * And the control timeFormat is used to format the start and stop times.  "stepSize" will cause the calls to be broken up 
+ * into separate calls for each step.  
  * @author jbf
  */
 public class SpawnRecordSource implements HapiRecordSource {
@@ -26,6 +42,9 @@ public class SpawnRecordSource implements HapiRecordSource {
     String id;
     JSONObject info;
     String command;
+    String timeFormat; // "$Y-$m-$d"
+    URITemplate uriTemplate;
+    int[] granuleSize;
     
     /**
      * create a new SpawnRecordSource for the command.  Examples include:<ul>
@@ -46,16 +65,53 @@ public class SpawnRecordSource implements HapiRecordSource {
         if ( this.command.equals("") ) {
             throw new IllegalArgumentException("command not found for spawn");
         }
+        String tf= dataConfig.optString("timeFormat","");
+        if ( tf.length()>0 ) {
+            this.timeFormat= tf;
+            this.uriTemplate= new URITemplate(this.timeFormat);
+        } else {
+            this.timeFormat= null;
+        }
+        
+        String granuleSize= dataConfig.optString("granuleSize","");
+        if ( granuleSize.length()>0 ) {
+            try {
+                this.granuleSize= TimeUtil.parseISO8601Duration( granuleSize );
+            } catch (ParseException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
     }
 
     @Override
     public boolean hasGranuleIterator() {
-        return false;
+        return this.granuleSize!=null;
     }
 
     @Override
     public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
-        throw new IllegalArgumentException("not implemented");
+        try {
+            int[] time= this.uriTemplate.parse( TimeUtil.formatIso8601Time(start) );
+                
+            return new Iterator<int[]>() {
+                int[] timeIt= time;
+                
+                @Override
+                public boolean hasNext() {
+                    return ExtendedTimeUtil.gt(stop, timeIt );
+                }
+                
+                @Override
+                public int[] next() {
+                    int[] result= timeIt;
+                    timeIt = ExtendedTimeUtil.nextRange( timeIt );
+                    return result;
+                }
+            };
+            
+        } catch ( ParseException e ) {
+            throw new RuntimeException(e); // we would have already thrown exception in constructor
+        }
     }
 
     @Override
@@ -83,7 +139,7 @@ public class SpawnRecordSource implements HapiRecordSource {
         return null;
     }
 
-    private static class SpawnRecordSourceIterator implements Iterator<HapiRecord> {
+    private class SpawnRecordSourceIterator implements Iterator<HapiRecord> {
         
         Process process;
         BufferedReader reader;
@@ -108,7 +164,12 @@ public class SpawnRecordSource implements HapiRecordSource {
                     String s1= ss[i];
                     if ( s1.startsWith("start") ) {
                         if ( s1.length()>5 && s1.charAt(5)=='}' ) {
-                            ss[i]= TimeUtil.formatIso8601Time( start ) + ss[i].substring(6);
+                            if ( uriTemplate!=null ) {
+                                String s= TimeUtil.formatIso8601Time( start );
+                                ss[i] = uriTemplate.format( s, s ) + ss[i].substring(6) ;
+                            } else {
+                                ss[i]= TimeUtil.formatIso8601Time( start ) + ss[i].substring(6);
+                            }
                         } else {
                             if ( s1.substring(5).startsWith(";format=" ) ) {
                                 throw new IllegalArgumentException("should this support URI_Templates? Wait until JS version...");
@@ -118,7 +179,12 @@ public class SpawnRecordSource implements HapiRecordSource {
                         }
                     } else if ( s1.startsWith("stop") ) {
                         if ( s1.length()>4 && s1.charAt(4)=='}' ) {
-                            ss[i]= TimeUtil.formatIso8601Time( stop ) + ss[i].substring(5);
+                            if ( uriTemplate!=null ) {
+                                String s= TimeUtil.formatIso8601Time( stop );
+                                ss[i] = uriTemplate.format( s, s ) + ss[i].substring(5) ; 
+                            } else {
+                                ss[i]= TimeUtil.formatIso8601Time( stop ) + ss[i].substring(5);
+                            }
                         } else {
                             throw new IllegalArgumentException("not supported: "+command);
                         }
@@ -141,6 +207,7 @@ public class SpawnRecordSource implements HapiRecordSource {
                 
                 command= String.join("",ss);
                 
+                logger.log(Level.INFO, "spawn command {0}", command);
                 ss= command.split("\\s+");
                 
                 ProcessBuilder pb= new ProcessBuilder( ss );
