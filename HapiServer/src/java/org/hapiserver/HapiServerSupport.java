@@ -1,10 +1,14 @@
 
 package org.hapiserver;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -13,10 +17,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.exceptions.BadIdException;
+import org.hapiserver.source.SpawnRecordSource;
 
 
 /**
@@ -161,6 +167,61 @@ public class HapiServerSupport {
     }
     
     /**
+     * Allow a command to produce the catalog
+     * @param jo JSONObject containing command
+     * @return the JSONObject for the catalog.
+     */
+    public static JSONObject getCatalogFromSpawnCommand( JSONObject jo ) throws IOException {
+        try {
+            String command = jo.getString("command");
+            logger.log(Level.INFO, "spawn command {0}", command);
+            String[] ss= command.split("\\s+");
+
+            ProcessBuilder pb= new ProcessBuilder( ss );
+            Process process= pb.start();
+            String text = new BufferedReader(
+                new InputStreamReader( process.getInputStream(), StandardCharsets.UTF_8))
+                .lines()
+                .collect(Collectors.joining("\n"));
+            
+            return new JSONObject(text);
+            
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    /**
+     * Allow a command to produce the info for a dataset id
+     * @param jo
+     * @param HAPI_HOME
+     * @param id
+     * @return
+     * @throws IOException 
+     */
+    public static JSONObject getInfoFromSpawnCommand( JSONObject jo, String HAPI_HOME, String id ) throws IOException {
+        try {
+            String command = SpawnRecordSource.doMacros( HAPI_HOME, id, jo.getString("command") );
+            
+            logger.log(Level.INFO, "spawn command {0}", command);
+            String[] ss= command.split("\\s+");
+
+            ProcessBuilder pb= new ProcessBuilder( ss );
+            Process process= pb.start();
+            String text = new BufferedReader(
+                new InputStreamReader( process.getInputStream(), StandardCharsets.UTF_8))
+                .lines()
+                .collect(Collectors.joining("\n"));
+            
+            return new JSONObject(text);
+            
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    
+    /**
      * keep and monitor a cached version of the catalog in memory.
      * @param HAPI_HOME the location of the server definition
      * @return the JSONObject for the catalog.
@@ -178,8 +239,20 @@ public class HapiServerSupport {
             byte[] bb= Files.readAllBytes( Paths.get( catalogConfigFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
             try {
-                JSONObject jo= new JSONObject(s);        
-                Files.copy( catalogConfigFile.toPath(), catalogFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                JSONObject jo= new JSONObject(s);
+                if ( jo.has("source") ) {
+                    if ( jo.optString("source","").equals("spawn") ) {
+                        jo= getCatalogFromSpawnCommand( jo );
+                        try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                            Files.copy( ins, 
+                                catalogFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                        }
+                    } else {
+                        warnWebMaster(new RuntimeException("catalog source can only be spawn") );
+                    }
+                } else {
+                    Files.copy( catalogConfigFile.toPath(), catalogFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                }
                 latestTimeStamp= catalogFile.lastModified();
             } catch ( JSONException ex ) {
                 warnWebMaster(ex);
@@ -320,6 +393,9 @@ public class HapiServerSupport {
         long latestTimeStamp= file.exists() ? file.lastModified() : 0;
 
         File dataConfigFile= new File( new File( HAPI_HOME, "config" ), id + ".json" );        
+        if ( !dataConfigFile.exists() ) {
+            dataConfigFile= new File(  new File( HAPI_HOME, "config" ), "config.json" ); // allow config.json to handle all ids.
+        }
         if ( dataConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it.
             byte[] bb= Files.readAllBytes( Paths.get( dataConfigFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
@@ -408,16 +484,31 @@ public class HapiServerSupport {
         CatalogData cc= catalogCache.get( HAPI_HOME );
         long latestTimeStamp= infoFile.exists() ? infoFile.lastModified() : 0;
         
-        File infoConfigFile= new File( new File( HAPI_HOME, "config" ), id + ".json" );        
+        File infoConfigFile= new File( new File( HAPI_HOME, "config" ), id + ".json" );
+        if ( !infoConfigFile.exists() ) {
+            infoConfigFile= new File(  new File( HAPI_HOME, "config" ), "config.json" ); // allow info.json to contain "source"
+        }
         if ( infoConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it.
             byte[] bb= Files.readAllBytes( Paths.get( infoConfigFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
             try {
                 JSONObject jo= new JSONObject(s);
                 jo= jo.getJSONObject("info");
-                validInfoObject(jo);
-                String infoString= jo.toString(4);
-                Files.copy( new ByteArrayInputStream( infoString.getBytes(CHARSET) ), infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                if ( jo.has("source") ) {
+                    if ( jo.optString("source","").equals("spawn") ) {
+                        jo= getInfoFromSpawnCommand( jo, HAPI_HOME, id );
+                        try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                            Files.copy( ins, 
+                                infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                        }
+                    } else {
+                        warnWebMaster(new RuntimeException("catalog source can only be spawn") );
+                    }
+                } else {
+                    validInfoObject(jo);
+                    String infoString= jo.toString(4);
+                    Files.copy( new ByteArrayInputStream( infoString.getBytes(CHARSET) ), infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                }
                 latestTimeStamp= infoFile.lastModified();
             } catch ( JSONException | IllegalArgumentException ex ) {
                 warnWebMaster(ex);
