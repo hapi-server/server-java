@@ -245,4 +245,21 @@ public class ExtendedTimeUtil {
         }
     }
     
+    /**
+     * return the next interval, given the 14-component time interval
+     * @param range 14-component time interval.
+     * @return 14-component time interval.
+     */
+    public static int[] nextRange( int[] range ) {
+        int[] result= new int[TimeUtil.TIME_RANGE_DIGITS];
+        int[] width= new int[TimeUtil.TIME_DIGITS];
+        for ( int i=0; i<TimeUtil.TIME_DIGITS; i++ ) {
+            width[ i ] = range[i+TimeUtil.TIME_DIGITS ] - range[i] ;
+        }
+        System.arraycopy( range, TimeUtil.TIME_DIGITS, result, 0, TimeUtil.TIME_DIGITS );
+        System.arraycopy( TimeUtil.add( ExtendedTimeUtil.getStopTime(range), width ), 0, 
+            result, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS );
+        return result;
+    }
+    
 }
