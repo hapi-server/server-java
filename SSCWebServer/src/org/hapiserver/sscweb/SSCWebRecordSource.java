@@ -798,9 +798,9 @@ public class SSCWebRecordSource {
         String[] names= ( "time,X,Y,Z,lat,lon,lt,radius,"
             + "magneticStrength,neutralSheetDistance,bowShockDistance,magnetoPauseDistance,"
             + "lshell,invariantLatitude,"
-            + "spacecraftRegion,RadialTracedFootpointRegions,northBTracedFootpointRegions,southBTracedFootpointRegions,"
+            + "spacecraftRegion,RadialTracedFootpointRegions,northBTracedFootpointRegions,"
             + "bGseX,bGseY,bGseZ" ).split(",",-2);
-        String[] types= ( "isotime:18,d,d,d,d,d,d,d,"
+        String[] types= ( "isotime:24,d,d,d,d,d,d,d,"
             + "d,d,d,d,"
             + "d,d,"
             + "string:10,string:10,string:10,string:10,"
