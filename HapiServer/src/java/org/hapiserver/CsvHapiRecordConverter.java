@@ -44,6 +44,9 @@ public class CsvHapiRecordConverter {
         String[] fields= record.trim().split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)",-2);
         String[] ff= new String[params.length()];
         int i=0;
+        if ( params.length()>fields.length ) {
+            throw new IndexOutOfBoundsException( "not enough fields found in record, or too many records in info.");
+        }
         for ( int j=0; j<params.length(); j++ ) {
             if ( sizes[j]==1 ) {
                 ff[j]= fields[i];
