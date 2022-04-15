@@ -139,6 +139,31 @@ public class SpawnRecordSource implements HapiRecordSource {
         return null;
     }
 
+    /**
+     * add code for implementing hapiHome and id macros.
+     * @param hapiHome
+     * @param id
+     * @param command
+     * @return 
+     */
+    public static String doMacros( String hapiHome, String id, String command ) {
+        String[] ss= command.split("\\$\\{");
+        for ( int i=0; i<ss.length; i++ ) {
+            String s1= ss[i];
+            if ( s1.startsWith("id}") ) {
+                if ( !Util.constrainedId(id) ) throw new IllegalArgumentException("id is not conformant");
+                ss[i]= id + s1.substring(3);
+
+            } else if ( s1.startsWith("HAPI_HOME}" ) ) {
+                ss[i]= hapiHome + s1.substring(10);
+
+            }
+        }
+
+        command= String.join("",ss);
+        return command;
+    }
+    
     private class SpawnRecordSourceIterator implements Iterator<HapiRecord> {
         
         Process process;
