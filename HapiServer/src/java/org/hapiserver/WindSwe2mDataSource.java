@@ -1,14 +1,29 @@
 
 package org.hapiserver;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Iterator;
 
 /**
- *
+ * Example of class which loads data
  * @author jbf
  */
 public class WindSwe2mDataSource implements HapiRecordSource {
 
+    private final String dataHome;
+        
+    public WindSwe2mDataSource( String dataHome, String id ) throws MalformedURLException {
+        this.dataHome= new URL( dataHome ).toString();
+        System.err.println("id: "+id);
+        if ( this.dataHome.startsWith("file:") ) {
+            if ( !new File( new URL( dataHome ).getPath() ).exists() ) {
+                throw new IllegalArgumentException("dataHome does not exist");
+            }
+        }
+    }
+    
     @Override
     public boolean hasGranuleIterator() {
         return true;
@@ -50,7 +65,7 @@ public class WindSwe2mDataSource implements HapiRecordSource {
 
     @Override
     public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
-        return new WindSwe2mIterator( start, stop );
+        return new WindSwe2mIterator( this.dataHome, start, stop );
     }
 
     @Override

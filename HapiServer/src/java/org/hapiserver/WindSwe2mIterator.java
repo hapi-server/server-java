@@ -30,12 +30,21 @@ public class WindSwe2mIterator implements Iterator<HapiRecord> {
     
     String nextRecord=null;
     
-    public WindSwe2mIterator( int[] startTime, int[] stopTime ) {
+    /**
+     * create a new iterator.  The dataHome should be a local file reference, 
+     * but can also be a remote website.  The startTime and stopTime must correspond
+     * to one file, and the granule iterator should ensure this.
+     * 
+     * @param dataHome the URL containing the files, like https://cdaweb.gsfc.nasa.gov/pub/data/wind/swe/ascii/2-min/
+     * @param startTime
+     * @param stopTime 
+     */
+    public WindSwe2mIterator( String dataHome, int[] startTime, int[] stopTime ) {
         
         currentYear= startTime[0];
         
         try {
-            currentUrl= new URL( String.format( "file:/home/jbf/ct/data.backup/2022/wind_swe_2m/wind_swe_2m_sw%4d.asc",
+            currentUrl= new URL( String.format( dataHome+"/wind_swe_2m_sw%4d.asc",
                 currentYear ) );
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);

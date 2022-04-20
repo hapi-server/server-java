@@ -6,7 +6,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServlet;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.source.DailyHapiRecordSource;
@@ -61,10 +61,34 @@ public class SourceRegistry {
                 return new HapiWrapperRecordSource( id, info, data );
             case "classpath":
                 String impl= data.optString("class");
+                if ( impl.endsWith(".java") ) {
+                    throw new IllegalArgumentException("class should not end in .java");
+                }
+                JSONArray args= data.optJSONArray("args");
                 try {
                     Class c= Class.forName(impl);
-                    Constructor constructor= c.getConstructor( String.class, String.class, JSONObject.class, JSONObject.class );
-                    Object o= constructor.newInstance( hapiHome, id, info, data );
+                    Object o;
+                    if ( args==null ) {
+                        Constructor constructor= c.getConstructor( String.class, String.class, JSONObject.class, JSONObject.class );
+                        o= constructor.newInstance( hapiHome, id, info, data );
+                    } else {
+                        Class[] cc= new Class[args.length()];
+                        Object[] oo= new Object[args.length()];
+                        for ( int i=0; i<cc.length; i++ ) {
+                            try {
+                                oo[i]= args.get(i);
+                                cc[i]= oo[i].getClass();
+                                if ( cc[i]==String.class ) { // check for macros
+                                    String s= SpawnRecordSource.doMacros( hapiHome, id, (String)oo[i] );
+                                    oo[i]= s;
+                                }
+                            } catch (JSONException ex) {
+                                Logger.getLogger(SourceRegistry.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                        Constructor constructor= c.getConstructor( cc );
+                        o= constructor.newInstance( oo );
+                    }
                     if ( !( o instanceof HapiRecordSource ) ) {
                         throw new RuntimeException("classpath refers to class which is not an instance of HapiRecordSource");
                     } else {
@@ -74,8 +98,6 @@ public class SourceRegistry {
                 } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException ex) {
                     throw new RuntimeException(ex);
                 }
-            case "wind_swe_2m":
-                return new WindSwe2mDataSource( );
             default:
                 throw new IllegalArgumentException("unknown source: " + source );
         }
