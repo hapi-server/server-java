@@ -38,6 +38,8 @@
     "stopDate": "2022-01-01"
   },
   "data": {
-    "source":"wind_swe_2m"    
+    "source":"classpath",
+    "class":"org.hapiserver.WindSwe2mDataSource",
+    "args":["https://cdaweb.gsfc.nasa.gov/pub/data/wind/swe/ascii/2-min/","${id}"]
   }
 }
