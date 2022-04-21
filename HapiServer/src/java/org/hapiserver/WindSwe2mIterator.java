@@ -3,6 +3,7 @@ package org.hapiserver;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
@@ -52,7 +53,12 @@ public class WindSwe2mIterator implements Iterator<HapiRecord> {
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);
         }
-        readerCurrentYear= new BufferedReader( new URLReader( currentUrl ) );
+        
+        try {
+            readerCurrentYear= new BufferedReader( new InputStreamReader( currentUrl.openStream() ) );
+        } catch ( IOException ex ) {
+            throw new RuntimeException(ex);
+        }
         
         readNextRecord();
         
