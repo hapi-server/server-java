@@ -32,23 +32,40 @@ public class WindSwe2mDataSource implements HapiRecordSource {
     @Override
     public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
         int stopYear;
-        if ( stop[1]==1 && stop[2]==1 && stop[3]==0 && stop[4]==0 && stop[5]==0 && stop[6]==0 ) {
+        int stopMonth;
+        if ( stop[1]==1 && stop[2]==1 && stop[3]==1 && stop[4]==0 && stop[5]==0 && stop[6]==0 ) {
             stopYear= stop[0];
+            stopMonth= stop[1];
         } else {
-            stopYear= stop[0]+1;
+            stopYear= stop[0];
+            stopMonth= stop[1]+1;
+            if ( stopMonth==13 ) {
+                stopYear= stopYear+1;
+                stopMonth-= 12;
+            }
         }
+        int fstopMonth= stopMonth;
+        int fstopYear= stopYear;
+        
         return new Iterator<int[]>() {
             int currentYear= start[0];
+            int currentMonth= start[1];
+            
             @Override
             public boolean hasNext() {
-                return currentYear<stopYear;
+                return currentYear<fstopYear || ( currentYear==fstopYear && currentMonth<fstopMonth );
             }
 
             @Override
             public int[] next() {
+                int m= currentMonth;
                 int y= currentYear;
-                currentYear++;
-                return new int[] { y, 1, 1, 0, 0, 0, 0, y+1, 1, 1, 0, 0, 0, 0};
+                currentMonth++;
+                if ( currentMonth==13 ) {
+                    currentMonth-= 12;
+                    currentYear++;
+                }
+                return new int[] { y, m, 1, 0, 0, 0, 0, currentYear, currentMonth, 1, 0, 0, 0, 0};
             }
         };
     }

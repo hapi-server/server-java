@@ -181,14 +181,14 @@ public class DataServlet extends HttpServlet {
                     if ( source.hasGranuleIterator() ) {
                         dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr), parametersArray );
                     } else {
-                        dsiter= source.getIterator( dr, ExtendedTimeUtil.getStopTime(dr), parametersArray );
+                        dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr), parametersArray );
                     }
                 } else {
                     dataNeedsParameterSubsetting= false;                    
                     if ( source.hasGranuleIterator() ) {
-                        dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr) );
+                        dsiter= new AggregatingIterator( source, ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
                     } else {
-                        dsiter= source.getIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
+                        dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
                     }
                 }
             } else {
@@ -196,16 +196,16 @@ public class DataServlet extends HttpServlet {
                     dataNeedsParameterSubsetting= false;
                     String[] parametersSplit= HapiServerSupport.splitParams( jo, parameters );
                     if ( source.hasGranuleIterator() ) {
-                        dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr), parametersSplit );
+                        dsiter= new AggregatingIterator( source, ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr), parametersSplit );
                     } else {
-                        dsiter= source.getIterator(dr, ExtendedTimeUtil.getStopTime(dr), parametersSplit );
+                        dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr), parametersSplit );
                     }                    
                 } else {
                     dataNeedsParameterSubsetting= true;                    
                     if ( source.hasGranuleIterator() ) {
-                        dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr) );
+                        dsiter= new AggregatingIterator( source, ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
                     } else {
-                        dsiter= source.getIterator( dr, ExtendedTimeUtil.getStopTime(dr) );
+                        dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
                     }
                 }
 

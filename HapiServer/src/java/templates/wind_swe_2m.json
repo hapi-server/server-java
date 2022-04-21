@@ -40,6 +40,6 @@
   "data": {
     "source":"classpath",
     "class":"org.hapiserver.WindSwe2mDataSource",
-    "args":["file:/home/jbf/ct/data.backup/2022/wind_swe_2m/","${id}"]
+    "args":["https://cdaweb.gsfc.nasa.gov/pub/data/wind/swe/ascii/2-min/","${id}"]
   }
 }

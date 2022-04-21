@@ -25,6 +25,8 @@ public class WindSwe2mIterator implements Iterator<HapiRecord> {
     int currentYear;
     int stopYear;
     
+    int currentMonth;
+    
     URL currentUrl;
     BufferedReader readerCurrentYear;
     
@@ -42,10 +44,11 @@ public class WindSwe2mIterator implements Iterator<HapiRecord> {
     public WindSwe2mIterator( String dataHome, int[] startTime, int[] stopTime ) {
         
         currentYear= startTime[0];
+        currentMonth= startTime[1];
         
         try {
-            currentUrl= new URL( String.format( dataHome+"/wind_swe_2m_sw%4d.asc",
-                currentYear ) );
+            currentUrl= new URL( String.format( dataHome+"/wind_swe_2m_sw%4d%02d.asc",
+                currentYear, currentMonth ) );
         } catch (MalformedURLException ex) {
             throw new RuntimeException(ex);
         }

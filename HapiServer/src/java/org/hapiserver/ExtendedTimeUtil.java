@@ -179,6 +179,20 @@ public class ExtendedTimeUtil {
         System.arraycopy( t2, 0, result, TimeUtil.TIME_DIGITS , TimeUtil.TIME_DIGITS  );
         return result;
     }
+
+    /**
+     * return the seven element start time from the time range.  Note
+     * it is fine to use a time range as the start time, because codes
+     * will only read the first seven components, and this is only added
+     * to make code more readable.
+     * @param tr a fourteen-element time range.
+     * @return the start time.
+     */
+    public static int[] getStartTime( int [] tr ) {
+        int[] result= new int[ TimeUtil.TIME_DIGITS ];
+        System.arraycopy( tr, 0, result, 0, TimeUtil.TIME_DIGITS  );
+        return result;
+    }
     
     /**
      * return the seven element stop time from the time range.  Note
