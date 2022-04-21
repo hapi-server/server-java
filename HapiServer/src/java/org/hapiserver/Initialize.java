@@ -24,12 +24,12 @@ public class Initialize {
      */
     public static synchronized void initialize( File hapiHome ) {
         if ( !hapiHome.mkdirs() ) {
-            throw new RuntimeException("Unable to make hapi_home");
+            throw new RuntimeException("Unable to make hapi_home: "+hapiHome);
         }
 
         File configDir= new File( hapiHome, "config" );
         if ( !configDir.mkdirs() ) {
-            throw new RuntimeException("Unable to make config area");
+            throw new RuntimeException("Unable to make config area: "+configDir);
         }
 
         try {
