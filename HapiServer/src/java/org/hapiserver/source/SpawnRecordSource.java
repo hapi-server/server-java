@@ -19,6 +19,7 @@ import org.hapiserver.HapiServerSupport;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.URITemplate;
 import org.hapiserver.Util;
+import org.hapiserver.exceptions.BadRequestParameterException;
 
 /**
  * RecordSource that spawns command and reads the result.  This is configured with a JSON object like so:
@@ -124,7 +125,7 @@ public class SpawnRecordSource implements HapiRecordSource {
         try {
             JSONObject infoSubset= Util.subsetParams( info, HapiServerSupport.joinParams( info, params ) );
             return new SpawnRecordSourceIterator( hapiHome, id, infoSubset, command, start, stop, params );
-        } catch (JSONException ex) {
+        } catch ( BadRequestParameterException | JSONException ex ) {
             throw new RuntimeException(ex);
         }
     }

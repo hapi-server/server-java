@@ -18,6 +18,7 @@ import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiServerSupport;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.Util;
+import org.hapiserver.exceptions.BadRequestParameterException;
 
 /**
  * Use another HAPI server as a source of HapiRecords.
@@ -50,7 +51,7 @@ public class HapiWrapperIterator implements Iterator<HapiRecord> {
             if ( params!=null && parameters.length()!=params.length ) {
                 this.info= Util.subsetParams( info, HapiServerSupport.joinParams( info, params ) );
             }
-        } catch (JSONException ex) {
+        } catch (JSONException | BadRequestParameterException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
         
