@@ -2,6 +2,7 @@
 package org.hapiserver;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,7 +13,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.hapiserver.exceptions.BadIdException;
+import org.hapiserver.exceptions.BadRequestIdException;
+import org.hapiserver.exceptions.BadRequestParameterException;
+import org.hapiserver.exceptions.HapiException;
 
 /**
  * Info servlet describes a data set.
@@ -59,21 +62,27 @@ public class InfoServlet extends HttpServlet {
         JSONObject jo;
         try {
             jo = HapiServerSupport.getInfo( HAPI_HOME, id );
-        } catch ( BadIdException ex ) {
+        } catch ( BadRequestIdException ex ) {
             Util.raiseError( 1406, "HAPI error 1406: unknown dataset id", response, response.getOutputStream() );
             return;
-        } catch ( JSONException ex ) {
+        } catch ( HapiException | JSONException ex ) {
             throw new RuntimeException(ex);
         }
         
-        try (PrintWriter out = response.getWriter()) {
+        try ( OutputStream out = response.getOutputStream() ) {
             String parameters= request.getParameter("parameters");
             if ( parameters!=null) {
-                jo= Util.subsetParams(jo,parameters);
+                try {
+                    jo= Util.subsetParams(jo,parameters);
+                } catch ( BadRequestParameterException ex2 ) {
+                    Util.raiseError( ex2, response, out );
+                    return;
+                }
             }
             jo.setEscapeForwardSlashAlways(false);
             String s= jo.toString(4);
-            out.write(s);
+            out.write(s.getBytes( HapiServerSupport.CHARSET ));
+            
         } catch ( JSONException ex ) {
             throw new ServletException(ex);
         }

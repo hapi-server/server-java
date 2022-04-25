@@ -25,6 +25,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.hapiserver.exceptions.BadRequestParameterException;
+import org.hapiserver.exceptions.HapiException;
 
 /**
  * Container for useful routines 
@@ -178,8 +180,9 @@ public class Util {
      * @param parameters comma-delimited list of parameters.
      * @return the new JSONObject, with special tag __indexmap__ showing which columns are to be included in a data response.
      * @throws JSONException 
+     * @throws org.hapiserver.exceptions.BadRequestParameterException if a parameter is not supported
      */
-    public static JSONObject subsetParams( JSONObject info, String parameters ) throws JSONException {
+    public static JSONObject subsetParams( JSONObject info, String parameters ) throws JSONException, BadRequestParameterException {
         info= new JSONObject( info.toString() ); // force a copy
         String[] pps= parameters.split(",");
         Map<String,Integer> map= new HashMap();  // map from name to index in dataset.
@@ -203,7 +206,7 @@ public class Util {
         for ( int ip=0; ip<pps.length; ip++ ) {
             Integer i= map.get(pps[ip]);
             if ( i==null ) {
-                throw new IllegalArgumentException("bad parameter: "+pps[ip]);
+                throw new BadRequestParameterException();
             }
             indexMap[ip]= iMap.get(pps[ip]);
             if ( i==0 ) {
@@ -336,6 +339,19 @@ public class Util {
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
         }
+    }
+    
+    /**
+     * send an error response to the client. The document 
+     * <a href="https://github.com/hapi-server/data-specification/blob/master/hapi-3.0.1/HAPI-data-access-spec-3.0.1.md#42-status-codes">status codes</a>
+     * talks about the status codes.
+     * @param ex the HapiException
+     * @param response the response object
+     * @param out the output stream from the response object.
+     * @throws java.io.IOException when there are errors in I/O
+     */    
+    public static void raiseError( HapiException ex, HttpServletResponse response, final OutputStream out ) throws IOException {
+        raiseError( ex.getCode(), ex.getMessage(), response, out);
     }
     
     /**

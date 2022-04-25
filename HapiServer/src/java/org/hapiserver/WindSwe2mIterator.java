@@ -9,7 +9,6 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jdk.nashorn.api.scripting.URLReader;
 
 /**
  * Bootstrap method for getting server going.  Each record of the dataset at

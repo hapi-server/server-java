@@ -21,7 +21,8 @@ import java.util.stream.Collectors;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.hapiserver.exceptions.BadIdException;
+import org.hapiserver.exceptions.BadRequestIdException;
+import org.hapiserver.exceptions.HapiException;
 import org.hapiserver.source.SpawnRecordSource;
 
 
@@ -283,14 +284,14 @@ public class HapiServerSupport {
      * @return the JSONObject for the configuration.
      * @throws java.io.IOException 
      * @throws org.codehaus.jettison.json.JSONException 
-     * @throws IllegalArgumentException for bad id.
+     * @throws org.hapiserver.exceptions.HapiException 
      */
-    public static JSONObject getConfig( String HAPI_HOME, String id ) throws IOException, JSONException {
+    public static JSONObject getConfig( String HAPI_HOME, String id ) throws IOException, JSONException, HapiException {
         File configDir= new File( HAPI_HOME, "config" );
         id= Util.fileSystemSafeName(id);
         File configFile= new File( configDir, id + ".json" );
         if ( !configFile.exists() ) {
-            throw new BadIdException("id does not exist",id);
+            throw new BadRequestIdException("id does not exist",id);
         }
         CatalogData cc= catalogCache.get( HAPI_HOME );
         long latestTimeStamp= configFile.lastModified();
@@ -482,7 +483,7 @@ public class HapiServerSupport {
      * @throws org.codehaus.jettison.json.JSONException 
      * @throws IllegalArgumentException for bad id.
      */
-    public static JSONObject getInfo( String HAPI_HOME, String id ) throws IOException, JSONException {
+    public static JSONObject getInfo( String HAPI_HOME, String id ) throws IOException, JSONException, HapiException {
         File infoDir= new File( HAPI_HOME, "info" );
         id= Util.fileSystemSafeName(id);
         File infoFile= new File( infoDir, id + ".json" );
@@ -493,6 +494,9 @@ public class HapiServerSupport {
         File infoConfigFile= new File( new File( HAPI_HOME, "config" ), id + ".json" );
         if ( !infoConfigFile.exists() ) {
             infoConfigFile= new File(  new File( HAPI_HOME, "config" ), "config.json" ); // allow info.json to contain "source"
+        }
+        if ( !infoConfigFile.exists() ) {
+            throw new BadRequestIdException( );
         }
         if ( infoConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it.
             byte[] bb= Files.readAllBytes( Paths.get( infoConfigFile.toURI() ) );

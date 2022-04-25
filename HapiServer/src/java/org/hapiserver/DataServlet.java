@@ -23,7 +23,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.hapiserver.exceptions.BadIdException;
+import org.hapiserver.exceptions.BadRequestIdException;
+import org.hapiserver.exceptions.HapiException;
 import org.hapiserver.source.AggregatingIterator;
 
 /**
@@ -134,10 +135,10 @@ public class DataServlet extends HttpServlet {
         JSONObject jo;
         try {
             jo= HapiServerSupport.getInfo( HAPI_HOME, id );
-        } catch ( BadIdException ex ) {
-            Util.raiseError( 1406, "HAPI error 1406: unknown dataset id " + id, response, response.getOutputStream() );
+        } catch ( BadRequestIdException ex ) {
+            Util.raiseError( ex, response, response.getOutputStream() );
             return;
-        } catch (JSONException ex) {
+        } catch (JSONException | HapiException ex) {
             throw new RuntimeException(ex);
         }
                 
@@ -151,80 +152,74 @@ public class DataServlet extends HttpServlet {
         
         // allowCache code was here
         
-        try {
-            logger.log(Level.FINER, "data files is null at {0} ms.", System.currentTimeMillis()-t0);
-            //dsiter= checkAutoplotSource( id, dr, allowStream );
+        logger.log(Level.FINER, "data files is null at {0} ms.", System.currentTimeMillis()-t0);
+        //dsiter= checkAutoplotSource( id, dr, allowStream );
 
-            HapiRecordSource source= SourceRegistry.getInstance().getSource(HAPI_HOME, id, jo);
+        HapiRecordSource source= SourceRegistry.getInstance().getSource(HAPI_HOME, id, jo);
 
-            String ifModifiedSince= request.getHeader("If-Modified-Since");
-            if ( ifModifiedSince!=null ) {
-                String ts= source.getTimeStamp( dr, ExtendedTimeUtil.getStopTime(dr) );
-                if ( ts!=null ) { // this will often be null.
-                    try {
-                        String clientModifiedTime= parseTime(ifModifiedSince);
-                        if ( clientModifiedTime.compareTo(ts)>=0 ) {
-                            response.setStatus( HttpServletResponse.SC_NOT_MODIFIED ); //304
-                            out.close();
-                            return;
-                        }
-                    } catch ( ParseException ex ) {
-                        logger.info( "client sends If-Modified-Since with unsupported format, ignoring");
+        String ifModifiedSince= request.getHeader("If-Modified-Since");
+        if ( ifModifiedSince!=null ) {
+            String ts= source.getTimeStamp( dr, ExtendedTimeUtil.getStopTime(dr) );
+            if ( ts!=null ) { // this will often be null.
+                try {
+                    String clientModifiedTime= parseTime(ifModifiedSince);
+                    if ( clientModifiedTime.compareTo(ts)>=0 ) {
+                        response.setStatus( HttpServletResponse.SC_NOT_MODIFIED ); //304
+                        out.close();
+                        return;
                     }
+                } catch ( ParseException ex ) {
+                    logger.info( "client sends If-Modified-Since with unsupported format, ignoring");
                 }
             }
+        }
 
-            if ( parameters.equals("") ) {
-                if ( source.hasParamSubsetIterator() ) {
-                    String[] parametersArray= HapiServerSupport.getAllParameters( jo );
-                    dataNeedsParameterSubsetting= false;
-                    if ( source.hasGranuleIterator() ) {
-                        dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr), parametersArray );
-                    } else {
-                        dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr), parametersArray );
-                    }
+        if ( parameters.equals("") ) {
+            if ( source.hasParamSubsetIterator() ) {
+                String[] parametersArray= HapiServerSupport.getAllParameters( jo );
+                dataNeedsParameterSubsetting= false;
+                if ( source.hasGranuleIterator() ) {
+                    dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr), parametersArray );
                 } else {
-                    dataNeedsParameterSubsetting= false;                    
-                    if ( source.hasGranuleIterator() ) {
-                        dsiter= new AggregatingIterator( source, ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
-                    } else {
-                        dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
-                    }
+                    dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr), parametersArray );
                 }
             } else {
-                if ( source.hasParamSubsetIterator() ) {
-                    dataNeedsParameterSubsetting= false;
-                    String[] parametersSplit= HapiServerSupport.splitParams( jo, parameters );
-                    if ( source.hasGranuleIterator() ) {
-                        dsiter= new AggregatingIterator( source, ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr), parametersSplit );
-                    } else {
-                        dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr), parametersSplit );
-                    }                    
+                dataNeedsParameterSubsetting= false;                    
+                if ( source.hasGranuleIterator() ) {
+                    dsiter= new AggregatingIterator( source, ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
                 } else {
-                    dataNeedsParameterSubsetting= true;                    
-                    if ( source.hasGranuleIterator() ) {
-                        dsiter= new AggregatingIterator( source, ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
-                    } else {
-                        dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
-                    }
+                    dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
                 }
-
+            }
+        } else {
+            if ( source.hasParamSubsetIterator() ) {
+                dataNeedsParameterSubsetting= false;
+                String[] parametersSplit= HapiServerSupport.splitParams( jo, parameters );
+                if ( source.hasGranuleIterator() ) {
+                    dsiter= new AggregatingIterator( source, ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr), parametersSplit );
+                } else {
+                    dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr), parametersSplit );
+                }                    
+            } else {
+                dataNeedsParameterSubsetting= true;                    
+                if ( source.hasGranuleIterator() ) {
+                    dsiter= new AggregatingIterator( source, ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
+                } else {
+                    dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
+                }
             }
 
-            if ( dsiter==null ) {
-                Util.raiseError( 1500, "HAPI error 1500: internal server error, id has no reader " + id, 
-                    response, response.getOutputStream() );
-                return;
-            }
-
-            logger.log(Level.FINER, "have dsiter {0} ms.", System.currentTimeMillis()-t0);
-            
-        } catch ( BadIdException ex ) {
-            Util.raiseError( 1406, "Bad request - unknown dataset id", response, out );
-            return;
-                
         }
-        
+
+        if ( dsiter==null ) {
+            Util.raiseError( 1500, "HAPI error 1500: internal server error, id has no reader " + id, 
+                response, response.getOutputStream() );
+            return;
+        }
+
+        logger.log(Level.FINER, "have dsiter {0} ms.", System.currentTimeMillis()-t0);
+
+
         assert dsiter!=null;
         logger.log(Level.FINE, "dsiter: {0}", dsiter);
         
@@ -251,6 +246,8 @@ public class DataServlet extends HttpServlet {
             
         } catch (JSONException ex) {
             throw new ServletException(ex);
+        } catch (HapiException ex) {
+            Logger.getLogger(DataServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         boolean verify= true;
