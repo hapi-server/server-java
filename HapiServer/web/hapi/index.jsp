@@ -153,6 +153,9 @@
                 out.println("<br>"+ex.getMessage());
                 out.println("<br>"+out.toString());
             }
+            
+            out.println("<br><br><br><small>build id: "+Util.buildTime()+"</small>");
+            
         %>
             
     </body>

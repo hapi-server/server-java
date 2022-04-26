@@ -419,5 +419,11 @@ public final class Util {
         }
     }
     
-    
+    /**
+     * return a unique string for the build to aid in debugging.
+     * @return 
+     */
+    public static String buildTime() {
+        return "2022-04-26T17:11";
+    }
 }
