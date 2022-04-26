@@ -51,6 +51,10 @@
         <servlet-name>DataServlet</servlet-name>
         <url-pattern>/hapi/data</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>LandingServlet</servlet-name>
+        <url-pattern>/hapi/</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             30
