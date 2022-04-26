@@ -481,6 +481,7 @@ public class HapiServerSupport {
      * @return the JSONObject for the catalog.
      * @throws java.io.IOException 
      * @throws org.codehaus.jettison.json.JSONException 
+     * @throws org.hapiserver.exceptions.HapiException 
      * @throws IllegalArgumentException for bad id.
      */
     public static JSONObject getInfo( String HAPI_HOME, String id ) throws IOException, JSONException, HapiException {

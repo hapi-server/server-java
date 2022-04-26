@@ -1,5 +1,5 @@
 
-package org.hapiserver;
+package org.hapiserver.source;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,6 +9,8 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.hapiserver.HapiRecord;
+import org.hapiserver.Util;
 
 /**
  * Bootstrap method for getting server going.  Each record of the dataset at

@@ -24,7 +24,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.exceptions.BadRequestIdException;
-import org.hapiserver.exceptions.BadRequestParameterException;
 import org.hapiserver.exceptions.HapiException;
 import org.hapiserver.source.AggregatingIterator;
 

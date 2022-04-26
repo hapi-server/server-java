@@ -2,7 +2,6 @@
 package org.hapiserver;
 
 import java.util.Iterator;
-import org.hapiserver.exceptions.BadRequestParameterException;
 
 /**
  * Interface that provides the record source.

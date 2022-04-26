@@ -1,10 +1,12 @@
 
-package org.hapiserver;
+package org.hapiserver.source;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
+import org.hapiserver.HapiRecord;
+import org.hapiserver.HapiRecordSource;
 
 /**
  * Example of class which loads data

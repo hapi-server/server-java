@@ -39,7 +39,7 @@
   },
   "data": {
     "source":"classpath",
-    "class":"org.hapiserver.WindSwe2mDataSource",
+    "class":"org.hapiserver.source.WindSwe2mDataSource",
     "args":["https://cdaweb.gsfc.nasa.gov/pub/data/wind/swe/ascii/2-min/","${id}"]
   }
 }

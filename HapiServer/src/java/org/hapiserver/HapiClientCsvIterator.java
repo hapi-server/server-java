@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 /**
- *
+ * Given a info JSONObject and a BufferedReader, produce a stream of HapiRecords.
  * @author jbf
  */
 public class HapiClientCsvIterator implements Iterator<HapiRecord> {

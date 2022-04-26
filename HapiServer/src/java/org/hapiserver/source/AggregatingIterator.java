@@ -2,13 +2,10 @@
 package org.hapiserver.source;
 
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.hapiserver.ExtendedTimeUtil;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
 import org.hapiserver.TimeUtil;
-import org.hapiserver.exceptions.BadRequestParameterException;
 
 /**
  * Often we have granules of data which when "aggregated" together form the 
