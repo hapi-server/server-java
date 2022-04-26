@@ -23,6 +23,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.exceptions.BadRequestIdException;
 import org.hapiserver.exceptions.HapiException;
+import org.hapiserver.exceptions.UninitializedServerException;
 import org.hapiserver.source.SpawnRecordSource;
 
 
@@ -171,6 +172,7 @@ public class HapiServerSupport {
      * Allow a command to produce the catalog
      * @param jo JSONObject containing command
      * @return the JSONObject for the catalog.
+     * @throws java.io.IOException
      */
     public static JSONObject getCatalogFromSpawnCommand( JSONObject jo ) throws IOException {
         try {
@@ -185,8 +187,7 @@ public class HapiServerSupport {
                 .lines()
                 .collect(Collectors.joining("\n"));
             
-            jo= new JSONObject(text);
-            jo.setEscapeForwardSlashAlways(false);
+            jo= Util.newJSONObject(text);
             return jo;
             
         } catch (JSONException ex) {
@@ -216,8 +217,7 @@ public class HapiServerSupport {
                 .lines()
                 .collect(Collectors.joining("\n"));
             
-            jo= new JSONObject(text);
-            jo.setEscapeForwardSlashAlways(false);
+            jo= Util.newJSONObject(text);
             return jo;
             
         } catch (JSONException ex) {
@@ -244,7 +244,7 @@ public class HapiServerSupport {
             byte[] bb= Files.readAllBytes( Paths.get( catalogConfigFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
             try {
-                JSONObject jo= new JSONObject(s);
+                JSONObject jo= Util.newJSONObject(s);
                 if ( jo.has("source") ) {
                     if ( jo.optString("source","").equals("spawn") ) {
                         jo= getCatalogFromSpawnCommand( jo );
@@ -271,14 +271,14 @@ public class HapiServerSupport {
         }
         byte[] bb= Files.readAllBytes( Paths.get( catalogFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
-        JSONObject jo= new JSONObject(s);
+        JSONObject jo= Util.newJSONObject(s);
         cc= new CatalogData(jo,latestTimeStamp);
         catalogCache.put( HAPI_HOME, cc );
         return jo;
     }
     
     /**
-     * keep and monitor a cached version of the catalog in memory.
+     * keep and monitor a cached version of the configuration in memory.
      * @param HAPI_HOME the location of the server definition
      * @param id the identifier
      * @return the JSONObject for the configuration.
@@ -306,7 +306,7 @@ public class HapiServerSupport {
         }
         byte[] bb= Files.readAllBytes( Paths.get( configFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
-        JSONObject jo= new JSONObject(s);
+        JSONObject jo= Util.newJSONObject(s);
         if ( jo.has("modificationDate") ) {
             String modificationDate= jo.getString("modificationDate");
             if ( modificationDate.length()==0 ) {
@@ -322,7 +322,7 @@ public class HapiServerSupport {
             }
         }
         
-        JSONObject status= new JSONObject();
+        JSONObject status= Util.newJSONObject();
         status.put( "code", 1200 );
         status.put( "message", "OK request successful");
                 
@@ -343,11 +343,18 @@ public class HapiServerSupport {
         return jo;
     }
     
-
+    /**
+     * replace macros like "stopDate":"now-P1D" with the computed value, and reformat into 
+     * compliant isotime.
+     * 
+     * @param jo the info JSON
+     * @return info with times resolved into a valid info response.
+     * @throws JSONException 
+     */
     private static JSONObject resolveTimes( JSONObject jo ) throws JSONException {
                 // I had 2022-01-01 for my stopDate, and the verifier didn't like this format (no Z?)   
         
-        jo= new JSONObject(jo.toString()); // copy JSONObject
+        jo= Util.copyJSONObject(jo); 
         
         try {
             jo.put( "startDate",  ExtendedTimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( jo.getString("startDate") ) ) );
@@ -405,9 +412,8 @@ public class HapiServerSupport {
             byte[] bb= Files.readAllBytes( Paths.get( dataConfigFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
             try {
-                JSONObject jo= new JSONObject(s);
+                JSONObject jo= Util.newJSONObject(s);
                 jo= jo.getJSONObject("data");
-                jo.setEscapeForwardSlashAlways(false);
                 String dataString= jo.toString(4);
                 Files.copy( new ByteArrayInputStream( dataString.getBytes(CHARSET) ), file.toPath(), StandardCopyOption.REPLACE_EXISTING );
                 latestTimeStamp= dataConfigFile.lastModified();
@@ -427,10 +433,9 @@ public class HapiServerSupport {
         }
         byte[] bb= Files.readAllBytes( Paths.get( file.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
-        JSONObject jo= new JSONObject(s);
-        jo.setEscapeForwardSlashAlways(false);
+        JSONObject jo= Util.newJSONObject(s);
         
-        JSONObject status= new JSONObject();
+        JSONObject status= Util.newJSONObject();
         status.put( "code", 1200 );
         status.put( "message", "OK request successful");
                 
@@ -475,7 +480,10 @@ public class HapiServerSupport {
     }
     
     /**
-     * keep and monitor a cached version of the catalog in memory.
+     * keep and monitor a cached version of the info in memory.  If not in memory,
+     * it will be read from the "info" folder, and if not there it will be read from
+     * the config folder.  If the config folder timestamp is newer than what's loaded
+     * the configuration is reloaded.  See https://github.com/hapi-server/server-java/wiki#dataset-configurations
      * @param HAPI_HOME the location of the server definition
      * @param id the identifier
      * @return the JSONObject for the catalog.
@@ -492,18 +500,25 @@ public class HapiServerSupport {
         CatalogData cc= catalogCache.get( HAPI_HOME );
         long latestTimeStamp= infoFile.exists() ? infoFile.lastModified() : 0;
         
-        File infoConfigFile= new File( new File( HAPI_HOME, "config" ), id + ".json" );
+        File configFile= new File( HAPI_HOME, "config" );
+        
+        File infoConfigFile= new File( configFile, id + ".json" );
         if ( !infoConfigFile.exists() ) {
-            infoConfigFile= new File(  new File( HAPI_HOME, "config" ), "config.json" ); // allow info.json to contain "source"
+            infoConfigFile= new File( configFile, "config.json" ); // allow info.json to contain "source"
         }
         if ( !infoConfigFile.exists() ) {
-            throw new BadRequestIdException( );
+            if ( !configFile.exists() ) {
+                throw new UninitializedServerException( );
+            } else {
+                throw new BadRequestIdException( );
+            }
         }
+        
         if ( infoConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it.
             byte[] bb= Files.readAllBytes( Paths.get( infoConfigFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
             try {
-                JSONObject jo= new JSONObject(s);
+                JSONObject jo= Util.newJSONObject(s);
                 jo= jo.getJSONObject("info");
                 if ( jo.has("source") ) {
                     if ( jo.optString("source","").equals("spawn") ) {
@@ -538,8 +553,7 @@ public class HapiServerSupport {
         }
         byte[] bb= Files.readAllBytes( Paths.get( infoFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
-        JSONObject jo= new JSONObject(s);
-        jo.setEscapeForwardSlashAlways(false);
+        JSONObject jo= Util.newJSONObject(s);
         if ( jo.has("modificationDate") ) {
             String modificationDate= jo.getString("modificationDate");
             if ( modificationDate.length()==0 ) {
@@ -555,7 +569,7 @@ public class HapiServerSupport {
             }
         }
         
-        JSONObject status= new JSONObject();
+        JSONObject status= Util.newJSONObject();
         status.put( "code", 1200 );
         status.put( "message", "OK request successful");
                 

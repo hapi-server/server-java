@@ -32,7 +32,7 @@ import org.hapiserver.exceptions.HapiException;
  * Container for useful routines 
  * @author jbf
  */
-public class Util {
+public final class Util {
     
     private static final Logger logger= Logger.getLogger("hapi");
     
@@ -74,10 +74,9 @@ public class Util {
             // security says this should not be shown in production use, but include for localhost
             JSONObject jo;
             try {
-                jo = new JSONObject(s);
+                jo = newJSONObject(s);
                 String HAPI_HOME = request.getServletContext().getInitParameter("hapi_home");
                 jo.put("x_HAPI_SERVER_HOME", HAPI_HOME );
-                jo.setEscapeForwardSlashAlways(false);
                 s= jo.toString(4);
             } catch (JSONException ex) {
                 throw new IllegalArgumentException(ex);
@@ -183,7 +182,7 @@ public class Util {
      * @throws org.hapiserver.exceptions.BadRequestParameterException if a parameter is not supported
      */
     public static JSONObject subsetParams( JSONObject info, String parameters ) throws JSONException, BadRequestParameterException {
-        info= new JSONObject( info.toString() ); // force a copy
+        info= copyJSONObject( info );
         String[] pps= parameters.split(",");
         Map<String,Integer> map= new HashMap();  // map from name to index in dataset.
         Map<String,Integer> iMap= new HashMap(); // map from name to position in csv.
@@ -237,11 +236,9 @@ public class Util {
         }
 
         jsonParameters= newParameters;
-        jsonParameters.setEscapeForwardSlashAlways(false);
         info.put( "parameters", jsonParameters );        
-
         info.put( "x_indexmap", indexMap );
-        info.setEscapeForwardSlashAlways(false);
+        
         return info;
     }
     
@@ -253,10 +250,10 @@ public class Util {
      */
     public static JSONObject createHapiResponse( int statusCode, String message ) {
         try {
-            JSONObject jo= new JSONObject();
+            JSONObject jo= newJSONObject();
             jo.put("HAPI","3.0");
             jo.put("createdAt",String.format("%tFT%<tRZ",Calendar.getInstance(TimeZone.getTimeZone("Z"))));
-            JSONObject status= new JSONObject();
+            JSONObject status= newJSONObject();
             status.put( "code", statusCode );
             status.put( "message", message );
             jo.put("status",status);
@@ -384,4 +381,43 @@ public class Util {
             }
         }
     }
+    
+    /**
+     * create a new JSONObject with the escapeForwardSlashAlways set, to minimize
+     * special code for the JSON library used.
+     * @return a new JSONObject
+     */
+    public static JSONObject newJSONObject() {
+        JSONObject jo= new JSONObject();
+        jo.setEscapeForwardSlashAlways(false);
+        return jo;
+    }
+    
+    /**
+     * create a copy of the JSONObject which can be modified without affecting 
+     * memory caches.
+     * @param jo the JSONObject 
+     * @return a copy of the JSONObject
+     */
+    public static JSONObject copyJSONObject( JSONObject jo ) {
+        return newJSONObject( jo.toString() );
+    }
+    
+    /**
+     * create a copy of the JSONObject which can be modified without affecting 
+     * memory caches.
+     * @param s the string encoding the JSONObject 
+     * @return a copy of the JSONObject
+     */
+    public static JSONObject newJSONObject( String s ) {
+        try {
+            JSONObject jo= new JSONObject( s );
+            jo.setEscapeForwardSlashAlways(false);
+            return jo;
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    
 }

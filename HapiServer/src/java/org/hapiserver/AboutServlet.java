@@ -87,8 +87,7 @@ public class AboutServlet extends HttpServlet {
             ByteArrayOutputStream outs= new ByteArrayOutputStream();
             Files.copy( aboutFile.toPath(), outs );
             try {
-                JSONObject jo= new JSONObject( new String( outs.toByteArray(), HapiServerSupport.CHARSET ) );
-                jo.setEscapeForwardSlashAlways(false);
+                JSONObject jo= Util.newJSONObject( new String( outs.toByteArray(), HapiServerSupport.CHARSET ) );
                 jo.put( "x_hapi_home", HAPI_HOME );
                 Util.transfer( new ByteArrayInputStream( jo.toString(4).getBytes( HapiServerSupport.CHARSET) ), 
                     response.getOutputStream(), true );

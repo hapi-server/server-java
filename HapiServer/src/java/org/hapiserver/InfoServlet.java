@@ -78,7 +78,6 @@ public class InfoServlet extends HttpServlet {
                     return;
                 }
             }
-            jo.setEscapeForwardSlashAlways(false);
             String s= jo.toString(4);
             out.write(s.getBytes( HapiServerSupport.CHARSET ));
             

@@ -23,8 +23,14 @@ public class Initialize {
      * @param hapiHome area where infos are stored.
      */
     public static synchronized void initialize( File hapiHome ) {
-        if ( !hapiHome.mkdirs() ) {
-            throw new RuntimeException("Unable to make hapi_home: "+hapiHome);
+        if ( hapiHome.exists() ) {
+            if ( !hapiHome.canWrite() ) {
+                throw new RuntimeException("Unable to write in hapi_home: "+hapiHome);
+            }
+        } else {
+            if ( !hapiHome.mkdirs() ) {
+                throw new RuntimeException("Unable to make hapi_home: "+hapiHome);
+            }
         }
 
         File configDir= new File( hapiHome, "config" );

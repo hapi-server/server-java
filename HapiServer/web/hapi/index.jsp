@@ -46,6 +46,11 @@
                 File f= new File( HAPI_HOME );
                 if ( !f.exists() ) {
                     Initialize.initialize(f);
+                } else {
+                    File configFile= new File( f, "config" );
+                    if ( !configFile.exists() ) {
+                        Initialize.initialize(f);
+                    }
                 }
             }
             %>

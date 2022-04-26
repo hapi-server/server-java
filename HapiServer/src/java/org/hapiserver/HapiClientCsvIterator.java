@@ -56,7 +56,7 @@ public class HapiClientCsvIterator implements Iterator<HapiRecord> {
             if ( this.nextLine==null ) {
                 reader.close();
             }
-            JSONObject o= new JSONObject(b.toString());
+            JSONObject o= Util.newJSONObject(b.toString());
             if ( !o.has("status") ) {
                 throw new IllegalArgumentException("expected to see status in JSON response.");
             } else {

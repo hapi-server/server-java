@@ -82,7 +82,6 @@ public class CatalogServlet extends HttpServlet {
             JSONObject catalog= HapiServerSupport.getCatalog(HAPI_HOME);
             
             try (PrintWriter out = response.getWriter()) {
-                catalog.setEscapeForwardSlashAlways(false);
                 String s= catalog.toString(4);
                 out.write(s);
             } catch ( JSONException ex ) {
