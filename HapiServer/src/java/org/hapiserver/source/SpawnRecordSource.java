@@ -92,7 +92,8 @@ public class SpawnRecordSource implements HapiRecordSource {
     @Override
     public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
         try {
-            int[] time= this.uriTemplate.parse( TimeUtil.formatIso8601Time(start) );
+            String time0= this.uriTemplate.format( TimeUtil.formatIso8601Time(start),  TimeUtil.formatIso8601Time(start) );
+            int[] time= this.uriTemplate.parse( time0 );
                 
             return new Iterator<int[]>() {
                 int[] timeIt= time;

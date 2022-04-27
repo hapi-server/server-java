@@ -11,6 +11,10 @@ public class BadRequestIdException extends HapiException {
         super( 1406, "Bad request - unknown dataset id");
     }
     
+    public BadRequestIdException( String extra ) {
+        super( 1406, "Bad request - unknown dataset id", extra );
+    }
+    
     public BadRequestIdException( String msg, String id ) {
         super(1406,msg);
     }

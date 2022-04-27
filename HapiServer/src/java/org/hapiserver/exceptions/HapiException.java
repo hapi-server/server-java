@@ -9,7 +9,19 @@ public class HapiException extends Throwable {
     
     public int code;
     
-    public HapiException(int code,String message) {
+    /**
+     * throw the exception, where extra is private information only for trusted clients
+     * @param code
+     * @param message
+     * @param extra 
+     */
+    public HapiException( int code, String message, String extra ) {
+        super( message );
+        this.code= code;
+        System.err.println("** " + extra);
+    }
+    
+    public HapiException( int code, String message ) {
         super( message );
         this.code= code;
     }

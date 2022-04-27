@@ -10,9 +10,9 @@ public class BadRequestParameterException extends HapiException {
     public BadRequestParameterException( ) {
         super(1407, "Bad request - unknown dataset parameter" );
     }
-    
-    public BadRequestParameterException(int code, String message) {
-        super(code, message);
+
+    public BadRequestParameterException( String extra ) {
+        super(1407, "Bad request - unknown dataset parameter", extra );
     }
 
 }

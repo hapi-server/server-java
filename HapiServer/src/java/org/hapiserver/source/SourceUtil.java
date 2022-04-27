@@ -6,6 +6,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -22,13 +25,18 @@ public class SourceUtil {
     
     private static final Logger logger= Util.getLogger();
     
-    private static class AsciiFileIterator implements Iterator<String> {
+    private static class AsciiSourceIterator implements Iterator<String> {
 
         BufferedReader reader;
         String line;
         
-        public AsciiFileIterator( File file ) throws IOException {
+        public AsciiSourceIterator( File file ) throws IOException {
             this.reader= new BufferedReader( new FileReader(file) );
+            this.line= reader.readLine();
+        }
+        
+        public AsciiSourceIterator( URL url ) throws IOException {
+            this.reader= new BufferedReader( new InputStreamReader( url.openStream() ) );
             this.line= reader.readLine();
         }
         
@@ -49,8 +57,26 @@ public class SourceUtil {
         }
     }
     
+    /**
+     * return an iterator for each line of the ASCII file.
+     * @param f a file
+     * @return an iterator for the lines.
+     * @throws FileNotFoundException
+     * @throws IOException 
+     */
     public static Iterator<String> getFileLines( File f ) throws FileNotFoundException, IOException {
-        return new AsciiFileIterator(f);
+        return new AsciiSourceIterator(f);
+    }
+    
+    /**
+     * return an iterator for each line of the URL file.
+     * @param url a URL pointing to an ASCII file.
+     * @return an iterator for the lines.
+     * @throws FileNotFoundException
+     * @throws IOException 
+     */
+    public static Iterator<String> getFileLines( URL url ) throws FileNotFoundException, IOException {
+        return new AsciiSourceIterator(url);
     }
     
     /**

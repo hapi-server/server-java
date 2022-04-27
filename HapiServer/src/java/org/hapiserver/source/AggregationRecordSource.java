@@ -4,7 +4,10 @@ package org.hapiserver.source;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.CsvHapiRecordConverter;
@@ -35,9 +38,6 @@ public class AggregationRecordSource extends AbstractHapiRecordSource {
         if ( this.fileFormat.length()==0 ) throw new IllegalArgumentException("files is empty or missing");
         this.uriTemplate= new URITemplate(fileFormat);
         this.nfield= info.optJSONArray("parameters").length();
-        if ( this.fileFormat.startsWith("file:") ) {
-            throw new IllegalArgumentException("fileFormat should not start with file:, just /foo/bar/...");
-        }
         try {
             recordConverter= new CsvHapiRecordConverter(info);
         } catch (JSONException ex) {
@@ -70,12 +70,19 @@ public class AggregationRecordSource extends AbstractHapiRecordSource {
         
         String file= uriTemplate.format( TimeUtil.formatIso8601Time(start), TimeUtil.formatIso8601Time(stop) );
         try {
-            File ff= new File(file);
-            if ( !ff.exists() ) {
-                return SourceUtil.getEmptyHapiRecordIterator();
-            }
             
-            Iterator<String> iter= SourceUtil.getFileLines( ff );
+            Iterator<String> iter;
+            
+            if ( file.startsWith("file:") ) {
+                File ff= new File(file);
+                if ( !ff.exists() ) {
+                    return SourceUtil.getEmptyHapiRecordIterator();
+                }
+                iter= SourceUtil.getFileLines( ff );
+            } else {
+                URL url= new URL(file);
+                iter= SourceUtil.getFileLines( url );
+            }
             
             return new Iterator<HapiRecord>() {
                 @Override

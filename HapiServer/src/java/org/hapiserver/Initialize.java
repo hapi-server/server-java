@@ -86,7 +86,7 @@ public class Initialize {
             throw new RuntimeException("Unable to make data area");
         }
         
-        String[] examples= new String[] { "wind_swe_2m" };
+        String[] examples= new String[] { "wind_swe_2m", "temperature", "spawnsource" };
         
         for ( String s: examples ) {
             File exampleData= new File( configDir, s + ".json" );

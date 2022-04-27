@@ -510,7 +510,7 @@ public class HapiServerSupport {
             if ( !configFile.exists() ) {
                 throw new UninitializedServerException( );
             } else {
-                throw new BadRequestIdException( );
+                throw new BadRequestIdException( id );
             }
         }
         
