@@ -1,23 +1,22 @@
 name: Deployment Workflow
 on:
-    push:
-        branches: [ master ]
+  push:
+    branches: [ master ]
 
 jobs:
-    job_one:
-        name: Deploy
-        runs-on: ubuntu-latest
-        steps:
-        - name: testing jfaden.com server ssh connection
-          uses: appleboy/ssh-action@master
-          with:
-             host: jfaden.net
-             username: jbf
-             key: ${{ secrets.OMG_SECRET }}
-             port: 887
-             script: |
-                echo $HOSTNAME
-                cd /home/jbf/ct/hapi/git/server-java
-                git pull origin master
-                git status
-
+  job_one:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: testing jfaden.com server ssh connection
+      uses: appleboy/ssh-action@master
+      with:
+        host: jfaden.net
+        username: jbf
+        key: ${{ secrets.OMG_SECRET }}
+        port: 887
+        script: |
+          echo $HOSTNAME
+          cd /home/jbf/ct/hapi/git/server-java
+          git pull origin master
+          git status
