@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.hapiserver.source.DailyHapiRecordSource;
+import org.hapiserver.source.AggregationRecordSource;
 import org.hapiserver.source.HapiWrapperRecordSource;
 import org.hapiserver.source.SpawnRecordSource;
 
@@ -52,7 +52,7 @@ public class SourceRegistry {
         
         switch (source) {
             case "aggregation":
-                return new DailyHapiRecordSource( hapiHome, id, info, data );
+                return new AggregationRecordSource( hapiHome, id, info, data );
             case "spawn":
                 return new SpawnRecordSource( hapiHome, id, info, data );
             case "hapiserver":

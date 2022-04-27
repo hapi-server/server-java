@@ -4,18 +4,11 @@ package org.hapiserver.source;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.hapiserver.AbstractHapiRecord;
 import org.hapiserver.CsvHapiRecordConverter;
-import org.hapiserver.ExtendedTimeUtil;
 import org.hapiserver.HapiRecord;
-import org.hapiserver.HapiRecordSource;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.URITemplate;
 
@@ -23,7 +16,7 @@ import org.hapiserver.URITemplate;
  * given one pre-formatted CSV file with a known number of fields, return iterator.  This will likely be deprecated.
  * @author jbf
  */
-public class DailyHapiRecordSource extends AbstractHapiRecordSource {
+public class AggregationRecordSource extends AbstractHapiRecordSource {
 
     String fileFormat;
     URITemplate uriTemplate;
@@ -37,7 +30,7 @@ public class DailyHapiRecordSource extends AbstractHapiRecordSource {
      * @param info
      * @param dataConfig
      */
-    public DailyHapiRecordSource( String hapiHome, String id, JSONObject info, JSONObject dataConfig ) {
+    public AggregationRecordSource( String hapiHome, String id, JSONObject info, JSONObject dataConfig ) {
         this.fileFormat= dataConfig.optString("files","");
         if ( this.fileFormat.length()==0 ) throw new IllegalArgumentException("files is empty or missing");
         this.uriTemplate= new URITemplate(fileFormat);
