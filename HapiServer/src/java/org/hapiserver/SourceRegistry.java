@@ -52,9 +52,7 @@ public class SourceRegistry {
         
         switch (source) {
             case "aggregation":
-                String files= data.optString( "files", "" );
-                int nfields= info.optJSONArray("parameters").length();
-                return DailyHapiRecordSource.fromAggregation(files,nfields);
+                return new DailyHapiRecordSource( hapiHome, id, info, data );
             case "spawn":
                 return new SpawnRecordSource( hapiHome, id, info, data );
             case "hapiserver":
