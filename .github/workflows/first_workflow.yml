@@ -21,7 +21,6 @@ jobs:
           git pull origin main
           git status
           cd HapiServer
-          ant dist
-          cp dist/HapiServer.war /home/jbf/public_html/autoplot/study/jeremy/2022/20220427/
+          ant -Dj2ee.server.home=/usr/local/apache-tomcat-8/ dist
           echo "see https://cottagesystems.com/autoplot/git/server-java/HapiServer/dist/HapiServer.war"
           
