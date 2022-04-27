@@ -31,9 +31,10 @@ public class SourceRegistry {
     /**
      * return the record source for the id.  The list of sources
      * is growing as the server is developed:<ul>
-     * <li>"aggregation" which to aggregates of complete CSV records
+     * <li>"aggregation" which to aggregates complete CSV records
      * <li>"hapiserver" data is provided by another server.
      * <li>"spawn" data is returned by executing a command at the command line.
+     * <li>"classpath" a Java class is called to supply the records.
      * </ul>
      * @param hapiHome the root of the HAPI server configuration, containing files like "catalog.json" 
      * @param info the info for the data
