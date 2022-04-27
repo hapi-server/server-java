@@ -17,11 +17,11 @@ jobs:
         port: 887
         script: |
           echo $HOSTNAME
-          cd /home/jbf/ct/hapi/git/server-java
+          cd /var/www/cottagesystems.com/autoplot/git/server-java
           git pull origin main
           git status
           cd HapiServer
           ant dist
           cp dist/HapiServer.war /home/jbf/public_html/autoplot/study/jeremy/2022/20220427/
-          echo "see https://jfaden.net/~jbf/autoplot/study/jeremy/2022/20220427/HapiServer.war"
+          echo "see https://cottagesystems.com/autoplot/git/server-java/HapiServer/dist/HapiServer.war"
           
