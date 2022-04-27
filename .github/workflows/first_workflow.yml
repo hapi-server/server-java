@@ -22,4 +22,6 @@ jobs:
           git status
           cd HapiServer
           ant dist
-
+          cp dist/HapiServer.war /home/jbf/public_html/autoplot/study/jeremy/2022/20220427/
+          echo "see https://jfaden.net/~jbf/autoplot/study/jeremy/2022/20220427/HapiServer.war"
+          
