@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.CsvHapiRecordConverter;
@@ -241,6 +242,12 @@ public class SpawnRecordSource implements HapiRecordSource {
                 process= pb.start();
                 reader= new BufferedReader( new InputStreamReader( process.getInputStream() ) );
                 nextRecord= reader.readLine();
+                if ( nextRecord==null ) {
+                    String errorMessage= 
+                        new BufferedReader( new InputStreamReader( process.getErrorStream() ) )
+                            .lines().collect( Collectors.joining("\n") );
+                    logger.fine( errorMessage );
+                }
                 converter= new CsvHapiRecordConverter(info);
             } catch (JSONException | IOException ex ) {
                 throw new RuntimeException(ex);
