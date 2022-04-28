@@ -4,6 +4,7 @@ package org.hapiserver;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 
 /**
  * Useful extentions to the TimeUtil class, like support for times like "now-P1D"
@@ -260,7 +261,12 @@ public class ExtendedTimeUtil {
     }
     
     /**
-     * return the next interval, given the 14-component time interval
+     * return the next interval, given the 14-component time interval.  This
+     * has the restrictions:<ul>
+     * <li> can only handle intervals of at least one second
+     * <li> must be only one component which increments
+     * <li> increment must be a devisor of the increment, so 1, 2, 3, 4, or 6 months is valid, but 5 months is not.
+     * </ul>
      * @param range 14-component time interval.
      * @return 14-component time interval.
      */
@@ -270,10 +276,44 @@ public class ExtendedTimeUtil {
         for ( int i=0; i<TimeUtil.TIME_DIGITS; i++ ) {
             width[ i ] = range[i+TimeUtil.TIME_DIGITS ] - range[i] ;
         }
+        if ( width[5]<0 ) {
+            width[5]= width[5]+60;
+            width[4]= width[4]-1;
+        }
+        if ( width[4]<0 ) {
+            width[4]= width[4]+60;
+            width[3]= width[3]-1;
+        }
+        if ( width[3]<0 ) {
+            width[3]= width[3]+24;
+            width[2]= width[2]-1;
+        }
+        if ( width[2]<0 ) {
+            int daysInMonth= TimeUtil.daysInMonth( range[YEAR], range[MONTH] );
+            width[2]= width[2]+daysInMonth;
+            width[1]= width[1]-1;
+        }
+        if ( width[1]<0 ) {
+            width[1]= width[1]+12;
+            width[0]= width[0]-1;
+        }
         System.arraycopy( range, TimeUtil.TIME_DIGITS, result, 0, TimeUtil.TIME_DIGITS );
         System.arraycopy( TimeUtil.add( ExtendedTimeUtil.getStopTime(range), width ), 0, 
             result, TimeUtil.TIME_DIGITS, TimeUtil.TIME_DIGITS );
         return result;
+    }
+        
+    /**
+     * return true if this is a valid time range having a non-zero width.
+     * @param granule
+     * @return 
+     */
+    public static boolean isValidTimeRange(int[] granule) {
+        int[] start= getStartTime(granule);
+        int[] stop= getStopTime(granule);
+        
+        return TimeUtil.isValidTime( start ) && TimeUtil.isValidTime( stop ) && gt( stop, start );
+        
     }
     
 }

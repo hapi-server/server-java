@@ -310,7 +310,6 @@ public class DataServlet extends HttpServlet {
             dataFormatter.finalize(out);
             
         } catch ( RuntimeException ex ) {
-            ex.printStackTrace();
             Util.raiseError( 1500, ex.getMessage(), response, out );
             
         } finally {

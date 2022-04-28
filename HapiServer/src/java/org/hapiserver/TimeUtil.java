@@ -143,7 +143,7 @@ public class TimeUtil {
     }
 
     /**
-     * the number of days in each month.
+     * the number of days in each month.  DAYS_IN_MONTH[0][12] is number of days in December of a non-leap year
      */
     private final static int[][] DAYS_IN_MONTH = {
         {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 0},
@@ -151,7 +151,7 @@ public class TimeUtil {
     };
 
     /**
-     * the number of days to the first of each month.
+     * the number of days to the first of each month.  DAY_OFFSET[0][12] is offset to December 1st of a non-leap year
      */
     private final static int[][] DAY_OFFSET = {
         {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365},
@@ -180,6 +180,11 @@ public class TimeUtil {
         return result.toArray(new String[result.size()]);
     }
 
+    /**
+     * true if the year between 1582 and 2400 is a leap year.
+     * @param year the year
+     * @return true if the year between 1582 and 2400 is a leap year.
+     */
     private static boolean isLeapYear(int year) {
         if (year < 1582 || year > 2400) {
             throw new IllegalArgumentException("year must be between 1582 and 2400");
@@ -729,6 +734,48 @@ public class TimeUtil {
         return d.getTime();
     }
     
+    public static int VALID_FIRST_YEAR=1900;
+    public static int VALID_LAST_YEAR=2100;
+    
+    /**
+     * this returns true or throws an IllegalArgumentException indicating the problem.
+     * @param time the seven-component time.
+     * @return true or throws an IllegalArgumentException
+     */
+    public static boolean isValidTime( int[] time ) {
+        int year= time[0];
+        if ( year<VALID_FIRST_YEAR ) throw new IllegalArgumentException("invalid year at position 0" );
+        if ( year>VALID_LAST_YEAR ) throw new IllegalArgumentException("invalid year at position 0" );
+        int month= time[1];
+        if ( month<1 ) throw new IllegalArgumentException("invalid month at position 1" );
+        if ( month>12 ) throw new IllegalArgumentException("invalid month at position 1" );
+        int leap= isLeapYear( year ) ? 1 : 0;
+        int dayOfMonth= time[2];
+        if ( month>1 ) {
+            if ( dayOfMonth>DAYS_IN_MONTH[leap][month] ) {
+                throw new IllegalArgumentException("day of month is too large at position 2" );
+            } 
+        } else {
+            if ( dayOfMonth>DAY_OFFSET[leap][13] ) {
+                throw new IllegalArgumentException("day of year is too large at position 2" );
+            }
+        }
+        if ( dayOfMonth<1 ) throw new IllegalArgumentException("day is less than 1 at position 2" );
+        return true;
+    }
+    
+    /**
+     * return the number of days in the month.
+     * @param year the year 
+     * @param month the month
+     * @return the number of days in the month.
+     * @see #isLeapYear(int) 
+     */
+    public static int daysInMonth( int year, int month ) {
+        int leap= isLeapYear(year) ? 1 : 0;
+        return DAYS_IN_MONTH[leap][month];
+    }
+    
     /**
      * normalize the decomposed (seven digit) time by expressing day of year and month and day
      * of month, and moving hour="24" into the next day. This also handles day
@@ -1010,7 +1057,8 @@ public class TimeUtil {
     }
 
     /**
-     * subtract the offset from the base time.
+     * subtract the offset from the base time.  
+     * TODO: jbf: Verify Feb 1 - Jan 30, I don't think this is handled.  See ExtendedTimeUtil.nextRange 
      *
      * @param base a time
      * @param offset offset in each component.

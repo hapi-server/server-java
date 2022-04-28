@@ -71,6 +71,7 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
                     throw new IllegalArgumentException("granule length should be 14");
                 }
             }
+            ExtendedTimeUtil.isValidTimeRange(granule);
             if ( this.parameters==null ) {
                 hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule) );
             } else {
