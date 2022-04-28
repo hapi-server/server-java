@@ -1,33 +1,49 @@
 {
   "info":{
     "HAPI": "3.0",
-    "x_createdAt": "2017-02-21T17:27Z",
-    "modificationDate": "lastyear",
+    "modificationDate": "2022-04-28T11:17:28.566Z",
     "parameters": [
         {
-            "length": 20,
+            "fill": null,
+            "length": 24,
             "name": "Time",
             "type": "isotime",
-            "fill": null,            
             "units": "UTC"
         },
         {
-            "description": "Water temperature in garden pool",
-            "fill": "-1e31",
-            "name": "temperature",
+            "description": "HK/MAG  Magnetic Field, Cartesian GSM Coordinates",
+            "fill": "-1.0E31",
+            "name": "Bx_GSM",
             "type": "double",
-            "units": "F"
+            "units": "nT"
+        },
+        {
+            "description": "HK/MAG  Magnetic Field, Cartesian GSM Coordinates",
+            "fill": "-1.0E31",
+            "name": "By_GSM",
+            "type": "double",
+            "units": "nT"
+        },
+        {
+            "description": "HK/MAG  Magnetic Field, Cartesian GSM Coordinates",
+            "fill": "-1.0E31",
+            "name": "Bz_GSM",
+            "type": "double",
+            "units": "nT"
         }
     ],
-    "cadence": "PT1M",
-    "sampleStartDate": "2019-10-01T00:00Z",
-    "sampleStopDate": "2019-10-02T00:00Z",
-    "startDate": "2019-01-01",
-    "stopDate": "2020-01-01"
+    "sampleStartDate": "1978-01-16T00:00Z",
+    "sampleStopDate": "1978-01-17T00:00Z",
+    "startDate": "1974-06-06T00:00Z",
+    "stopDate": "1978-04-29T00:00Z",
+    "status": {
+        "code": 1200,
+        "message": "OK request successful"
+    }
   },
   "data": {
     "source":"spawn",
-    "command":"wget -O - https://jfaden.net/~jbf/data/gardenhouse/data/PoolTemperature/2019/28.FF6319A21705.${start}.csv",
+    "command":"/home/jbf/bin/autoplotDataServer.sh --uri='https://cdaweb.gsfc.nasa.gov/pub/data/hawkeye/mag/mag_h0/$Y/hk_h0_mag_$Y$m$d_v$v.cdf?B_gsm' --format=hapi-csv --timeRange=${start}/${stop}",
     "timeFormat":"$Y$m$d",
     "granuleSize":"P1D"
   }
