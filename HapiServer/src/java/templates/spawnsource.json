@@ -13,21 +13,9 @@
         {
             "description": "HK/MAG  Magnetic Field, Cartesian GSM Coordinates",
             "fill": "-1.0E31",
-            "name": "Bx_GSM",
-            "type": "double",
-            "units": "nT"
-        },
-        {
-            "description": "HK/MAG  Magnetic Field, Cartesian GSM Coordinates",
-            "fill": "-1.0E31",
-            "name": "By_GSM",
-            "type": "double",
-            "units": "nT"
-        },
-        {
-            "description": "HK/MAG  Magnetic Field, Cartesian GSM Coordinates",
-            "fill": "-1.0E31",
-            "name": "Bz_GSM",
+            "size":[3],
+            "name": "B_GSM",
+            "label": [ "Bx", "By", "Bz" ],
             "type": "double",
             "units": "nT"
         }
