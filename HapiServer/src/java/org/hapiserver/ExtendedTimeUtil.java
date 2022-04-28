@@ -172,7 +172,7 @@ public class ExtendedTimeUtil {
      */
     public static int[] createTimeRange( int[] t1, int[] t2 ) {
         if ( !gt(t2,t1) ) {
-            throw new IllegalArgumentException("t1 is greater than t2");
+            throw new IllegalArgumentException("t1 is not smaller than t2");
         }
         int[] result= new int[TimeUtil.TIME_DIGITS*2];
         System.arraycopy( t1, 0, result, 0, TimeUtil.TIME_DIGITS  );
