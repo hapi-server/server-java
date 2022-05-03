@@ -17,23 +17,6 @@
             "x_documentation": "Source which aggregates CSV files"
         },
         {
-            "x_group_id": "sscweb",
-            "x_source": "spawn",
-            "x_command": "/home/jbf/ct/hapi/git/server-java/SSCWebServer/src/SSCWebRecordSource.sh catalog",
-            "x_config": {
-                "info": {
-                    "source":"spawn",
-                    "command":"/home/jbf/ct/hapi/git/server-java/SSCWebServer/src/SSCWebRecordSource.sh info ${id}"
-                },
-                "data": {
-                    "source": "spawn",
-                    "command": "/home/jbf/ct/hapi/git/server-java/SSCWebServer/src/SSCWebRecordSource.sh data ${id} ${start} ${stop}",
-                    "timeFormat": "$Y-$m-$dZ",
-                    "granuleSize": "P1D"
-                }
-            }
-        },
-        {
             "x_group_id": "wrap_hapi_server",
             "x_source": "spawn",
             "x_command": "wget -O - https://jfaden.net/HapiServerDemo/hapi/catalog",
