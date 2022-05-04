@@ -154,6 +154,7 @@ public class SpawnRecordSource implements HapiRecordSource {
         for ( int i=0; i<ss.length; i++ ) {
             String s1= ss[i];
             if ( s1.startsWith("id}") ) {
+                id= id.replaceAll(" ","+");
                 if ( !Util.constrainedId(id) ) throw new IllegalArgumentException("id is not conformant");
                 ss[i]= id + s1.substring(3);
 
@@ -221,6 +222,7 @@ public class SpawnRecordSource implements HapiRecordSource {
                         ss[i]= HapiServerSupport.joinParams( info, params ) + s1.substring(11);
                         
                     } else if ( s1.startsWith("id}") ) {
+                        id= id.replaceAll(" ","+");
                         if ( !Util.constrainedId(id) ) throw new IllegalArgumentException("id is not conformant");
                         ss[i]= id + s1.substring(3);
                         

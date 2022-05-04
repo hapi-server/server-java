@@ -126,6 +126,57 @@ public class HapiServerSupport {
 
     private static Map<String,CatalogData> catalogCache= new HashMap<>();
 
+    private static JSONObject resolveCatalog(JSONObject jo) throws JSONException {
+        JSONArray catalog= jo.getJSONArray("catalog");
+        JSONArray resolvedCatalog= new JSONArray();
+        JSONObject groups= new JSONObject();
+        JSONObject datasetToGroupId= new JSONObject();
+        
+        int resolvedCatalogLength=0;
+        
+        for ( int i=0; i<catalog.length(); i++ ) {
+            JSONObject item= catalog.getJSONObject(i);
+            String source= item.optString("x_source","");
+            if ( source.length()==0 ) {
+                resolvedCatalog.put( resolvedCatalogLength, item );
+                resolvedCatalogLength++;
+            } else if ( source.equals("spawn") ) {
+                String command = item.optString("x_command","");
+                String groupId= item.optString("x_group_id","");
+                if ( command.length()==0 ) throw new IllegalArgumentException("x_command is missing");
+                try {
+                    jo= getCatalogFromSpawnCommand( command );
+                    JSONArray items= jo.getJSONArray("catalog");
+                    for ( int j=0; j<items.length(); j++ ) {
+                        JSONObject catalogItem= items.getJSONObject(j);
+                        String theId= catalogItem.getString("id");
+                        logger.log(Level.INFO, "mapping in {0}", theId);
+                        catalogItem.put( "x_group_id", groupId );
+                        datasetToGroupId.put( theId, groupId );
+                        resolvedCatalog.put( resolvedCatalogLength, catalogItem );
+                        resolvedCatalogLength++;
+                    }
+                } catch (IOException ex) {
+                    logger.log(Level.SEVERE, null, ex);
+                }
+                JSONObject config= item.optJSONObject("x_config");
+                if ( config!=null ) {
+                    groups.put( groupId, config );
+                }
+            } else {
+                warnWebMaster(new RuntimeException("catalog source can only be spawn") );
+            }
+        }
+        
+        JSONObject newCatalogResponse= Util.copyJSONObject(jo);
+        newCatalogResponse.put( "catalog", resolvedCatalog );
+        newCatalogResponse.put( "x_groups", groups );
+        newCatalogResponse.put( "x_dataset_to_group", datasetToGroupId );
+        
+        return newCatalogResponse;
+        
+    }
+
     private static class CatalogData {
         public CatalogData( JSONObject catalog, long catalogTimeStamp ) {
             this.catalog= catalog;
@@ -168,31 +219,27 @@ public class HapiServerSupport {
         long configTimeStamp;
     }
     
+
     /**
-     * Allow a command to produce the catalog
-     * @param jo JSONObject containing command
+     * Allow a command to produce the catalog. 
+     * @param command the command to spawn
      * @return the JSONObject for the catalog.
      * @throws java.io.IOException
      */
-    public static JSONObject getCatalogFromSpawnCommand( JSONObject jo ) throws IOException {
-        try {
-            String command = jo.getString("command");
-            logger.log(Level.INFO, "spawn command {0}", command);
-            String[] ss= command.split("\\s+");
+    public static JSONObject getCatalogFromSpawnCommand( String command ) throws IOException {
+        logger.log(Level.INFO, "spawn command {0}", command);
+        String[] ss= command.split("\\s+");
 
-            ProcessBuilder pb= new ProcessBuilder( ss );
-            Process process= pb.start();
-            String text = new BufferedReader(
-                new InputStreamReader( process.getInputStream(), StandardCharsets.UTF_8))
-                .lines()
-                .collect(Collectors.joining("\n"));
-            
-            jo= Util.newJSONObject(text);
-            return jo;
-            
-        } catch (JSONException ex) {
-            throw new RuntimeException(ex);
-        }
+        ProcessBuilder pb= new ProcessBuilder( ss );
+        Process process= pb.start();
+        String text = new BufferedReader(
+            new InputStreamReader( process.getInputStream(), StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
+
+        JSONObject jo= Util.newJSONObject(text);
+        return jo;
+
     }
     
     /**
@@ -240,23 +287,17 @@ public class HapiServerSupport {
         long latestTimeStamp= catalogFile.lastModified();
         
         File catalogConfigFile= new File( new File( HAPI_HOME, "config" ), "catalog.json" );        
-        if ( catalogConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it.
+        if ( catalogConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
             byte[] bb= Files.readAllBytes( Paths.get( catalogConfigFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
             try {
                 JSONObject jo= Util.newJSONObject(s);
-                if ( jo.has("source") ) {
-                    if ( jo.optString("source","").equals("spawn") ) {
-                        jo= getCatalogFromSpawnCommand( jo );
-                        try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
-                            Files.copy( ins, 
+                
+                jo= resolveCatalog( jo );
+                
+                try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                    Files.copy( ins, 
                                 catalogFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
-                        }
-                    } else {
-                        warnWebMaster(new RuntimeException("catalog source can only be spawn") );
-                    }
-                } else {
-                    Files.copy( catalogConfigFile.toPath(), catalogFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
                 }
                 latestTimeStamp= catalogFile.lastModified();
             } catch ( JSONException ex ) {
@@ -396,23 +437,48 @@ public class HapiServerSupport {
      * @throws org.codehaus.jettison.json.JSONException 
      * @throws IllegalArgumentException for bad id.
      */
-    public static JSONObject getDataConfig( String HAPI_HOME, String id ) throws IOException, JSONException {
+    public static JSONObject getDataConfig( String HAPI_HOME, String id ) throws IOException, JSONException, HapiException {
         File dir= new File( HAPI_HOME, "data" );
-        id= Util.fileSystemSafeName(id);
-        File file= new File( dir, id + ".json" );
+        String safeId= Util.fileSystemSafeName(id);
+        File file= new File( dir, safeId + ".json" );
 
         CatalogData cc= catalogCache.get( HAPI_HOME );
         long latestTimeStamp= file.exists() ? file.lastModified() : 0;
 
-        File dataConfigFile= new File( new File( HAPI_HOME, "config" ), id + ".json" );        
+        File dataConfigFile= new File( new File( HAPI_HOME, "config" ), safeId + ".json" );        
+        JSONObject config=null;
+        
         if ( !dataConfigFile.exists() ) {
             dataConfigFile= new File(  new File( HAPI_HOME, "config" ), "config.json" ); // allow config.json to handle all ids.
         }
-        if ( dataConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it.
-            byte[] bb= Files.readAllBytes( Paths.get( dataConfigFile.toURI() ) );
-            String s= new String( bb, Charset.forName("UTF-8") );
+        
+        if ( !dataConfigFile.exists() ) {
+            getInfo( HAPI_HOME, id );
+            JSONObject jo= cc.catalog.optJSONObject("x_dataset_to_group");
+            String group= jo.optString( id, null );
+            if ( group!=null ) {
+                config= cc.catalog.optJSONObject("x_groups");
+                if ( config==null ) throw new BadRequestIdException( safeId );
+                config= config.getJSONObject(group);
+            } else {
+                throw new BadRequestIdException( safeId );
+            }
+        }
+        
+        long configTimeStamp= config==null ? dataConfigFile.lastModified() : cc.catalogTimeStamp;
+        
+        if ( configTimeStamp > latestTimeStamp ) { // verify that it can be parsed and then copy it.
+            
+            JSONObject jo;
+            if ( config==null ) {
+                byte[] bb= Files.readAllBytes( Paths.get( dataConfigFile.toURI() ) );
+                String s= new String( bb, Charset.forName("UTF-8") );
+                jo= Util.newJSONObject(s);
+            } else {
+                jo= config;
+            }
+            
             try {
-                JSONObject jo= Util.newJSONObject(s);
                 jo= jo.getJSONObject("data");
                 String dataString= jo.toString(4);
                 Files.copy( new ByteArrayInputStream( dataString.getBytes(CHARSET) ), file.toPath(), StandardCopyOption.REPLACE_EXISTING );
@@ -423,7 +489,7 @@ public class HapiServerSupport {
         }
         
         if ( cc!=null ) {
-            DataConfigData dataConfigData= cc.dataConfigCache.get( id );
+            DataConfigData dataConfigData= cc.dataConfigCache.get( safeId );
             if ( dataConfigData!=null ) {
                 if ( dataConfigData.dataConfigTimeStamp==latestTimeStamp ) {
                     JSONObject jo= dataConfigData.dataConfig;
@@ -451,7 +517,7 @@ public class HapiServerSupport {
                 throw new IllegalArgumentException("This should not happen");
             }
             DataConfigData dataConfigData= new DataConfigData(jo,latestTimeStamp);
-            cc.dataConfigCache.put( id, dataConfigData );
+            cc.dataConfigCache.put( safeId, dataConfigData );
         }
         return jo;
     }
@@ -494,19 +560,37 @@ public class HapiServerSupport {
      */
     public static JSONObject getInfo( String HAPI_HOME, String id ) throws IOException, JSONException, HapiException {
         File infoDir= new File( HAPI_HOME, "info" );
-        id= Util.fileSystemSafeName(id);
-        File infoFile= new File( infoDir, id + ".json" );
+        String safeId= Util.fileSystemSafeName(id);
+        File infoFile= new File( infoDir, safeId + ".json" );
 
         CatalogData cc= catalogCache.get( HAPI_HOME );
         long latestTimeStamp= infoFile.exists() ? infoFile.lastModified() : 0;
         
         File configFile= new File( HAPI_HOME, "config" );
         
-        File infoConfigFile= new File( configFile, id + ".json" );
+        File infoConfigFile= new File( configFile, safeId + ".json" );
+        JSONObject config=null;
+        
         if ( !infoConfigFile.exists() ) {
-            infoConfigFile= new File( configFile, "config.json" ); // allow info.json to contain "source"
+            JSONArray arr= cc.catalog.getJSONArray("catalog");
+            JSONObject thisId=null;
+            for ( int i=0; i<arr.length(); i++ ) {
+                JSONObject jo= arr.getJSONObject(i);
+                if ( jo.get("id").equals(id) ) {
+                    thisId= jo;
+                    break;
+                }
+            }
+            if ( thisId==null ) {
+                infoConfigFile= new File( configFile, "config.json" ); // allow config.json to contain "source"
+            } else {
+                String groupId= thisId.getString("x_group_id");
+                JSONObject groups= cc.catalog.getJSONObject("x_groups");
+                config= groups.getJSONObject(groupId);
+            }
         }
-        if ( !infoConfigFile.exists() ) {
+        
+        if ( config==null && !infoConfigFile.exists() ) {
             if ( !configFile.exists() ) {
                 throw new UninitializedServerException( );
             } else {
@@ -514,11 +598,20 @@ public class HapiServerSupport {
             }
         }
         
-        if ( infoConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it.
-            byte[] bb= Files.readAllBytes( Paths.get( infoConfigFile.toURI() ) );
-            String s= new String( bb, Charset.forName("UTF-8") );
+        long configTimeStamp= config==null ? infoConfigFile.lastModified() : cc.catalogTimeStamp;
+            
+        if ( configTimeStamp > latestTimeStamp ) { // verify that it can be parsed and then copy it.
+                
+            JSONObject jo;
+            if ( config==null ) {
+                byte[] bb= Files.readAllBytes( Paths.get( infoConfigFile.toURI() ) );
+                String s= new String( bb, Charset.forName("UTF-8") );
+                jo= Util.newJSONObject(s);
+            } else {
+                jo= config;
+            }
+            
             try {
-                JSONObject jo= Util.newJSONObject(s);
                 jo= jo.getJSONObject("info");
                 if ( jo.has("source") ) {
                     if ( jo.optString("source","").equals("spawn") ) {
@@ -542,7 +635,7 @@ public class HapiServerSupport {
         }
         
         if ( cc!=null ) {
-            InfoData infoData= cc.infoCache.get( id );
+            InfoData infoData= cc.infoCache.get( safeId );
             if ( infoData!=null ) {
                 if ( infoData.infoTimeStamp==latestTimeStamp ) {
                     JSONObject jo= infoData.info;
@@ -585,7 +678,7 @@ public class HapiServerSupport {
                 throw new IllegalArgumentException("This should not happen");
             }
             InfoData infoData= new InfoData(jo,latestTimeStamp);
-            cc.infoCache.put( id, infoData );
+            cc.infoCache.put( safeId, infoData );
         }
         return jo;
     }

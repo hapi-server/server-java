@@ -155,8 +155,16 @@ public class DataServlet extends HttpServlet {
         logger.log(Level.FINER, "data files is null at {0} ms.", System.currentTimeMillis()-t0);
         //dsiter= checkAutoplotSource( id, dr, allowStream );
 
-        HapiRecordSource source= SourceRegistry.getInstance().getSource(HAPI_HOME, id, jo);
-
+        HapiRecordSource source;
+        try {
+            source= SourceRegistry.getInstance().getSource(HAPI_HOME, id, jo);
+        } catch ( BadRequestIdException ex ) {
+            Util.raiseError( 1406, "HAPI error 1406: unknown dataset id", response, response.getOutputStream() );
+            return;
+        } catch ( HapiException ex ) {
+            throw new RuntimeException(ex);
+        }
+        
         String ifModifiedSince= request.getHeader("If-Modified-Since");
         if ( ifModifiedSince!=null ) {
             String ts= source.getTimeStamp( dr, ExtendedTimeUtil.getStopTime(dr) );

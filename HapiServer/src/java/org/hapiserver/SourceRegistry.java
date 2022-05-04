@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.hapiserver.exceptions.HapiException;
 import org.hapiserver.source.AggregationRecordSource;
 import org.hapiserver.source.HapiWrapperRecordSource;
 import org.hapiserver.source.SpawnRecordSource;
@@ -40,8 +41,9 @@ public class SourceRegistry {
      * @param info the info for the data
      * @param id the HAPI id
      * @return null or the record source
+     * @throws org.hapiserver.exceptions.HapiException
      */
-    public HapiRecordSource getSource( String hapiHome, String id, JSONObject info ) {
+    public HapiRecordSource getSource( String hapiHome, String id, JSONObject info ) throws HapiException {
         JSONObject data;
         try {
             data= HapiServerSupport.getDataConfig( hapiHome, id );
