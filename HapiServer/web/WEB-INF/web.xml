@@ -69,6 +69,6 @@
     </error-page>
     <context-param>
         <param-name>hapi_home</param-name>
-        <param-value>/tmp/demo-hapi-server/</param-value>
+        <param-value>/tmp/hapi-server/</param-value>
     </context-param>
 </web-app>
