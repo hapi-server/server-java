@@ -27,7 +27,7 @@
                 },
                 "data": {
                     "source": "spawn",
-                    "command": "wget -O - https://jfaden.net/HapiServerDemo/hapi/data?dataset=${id}&start=${start}&stop=${stop}"
+                    "command": "wget -O - https://jfaden.net/HapiServerDemo/hapi/data?id=${id}&start=${start}&stop=${stop}"
                 }
             }
         }
