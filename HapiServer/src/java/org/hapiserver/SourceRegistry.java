@@ -4,6 +4,9 @@ package org.hapiserver;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONArray;
@@ -65,9 +68,24 @@ public class SourceRegistry {
                 if ( impl.endsWith(".java") ) {
                     throw new IllegalArgumentException("class should not end in .java");
                 }
+                ClassLoader cl=null;
+                if ( data.has("classpath") ) {
+                    try {
+                        URL url= new URL( data.optString("classpath") );
+                        cl= new URLClassLoader(new URL[] { url } );
+                    } catch (MalformedURLException ex) {
+                        Logger.getLogger(SourceRegistry.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
+                }
                 JSONArray args= data.optJSONArray("args");
                 try {
-                    Class c= Class.forName(impl);
+                    Class c;
+                    if ( cl!=null ) {
+                        c= Class.forName(impl,true,cl);
+                    } else {
+                        c= Class.forName(impl);
+                    }
                     Object o;
                     if ( args==null ) {
                         Constructor constructor= c.getConstructor( String.class, String.class, JSONObject.class, JSONObject.class );
