@@ -12,6 +12,10 @@ import org.hapiserver.TimeUtil;
  */
 public class SimpleRecordSource implements HapiRecordSource {
 
+    public SimpleRecordSource() {
+        System.err.println("Instantiate SimpleRecordSource");
+    }
+    
     @Override
     public boolean hasGranuleIterator() {
         return false;
