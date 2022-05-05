@@ -20,9 +20,12 @@ jobs:
           cd /var/www/cottagesystems.com/autoplot/git/server-java
           git pull origin main
           git status
-          cd HapiServer
+          echo "==="
+          cd /var/www/cottagesystems.com/autoplot/git/server-java/HapiServer
           ant -Dj2ee.server.home=/usr/local/apache-tomcat-8/ dist
           echo "see https://cottagesystems.com/autoplot/git/server-java/HapiServer/dist/HapiServer.war"          
-          cd ../SimpleClasspathExtension
+          echo "==="
+          cd /var/www/cottagesystems.com/autoplot/git/server-java/SimpleClasspathExtension
           ant jar
-          echo "see https://cottagesystems.com/autoplot/git/server-java/SimpleClasspathExtension/dist/SimpleClasspathExtension.war"
+          echo "see https://cottagesystems.com/autoplot/git/server-java/SimpleClasspathExtension/dist/SimpleClasspathExtension.jar"
+          echo "==="
