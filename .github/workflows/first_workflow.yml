@@ -22,5 +22,7 @@ jobs:
           git status
           cd HapiServer
           ant -Dj2ee.server.home=/usr/local/apache-tomcat-8/ dist
-          echo "see https://cottagesystems.com/autoplot/git/server-java/HapiServer/dist/HapiServer.war"
-          
+          echo "see https://cottagesystems.com/autoplot/git/server-java/HapiServer/dist/HapiServer.war"          
+          cd ../SimpleClasspathExtension
+          ant jar
+          echo "see https://cottagesystems.com/autoplot/git/server-java/SimpleClasspathExtension/dist/SimpleClasspathExtension.war"
