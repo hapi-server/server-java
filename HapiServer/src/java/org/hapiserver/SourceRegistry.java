@@ -72,7 +72,8 @@ public class SourceRegistry {
                 if ( data.has("classpath") ) {
                     try {
                         URL url= new URL( data.optString("classpath") );
-                        cl= new URLClassLoader(new URL[] { url } );
+                        cl= new URLClassLoader( new URL[] { url }, SourceRegistry.class.getClassLoader());
+                        cl.getParent();
                     } catch (MalformedURLException ex) {
                         Logger.getLogger(SourceRegistry.class.getName()).log(Level.SEVERE, null, ex);
                     }
