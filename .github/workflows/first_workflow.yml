@@ -21,6 +21,10 @@ jobs:
           git pull origin main
           git status
           echo "==="
+          cd /var/www/cottagesystems.com/autoplot/git/server-java/HapiServerBase
+          ant jar
+          echo "see https://cottagesystems.com/autoplot/git/server-java/HapiServerBase/dist/HapiServerBase.jar"          
+          echo "==="
           cd /var/www/cottagesystems.com/autoplot/git/server-java/HapiServer
           ant -Dj2ee.server.home=/usr/local/apache-tomcat-8/ dist
           echo "see https://cottagesystems.com/autoplot/git/server-java/HapiServer/dist/HapiServer.war"          
