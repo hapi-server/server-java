@@ -2,7 +2,6 @@
 package org.hapiserver.source;
 
 import java.util.Iterator;
-import org.hapiserver.ExtendedTimeUtil;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
 import org.hapiserver.TimeUtil;
