@@ -4,7 +4,6 @@ package org.hapiserver;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 
 /**
  * Useful extentions to the TimeUtil class, like support for times like "now-P1D"
