@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.hapiserver.exceptions.HapiException;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -35,9 +36,10 @@ public class HapiServerSupportTest {
 
     /**
      * Test of getInfo method, of class HapiServerSupport.
+     * @throws java.lang.Exception
      */
     @Test
-    public void testGetInfo() throws Exception {
+    public void testGetInfo() throws Exception, IOException, JSONException, HapiException {
         System.out.println("getInfo");
         String HAPI_HOME = "/tmp/jbf-hapi-server/";
         String id = "icconditions";
@@ -59,7 +61,7 @@ public class HapiServerSupportTest {
             String[] result = HapiServerSupport.splitParams(info, "Temperature,Windspeed");
             assertArrayEquals(expResult, result);
             // TODO review the generated test code and remove the default call to fail.
-        } catch (IOException | JSONException ex) {
+        } catch (IOException | JSONException | HapiException ex ) {
             fail(ex.getMessage());
         }            
     }
@@ -79,7 +81,7 @@ public class HapiServerSupportTest {
             String result = HapiServerSupport.joinParams(info,params);
             assertEquals(expResult, result);
             // TODO review the generated test code and remove the default call to fail.
-        } catch (IOException | JSONException ex) {
+        } catch (IOException | JSONException | HapiException ex) {
             fail(ex.getMessage());
         }
     }
