@@ -101,7 +101,12 @@ public class ExtendedTimeUtil {
         int i= label.indexOf("-");
         if ( i==-1 ) i= label.indexOf("+");
         if ( i>-1 ) {
-            delta= TimeUtil.parseISO8601Duration(label.substring(i));
+            delta= TimeUtil.parseISO8601Duration(label.substring(i+1));
+            if ( label.charAt(i)=='-') {
+                for ( int j=0; j<TimeUtil.TIME_DIGITS; j++ ) {
+                    delta[j]= -1 * delta[j];
+                }
+            }
             label= label.substring(0,i);
         }
         label= label.toLowerCase();
