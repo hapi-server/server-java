@@ -50,9 +50,9 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
                 throw new IllegalArgumentException("implementation error, granule iterator did not return 14 time range digits");
             }
             if ( this.parameters==null ) {
-                this.hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule) );
+                this.hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule) );
             } else {
-                this.hapiRecordIterator= source.getIterator(granule, ExtendedTimeUtil.getStopTime(granule), this.parameters );
+                this.hapiRecordIterator= source.getIterator(granule, TimeUtil.getStopTime(granule), this.parameters );
             }
             findNextRecord();
         } else {
@@ -71,11 +71,11 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
                     throw new IllegalArgumentException("granule length should be 14");
                 }
             }
-            ExtendedTimeUtil.isValidTimeRange(granule);
+            TimeUtil.isValidTimeRange(granule);
             if ( this.parameters==null ) {
-                hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule) );
+                hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule) );
             } else {
-                hapiRecordIterator= source.getIterator( granule, ExtendedTimeUtil.getStopTime(granule), parameters );
+                hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule), parameters );
             }
         }
     }

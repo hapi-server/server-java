@@ -70,7 +70,7 @@ public class HapiServerSupport {
                 if ( startDate!=null && stopDate!=null ) {
                     int[] t1= ExtendedTimeUtil.parseValidTime(startDate);
                     int[] t2= ExtendedTimeUtil.parseValidTime(stopDate);
-                    return ExtendedTimeUtil.createTimeRange( t1, t2 );
+                    return TimeUtil.createTimeRange( t1, t2 );
                 } else {
                     throw new IllegalArgumentException("info doesn't have start and stop date");
                 }
@@ -92,16 +92,16 @@ public class HapiServerSupport {
                 try {
                     int[] t1= ExtendedTimeUtil.parseValidTime(info.getString("sampleStartDate"));
                     int[] t2= ExtendedTimeUtil.parseValidTime(info.getString("sampleStopDate"));
-                    landing = ExtendedTimeUtil.createTimeRange(t1, t2);
+                    landing = TimeUtil.createTimeRange(t1, t2);
                     return landing;
                 } catch (JSONException ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
             } 
-            int[] end = ExtendedTimeUtil.getStopTime(range);
+            int[] end = TimeUtil.getStopTime(range);
             end[4]= end[5]= end[6]= 0;
             int[] start= TimeUtil.subtract( end, new int[] { 0, 0, 1, 0, 0, 0, 0 } );
-            landing = ExtendedTimeUtil.createTimeRange( start, end );
+            landing = TimeUtil.createTimeRange( start, end );
             return landing;
         }
     }
@@ -351,11 +351,11 @@ public class HapiServerSupport {
         if ( jo.has("modificationDate") ) {
             String modificationDate= jo.getString("modificationDate");
             if ( modificationDate.length()==0 ) {
-                String stime= ExtendedTimeUtil.fromMillisecondsSince1970(latestTimeStamp);
+                String stime= TimeUtil.fromMillisecondsSince1970(latestTimeStamp);
                 jo.put( "modificationDate", stime );
             } else if ( !( modificationDate.length()>0 && Character.isDigit( modificationDate.charAt(0) ) ) ) {
                 try {
-                    String stime= ExtendedTimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( modificationDate ) );
+                    String stime= TimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( modificationDate ) );
                     jo.put( "modificationDate", stime );
                 } catch (ParseException ex) {
                     throw new IllegalArgumentException(ex);
@@ -398,12 +398,12 @@ public class HapiServerSupport {
         jo= Util.copyJSONObject(jo); 
         
         try {
-            jo.put( "startDate",  ExtendedTimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( jo.getString("startDate") ) ) );
+            jo.put( "startDate",  TimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( jo.getString("startDate") ) ) );
         } catch (ParseException ex) {
             throw new RuntimeException(ex);
         }
         try {
-            jo.put( "stopDate",  ExtendedTimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( jo.getString("stopDate") ) ) );
+            jo.put( "stopDate",  TimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( jo.getString("stopDate") ) ) );
         } catch (ParseException ex) {
             throw new RuntimeException(ex);
         }
@@ -411,7 +411,7 @@ public class HapiServerSupport {
         if ( jo.has("sampleStartDate" ) ) {
             try {
                 jo.put( "sampleStartDate", 
-                    ExtendedTimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( jo.getString("sampleStartDate") ) ) );
+                    TimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( jo.getString("sampleStartDate") ) ) );
             } catch (ParseException ex) {
                 throw new RuntimeException(ex);
             }
@@ -419,7 +419,7 @@ public class HapiServerSupport {
         if ( jo.has("sampleStopDate" ) ) {
             try {
                 jo.put( "sampleStopDate", 
-                    ExtendedTimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( jo.getString("sampleStopDate") ) ) );
+                    TimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( jo.getString("sampleStopDate") ) ) );
             } catch (ParseException ex) {
                 throw new RuntimeException(ex);
             }
@@ -650,11 +650,11 @@ public class HapiServerSupport {
         if ( jo.has("modificationDate") ) {
             String modificationDate= jo.getString("modificationDate");
             if ( modificationDate.length()==0 ) {
-                String stime= ExtendedTimeUtil.fromMillisecondsSince1970(latestTimeStamp);
+                String stime= TimeUtil.fromMillisecondsSince1970(latestTimeStamp);
                 jo.put( "modificationDate", stime );
             } else if ( !( modificationDate.length()>0 && Character.isDigit( modificationDate.charAt(0) ) ) ) {
                 try {
-                    String stime= ExtendedTimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( modificationDate ) );
+                    String stime= TimeUtil.formatIso8601TimeBrief( ExtendedTimeUtil.parseTime( modificationDate ) );
                     jo.put( "modificationDate", stime );
                 } catch (ParseException ex) {
                     throw new IllegalArgumentException(ex);

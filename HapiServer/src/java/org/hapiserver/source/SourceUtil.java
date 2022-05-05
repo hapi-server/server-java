@@ -113,7 +113,7 @@ public class SourceUtil {
         return new Iterator<int[]>() {
             @Override
             public boolean hasNext() {
-                return !ExtendedTimeUtil.gt( first, stop );
+                return !TimeUtil.gt( first, stop );
             }
             @Override
             public int[] next() {

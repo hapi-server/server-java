@@ -101,13 +101,13 @@ public class SpawnRecordSource implements HapiRecordSource {
                 
                 @Override
                 public boolean hasNext() {
-                    return ExtendedTimeUtil.gt(stop, timeIt );
+                    return TimeUtil.gt(stop, timeIt );
                 }
                 
                 @Override
                 public int[] next() {
                     int[] result= timeIt;
-                    timeIt = ExtendedTimeUtil.nextRange( timeIt );
+                    timeIt = TimeUtil.nextRange( timeIt );
                     return result;
                 }
             };

@@ -125,7 +125,7 @@ public class DataServlet extends HttpServlet {
         
         int[] dr;
         try {
-            dr = ExtendedTimeUtil.createTimeRange( TimeUtil.parseISO8601Time(timeMin), TimeUtil.parseISO8601Time(timeMax) );
+            dr = TimeUtil.createTimeRange( TimeUtil.parseISO8601Time(timeMin), TimeUtil.parseISO8601Time(timeMax) );
         } catch ( ParseException ex ) {
             throw new RuntimeException(ex); //TODO: HAPI Exceptions
         }
@@ -167,7 +167,7 @@ public class DataServlet extends HttpServlet {
         
         String ifModifiedSince= request.getHeader("If-Modified-Since");
         if ( ifModifiedSince!=null ) {
-            String ts= source.getTimeStamp( dr, ExtendedTimeUtil.getStopTime(dr) );
+            String ts= source.getTimeStamp( dr, TimeUtil.getStopTime(dr) );
             if ( ts!=null ) { // this will often be null.
                 try {
                     String clientModifiedTime= parseTime(ifModifiedSince);
@@ -187,16 +187,16 @@ public class DataServlet extends HttpServlet {
                 String[] parametersArray= HapiServerSupport.getAllParameters( jo );
                 dataNeedsParameterSubsetting= false;
                 if ( source.hasGranuleIterator() ) {
-                    dsiter= new AggregatingIterator( source, dr, ExtendedTimeUtil.getStopTime(dr), parametersArray );
+                    dsiter= new AggregatingIterator( source, dr, TimeUtil.getStopTime(dr), parametersArray );
                 } else {
-                    dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr), parametersArray );
+                    dsiter= source.getIterator( TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr), parametersArray );
                 }
             } else {
                 dataNeedsParameterSubsetting= false;                    
                 if ( source.hasGranuleIterator() ) {
-                    dsiter= new AggregatingIterator( source, ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
+                    dsiter= new AggregatingIterator( source, TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr) );
                 } else {
-                    dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
+                    dsiter= source.getIterator( TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr) );
                 }
             }
         } else {
@@ -204,16 +204,16 @@ public class DataServlet extends HttpServlet {
                 dataNeedsParameterSubsetting= false;
                 String[] parametersSplit= HapiServerSupport.splitParams( jo, parameters );
                 if ( source.hasGranuleIterator() ) {
-                    dsiter= new AggregatingIterator( source, ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr), parametersSplit );
+                    dsiter= new AggregatingIterator( source, TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr), parametersSplit );
                 } else {
-                    dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr), parametersSplit );
+                    dsiter= source.getIterator( TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr), parametersSplit );
                 }                    
             } else {
                 dataNeedsParameterSubsetting= true;                    
                 if ( source.hasGranuleIterator() ) {
-                    dsiter= new AggregatingIterator( source, ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
+                    dsiter= new AggregatingIterator( source, TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr) );
                 } else {
-                    dsiter= source.getIterator( ExtendedTimeUtil.getStartTime(dr), ExtendedTimeUtil.getStopTime(dr) );
+                    dsiter= source.getIterator( TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr) );
                 }
             }
 
@@ -390,7 +390,7 @@ public class DataServlet extends HttpServlet {
                 }
             }
         }
-        return ExtendedTimeUtil.fromMillisecondsSince1970(result.getTime());
+        return TimeUtil.fromMillisecondsSince1970(result.getTime());
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
