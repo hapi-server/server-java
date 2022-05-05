@@ -1,5 +1,5 @@
 
-package org.hapiserver.sscweb;
+package org.hapiserver;
 
 import java.util.Iterator;
 

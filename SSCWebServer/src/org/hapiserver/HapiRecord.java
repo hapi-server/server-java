@@ -1,5 +1,5 @@
 
-package org.hapiserver.sscweb;
+package org.hapiserver;
 
 /**
  * Interface for conveying a single HAPI record, regardless of its source
