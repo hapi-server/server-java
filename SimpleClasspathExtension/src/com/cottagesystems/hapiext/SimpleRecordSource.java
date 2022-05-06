@@ -71,7 +71,7 @@ public class SimpleRecordSource implements HapiRecordSource {
             
             @Override
             public double getDouble(int i) {
-                return current[5];
+                return current[5] * ( ( current[4] % 2 )==0 ? 0.8 : 1.0 );
             }
             
             @Override
