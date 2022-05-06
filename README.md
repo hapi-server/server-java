@@ -47,3 +47,7 @@ framework.  The CDAWeb server has known problems which need to be resolved.
 * Containerize and deploy for testing at ESAC May 2022.
 * Code matures over the next year
 
+# Builds 
+When changes are pushed to the github server, the war file is rebuilt and will be available 
+within a minute or two at
+https://cottagesystems.com/autoplot/git/server-java/HapiServer/dist/HapiServer.war
