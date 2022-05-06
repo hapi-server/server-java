@@ -2,6 +2,7 @@
 package com.cottagesystems.hapiext;
 
 import java.util.Iterator;
+import org.hapiserver.AbstractHapiRecord;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
 import org.hapiserver.TimeUtil;
@@ -62,52 +63,17 @@ public class SimpleRecordSource implements HapiRecordSource {
     }
 
     private HapiRecord getHapiRecord(int[] current) {
-        return new HapiRecord() {
+        return new AbstractHapiRecord() {
             @Override
             public String getIsoTime(int i) {
                 return TimeUtil.formatIso8601Time(current).substring(0,23) + "Z";
             }
-
-            @Override
-            public String[] getIsoTimeArray(int i) {
-                throw new UnsupportedOperationException("Not supported yet."); 
-            }
-
-            @Override
-            public String getString(int i) {
-                throw new UnsupportedOperationException("Not supported yet."); 
-            }
-
-            @Override
-            public String[] getStringArray(int i) {
-                throw new UnsupportedOperationException("Not supported yet."); 
-            }
-
+            
             @Override
             public double getDouble(int i) {
                 return current[5];
             }
-
-            @Override
-            public double[] getDoubleArray(int i) {
-                throw new UnsupportedOperationException("Not supported yet."); 
-            }
-
-            @Override
-            public int getInteger(int i) {
-                throw new UnsupportedOperationException("Not supported yet."); 
-            }
-
-            @Override
-            public int[] getIntegerArray(int i) {
-                throw new UnsupportedOperationException("Not supported yet."); 
-            }
-
-            @Override
-            public String getAsString(int i) {
-                throw new UnsupportedOperationException("Not supported yet."); 
-            }
-
+            
             @Override
             public int length() {
                 return 2;
