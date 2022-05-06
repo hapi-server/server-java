@@ -33,7 +33,6 @@ import gov.nasa.gsfc.sscweb.schema.TimeInterval;
 import gov.nasa.gsfc.sscweb.schema.Tsyganenko89CBFieldModel;
 import gov.nasa.gsfc.sscweb.schema.Tsyganenko89CKp;
 import gov.nasa.gsfc.sscweb.schema.ValueOptions;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
