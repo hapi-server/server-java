@@ -1,6 +1,7 @@
 
 package org.hapiserver;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -71,7 +72,14 @@ public class SourceRegistry {
                 ClassLoader cl=null;
                 if ( data.has("classpath") ) {
                     try {
-                        URL url= new URL( data.optString("classpath") );
+                        String s= data.optString("classpath");
+                        s= SpawnRecordSource.doMacros( hapiHome, id, s );
+                        URL url;
+                        if ( s.startsWith("http://") || s.startsWith("https://") || s.startsWith("file:") ) { 
+                            url= new URL( s );
+                        } else {
+                            url= new File(s).toURI().toURL();
+                        }
                         cl= new URLClassLoader( new URL[] { url }, SourceRegistry.class.getClassLoader());
                         cl.getParent();
                     } catch (MalformedURLException ex) {
