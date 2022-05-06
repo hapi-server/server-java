@@ -1,0 +1,34 @@
+{
+  "info":{
+    "HAPI": "3.0",
+    "x_createdAt": "2017-02-21T17:27Z",
+    "modificationDate": "lastyear",
+    "parameters": [
+        {
+            "length": 24,
+            "name": "Time",
+            "type": "isotime",
+            "fill": null,            
+            "units": "UTC"
+        },
+        {
+            "description": "The seconds since the minute",
+            "fill": "99999.9",
+            "name": "seconds",
+            "type": "double",
+            "units": "s"
+        }
+    ],
+    "cadence": "PT15S",
+    "sampleStartDate": "2019-365T23:00Z",
+    "sampleStopDate": "2019-365T23:30Z",
+    "startDate": "1994-01-01",
+    "stopDate": "2022-01-01"
+  },
+  "data": {
+    "source":"classpath",
+    "class":"com.cottagesystems.hapiext.SimpleRecordSource",
+    "args":[],
+    "classpath":"https://cottagesystems.com/autoplot/git/server-java/SimpleClasspathExtension/dist/SimpleClasspathExtension.jar"
+  }
+}
