@@ -326,7 +326,12 @@ public class SSCWebReader {
         return dataRequest;
     }
     
-    public List<SatelliteData> getData( DataRequest dataRequest )  throws Exception {
+    /**
+     * read the data.
+     * @param dataRequest
+     * @return
+     */
+    public List<SatelliteData> getData( DataRequest dataRequest )  {
 
         String url = ENDPOINT + "/locations/";
 
@@ -738,6 +743,21 @@ public class SSCWebReader {
         
     }
     
+    /**
+     * Provide access to the data so that others can format the data.
+     * @param satellite
+     * @param startTime
+     * @param stopTime
+     * @return the data
+     */
+    public SatelliteData readSatelliteData( String satellite, int[] startTime, int[] stopTime ) {
+        DataRequest request = getDataRequest( satellite, startTime, stopTime );
+
+        List<SatelliteData> satData = getData(request);
+        
+        return satData.get(0);
+    }
+        
     public void printCatalog( ) {
         
         try {
