@@ -65,8 +65,8 @@ public class SourceRegistry {
             case "hapiserver":
                 return new HapiWrapperRecordSource( id, info, data );
             case "classpath":
-                String impl= data.optString("class");
-                if ( impl.endsWith(".java") ) {
+                String clas= data.optString("class");
+                if ( clas.endsWith(".java") ) {
                     throw new IllegalArgumentException("class should not end in .java");
                 }
                 ClassLoader cl=null;
@@ -87,15 +87,15 @@ public class SourceRegistry {
                     }
                     
                 }
-                JSONArray args= data.optJSONArray("args");
                 try {
                     Class c;
                     if ( cl!=null ) {
-                        c= Class.forName(impl,true,cl);
+                        c= Class.forName(clas,true,cl);
                     } else {
-                        c= Class.forName(impl);
+                        c= Class.forName(clas);
                     }
                     Object o;
+                    JSONArray args= data.optJSONArray("args");
                     if ( args==null ) {
                         Constructor constructor= c.getConstructor( String.class, String.class, JSONObject.class, JSONObject.class );
                         o= constructor.newInstance( hapiHome, id, info, data );
