@@ -19,9 +19,9 @@ public interface HapiRecordSource {
     /**
      * return the iterator that identifies the intervals to load.  This only needs to be
      * implemented if hasGranuleIterator returns true.
-     * @param start the seven component start time
-     * @param stop the seven component stop time
-     * @return the granule iterator.
+     * @param start the seven component start time [ Y, m, d, H, M, S, N ]
+     * @param stop the seven component stop time [ Y, m, d, H, M, S, N ]
+     * @return the granule iterator which returns [ start Y, m, d, H, M, S, N, stop Y, m, d, H, M, S, N ]
      */
     public Iterator<int[]> getGranuleIterator( int[] start, int[] stop );
     
