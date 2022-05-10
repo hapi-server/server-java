@@ -96,33 +96,23 @@ public class SSCWebReader {
     }
     
     
-    private OutputOptions getTestOutputOptions() {
+    private OutputOptions getOutputOptions() {
 
-        LocationFilter locationFilter = 
-            getObjectFactory().createLocationFilter();
-                                       // a test LocationFilter to use
-                                       //  with all
-        locationFilter.setMinimum(true);
-        locationFilter.setMaximum(true);
-        locationFilter.setLowerLimit(-100.0);
-        locationFilter.setUpperLimit(100.0);
+        List<FilteredCoordinateOptions> options = new ArrayList<>();  // some test coordinate options
 
-        List<FilteredCoordinateOptions> options =
-            new ArrayList<FilteredCoordinateOptions>();
-                                       // some test coordinate options
+        for ( CoordinateSystem cs : CoordinateSystem.values() ) {
+            for (CoordinateComponent component :
+                 CoordinateComponent.values()) {
 
-        for (CoordinateComponent component :
-             CoordinateComponent.values()) {
+                FilteredCoordinateOptions option =
+                    new FilteredCoordinateOptions();
 
-            FilteredCoordinateOptions option =
-                new FilteredCoordinateOptions();
-
-            option.setCoordinateSystem(CoordinateSystem.GSE);
-            option.setComponent(component);
-            option.setFilter(null);
-//            option.setFilter(locationFilter);
-
-            options.add(option);
+                option.setCoordinateSystem(cs);
+                option.setComponent(component);
+                option.setFilter(null);
+                
+                options.add(option);
+            }
         }
 
         RegionOptions regionOptions = 
@@ -314,7 +304,7 @@ public class SSCWebReader {
         dataRequest.setBFieldModel(bFieldModel);
         dataRequest.getSatellites().add(satelliteSpecification);
 
-        dataRequest.setOutputOptions(getTestOutputOptions());
+        dataRequest.setOutputOptions(getOutputOptions());
 
 //        dataRequest.setRegionFilterOptions(regionFilters);
 //        dataRequest.setLocationFilterOptions(locationFilterOptions);
@@ -735,6 +725,7 @@ public class SSCWebReader {
 
 
     public void run( String satellite, int[] startTime, int[] stopTime ) throws Exception {
+        
         DataRequest request = getDataRequest( satellite, startTime, stopTime );
 
         List<SatelliteData> satData = getData(request);
