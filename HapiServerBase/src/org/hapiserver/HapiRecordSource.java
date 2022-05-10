@@ -51,7 +51,7 @@ public interface HapiRecordSource {
     public Iterator<HapiRecord> getIterator( int[] start, int[] stop );
     
     /**
-     * return null or a isotime time stamp for the interval.  When the
+     * return null or a isotime time stamp for the interval, to be used when caching data.  When the
      * source has a granuleIterator, this will only be called for each granule.
      * Clients can send a timeStamp indicating the oldest granule they have cached, and the
      * server may then indicate that the cached data should be used.
