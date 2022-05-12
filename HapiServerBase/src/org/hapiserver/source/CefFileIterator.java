@@ -483,7 +483,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         return new AbstractHapiRecord() {
             @Override
             public int length() {
-                return fieldDelim.length;
+                return fieldDelim.length-1;
             }
 
             @Override
@@ -705,7 +705,14 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     }
     
     public static void main( String[] args ) throws MalformedURLException, IOException {
-        URL uu= new URL( "file:/home/jbf/ct/hapi/u/larry/20220503/CEF/FGM_SPIN.cef");
+        //URL uu= new URL( "file:/home/jbf/ct/hapi/u/larry/20220503/CEF/FGM_SPIN.cef");
+        //int f1=2;
+        //int f2=5;        
+        URL uu= new URL( "file:/home/jbf/ct/hapi/data.nobackup/2022/20220510/cluster-peace.cef" );
+        int f1=20;
+        int f2=-137;
+        
+        
         InputStream in= uu.openStream();
         ReadableByteChannel lun= Channels.newChannel(in);
         
@@ -715,9 +722,11 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         Iterator<HapiRecord> iter= new CefFileIterator(lun);
         while ( iter.hasNext() ) {
             HapiRecord rec= iter.next();
+            if ( f1<0 ) f1= f1 + rec.length();
+            if ( f2<0 ) f2= f2 + rec.length();
             i++;
             //System.err.println(rec.toString());
-            System.err.println(""+rec.getIsoTime(0)+ " "+rec.getDouble(2)+" " +rec.getDouble(5));
+            System.err.println(""+rec.getIsoTime(0)+ " "+rec.getDouble(f1)+" " +rec.getDouble(f2));
         }
         System.err.println("records read: "+i);
         System.err.println("time to read: "+ (System.currentTimeMillis()-t0) + "ms" );
