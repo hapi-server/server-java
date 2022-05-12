@@ -722,9 +722,10 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         Iterator<HapiRecord> iter= new CefFileIterator(lun);
         while ( iter.hasNext() ) {
             HapiRecord rec= iter.next();
+            i++;
+            
             if ( f1<0 ) f1= f1 + rec.length();
             if ( f2<0 ) f2= f2 + rec.length();
-            i++;
             //System.err.println(rec.toString());
             System.err.println(""+rec.getIsoTime(0)+ " "+rec.getDouble(f1)+" " +rec.getDouble(f2));
         }
