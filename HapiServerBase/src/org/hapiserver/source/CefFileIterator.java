@@ -505,7 +505,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             public String getAsString(int i) {
                 int star= fieldDelim[i];
                 int stop= fieldDelim[i+1];
-                return new String( bb, star, stop, CHARSET );
+                return new String( bb, star, stop-star-1, CHARSET );
             }
 
             @Override
@@ -717,6 +717,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             HapiRecord rec= iter.next();
             i++;
             //System.err.println(rec.toString());
+            System.err.println(""+rec.getIsoTime(0)+ " "+rec.getDouble(2)+" " +rec.getDouble(5));
         }
         System.err.println("records read: "+i);
         System.err.println("time to read: "+ (System.currentTimeMillis()-t0) + "ms" );
