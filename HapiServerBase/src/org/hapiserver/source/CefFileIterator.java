@@ -505,7 +505,13 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             public String getAsString(int i) {
                 int star= fieldDelim[i];
                 int stop= fieldDelim[i+1];
-                return new String( bb, star, stop-star-1, CHARSET );
+                try {
+                    return new String( bb, star, stop-star-1, CHARSET );
+                } catch ( Exception ex ) {
+                    new String( bb );
+                    System.err.println(ex);
+                    throw ex;
+                }
             }
 
             @Override
@@ -579,7 +585,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     }    
     
     Cef cef;
-    int buffer_size = 600000;
+    int buffer_size = 100;
 
     /**
      * usable limit in work_buffer.  This is the position of the end of the
@@ -596,6 +602,8 @@ public class CefFileIterator implements Iterator<HapiRecord> {
      */
     int pos;
     
+    int streamPosition=0;
+    
     // *** Set the processing state flag (1=first record, 2=subsequent records, 0 = end of file )
     int trflag = 1;     //*** set to 0 if no more data required in requested time range
     int n_fields= -1;     //*** number of fields per record, -1 means we haven't counted.
@@ -604,6 +612,10 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                     
     
     private HapiRecord nextRecord;
+    
+    private static String stringPeek( ByteBuffer buf ) {
+        return new String( buf.array(), 0, Math.min(buf.limit(),200) );
+    }
     
     private void readNextRecord() throws IOException {
         
@@ -635,6 +647,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
                         //*** transfer this onto the end of the work buffer and update size of work buffer
                         if (read_size > 0) {
+                            stringPeek(read_buffer);
                             read_buffer.flip();
                             if ( work_buffer.position()>0 ) {
                                 work_buffer.compact();
@@ -643,6 +656,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                             }
                             work_buffer.put(read_buffer);
                             work_buffer.flip();
+                            stringPeek(work_buffer);
                         }
                         work_size = work_size + read_size;
                     } catch ( IOException ex ) {
@@ -662,12 +676,17 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                     int recPos = pos;
 
                     recPos = splitRecord(work_buffer, recPos, work_size, fieldDelim);
-
                     if (recPos <= work_size) {
                         fieldDelim[n_fields] = recPos + 1;
+                        for ( int i=1; i<fieldDelim.length; i++ ) {
+                            if ( fieldDelim[i]-fieldDelim[i-1]< 0 ) {
+                                throw new IllegalArgumentException("this should not happen");
+                            }
+                        }
                         HapiRecord rec;
                         try {
                             rec = parseRecord(work_buffer, fieldDelim);
+                            streamPosition= streamPosition + work_buffer.limit();
                             nextRecord= rec;
                             
                         } catch (CharacterCodingException | ParseException ex) {
@@ -706,28 +725,37 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     
     public static void main( String[] args ) throws MalformedURLException, IOException {
         //URL uu= new URL( "file:/home/jbf/ct/hapi/u/larry/20220503/CEF/FGM_SPIN.cef");
-        //int f1=2;
-        //int f2=5;        
-        URL uu= new URL( "file:/home/jbf/ct/hapi/data.nobackup/2022/20220510/cluster-peace.cef" );
-        int f1=20;
-        int f2=-137;
         
+        //There's a weird bug where reading this directly causes a partial record.  Loading it from a file works fine.
+        //URL uu= new URL("file:/home/jbf/tmp/foo.cef");
+        //URL uu= new URL("https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C1_CP_FGM_SPIN&START_DATE=2013-03-03T00:00:00Z&END_DATE=2013-03-05T00:00:00Z" );
+        int f1=2;
+        int f2=5;        
+
+        //URL uu= new URL( "file:/home/jbf/ct/hapi/data.nobackup/2022/20220510/cluster-peace.cef" );
+        //int f1=20;
+        //int f2=-137;
+
+        //String dataset= "C1_CP_WBD_WAVEFORM";        
+        //URL uu= new URL( String.format( "https://csa.esac.esa.int/csa-sl-tap/data?"+
+        //    "RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=%s&START_DATE=%s&END_DATE=%s",
+        //    dataset, "2013-03-03T00:00:00Z", "2013-03-03T01:00:00Z" ) );
         
-        InputStream in= uu.openStream();
+        //InputStream in= uu.openStream();
+        InputStream in= new java.util.zip.GZIPInputStream( new java.io.FileInputStream("/home/jbf/tmp/cluster_wbd.cef.gz") );
         ReadableByteChannel lun= Channels.newChannel(in);
         
-        System.err.println("begin reading "+uu);
+        //System.err.println("begin reading "+uu);
         long t0= System.currentTimeMillis();
         int i=0;
         Iterator<HapiRecord> iter= new CefFileIterator(lun);
         while ( iter.hasNext() ) {
             HapiRecord rec= iter.next();
             i++;
-            
             if ( f1<0 ) f1= f1 + rec.length();
             if ( f2<0 ) f2= f2 + rec.length();
             //System.err.println(rec.toString());
-            System.err.println(""+rec.getIsoTime(0)+ " "+rec.getDouble(f1)+" " +rec.getDouble(f2));
+            //System.err.println(""+rec.getIsoTime(0)+ " "+rec.getDouble(f1)+" " +rec.getDouble(f2));
         }
         System.err.println("records read: "+i);
         System.err.println("time to read: "+ (System.currentTimeMillis()-t0) + "ms" );

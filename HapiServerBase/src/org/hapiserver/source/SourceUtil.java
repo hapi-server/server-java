@@ -6,11 +6,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
 
@@ -74,6 +76,21 @@ public class SourceUtil {
      */
     public static Iterator<String> getFileLines( URL url ) throws FileNotFoundException, IOException {
         return new AsciiSourceIterator(url);
+    }
+    
+    /**
+     * return the entire ASCII response as a string.
+     * @param url a URL pointing to an ASCII file.
+     * @return the content as a string.
+     * @throws java.io.IOException 
+     */
+    public static String getAllFileLines( URL url ) throws IOException {
+        StringBuilder sb= new StringBuilder();
+        Iterator<String> s= getFileLines(url);
+        while ( s.hasNext() ) {
+            sb.append(s.next()).append("\n");
+        }
+        return sb.toString();
     }
     
     /**
