@@ -54,7 +54,7 @@ public class CsaInfoCatalogSource {
         JSONObject jo= new JSONObject();
         
         try ( InputStream ins= new URL(url).openStream() ) {
-            //String s= SourceUtil.getAllFileLines( new URL(url) );
+        	//String s= SourceUtil.getAllFileLines( new URL(url) );
             
             Document document= readDoc( ins );
             jo.put("HAPI","3.0");
@@ -102,6 +102,7 @@ public class CsaInfoCatalogSource {
                             if ( parameter.optString("type","").equals("isotime") ) {
                                 parameter.put("length",c.getTextContent());
                             }
+                            break;
                         case "SIZES":
                             if ( !c.getTextContent().equals("1") ) {
                                 JSONArray array= new JSONArray();
@@ -125,6 +126,8 @@ public class CsaInfoCatalogSource {
                 parameters.put( parameters.length(), parameter );
             }
             jo.put("parameters",parameters);
+            jo.put("startDate", "2003-03-03T00:00:00.000Z");
+            jo.put("stopDate", "2003-04-03T00:00:00.000Z");
             return jo.toString(4);
             
         } catch (SAXException | ParserConfigurationException | JSONException | XPathExpressionException ex) {
