@@ -53,10 +53,10 @@ public class CsaInfoCatalogSource {
         String url= String.format( "https://csa.esac.esa.int/csa-sl-tap/data?retrieval_type=HEADER&DATASET_ID=%s&FORCEPACK=false", id );
         JSONObject jo= new JSONObject();
         
-        try {
+        try ( InputStream ins= new URL(url).openStream() ) {
             //String s= SourceUtil.getAllFileLines( new URL(url) );
             
-            Document document= readDoc( new URL(url).openStream() );
+            Document document= readDoc( ins );
             jo.put("HAPI","3.0");
             
             XPathFactory factory= XPathFactory.newInstance();
