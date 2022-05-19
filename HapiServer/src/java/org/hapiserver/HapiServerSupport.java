@@ -7,6 +7,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -163,6 +169,30 @@ public class HapiServerSupport {
                 if ( config!=null ) {
                     groups.put( groupId, config );
                 }
+            } else if ( source.equals("classpath") ) {
+                String HAPI_HOME="";       
+                String groupId= item.optString("x_group_id","");
+                
+                try {
+                    jo= getCatalogFromClasspath( item,HAPI_HOME  );
+
+                    JSONArray items= jo.getJSONArray("catalog");
+                    for ( int j=0; j<items.length(); j++ ) {
+                        JSONObject catalogItem= items.getJSONObject(j);
+                        String theId= catalogItem.getString("id");
+                        logger.log(Level.INFO, "mapping in {0}", theId);
+                        catalogItem.put( "x_group_id", groupId );
+                        datasetToGroupId.put( theId, groupId );
+                        resolvedCatalog.put( resolvedCatalogLength, catalogItem );
+                        resolvedCatalogLength++;
+                    }
+                } catch (IOException ex) {
+                    logger.log(Level.SEVERE, null, ex);
+                }
+                JSONObject config= item.optJSONObject("x_config");
+                if ( config!=null ) {
+                    groups.put( groupId, config );
+                }
             } else {
                 warnWebMaster(new RuntimeException("catalog source can only be spawn") );
             }
@@ -270,6 +300,178 @@ public class HapiServerSupport {
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
         }
+    }
+    
+    /**
+     * Allow a Java method to produce the catalog. 
+     * @return the JSONObject for the catalog.
+     * @throws java.io.IOException
+     */
+    public static JSONObject getCatalogFromClasspath( JSONObject jo, String HAPI_HOME ) throws IOException {
+        logger.log(Level.INFO, "classpath command {0}", jo.optString("x_class", ""));
+                    
+        ClassLoader cl=null;
+        String s= jo.optString( "classpath", jo.optString("x_classpath","") );
+        String methodString= jo.optString("method",jo.optString("x_method","") );
+        String clas= jo.optString( "class", jo.optString("x_class","") );
+
+        if ( s.length()>0 ) {
+            try {
+                s= SpawnRecordSource.doMacros( HAPI_HOME, "", s );
+                URL url;
+                if ( s.startsWith("http://") || s.startsWith("https://") || s.startsWith("file:") ) { 
+                    url= new URL( s );
+                } else {
+                    url= new File(s).toURI().toURL();
+                }
+                cl= new URLClassLoader( new URL[] { url }, SourceRegistry.class.getClassLoader());
+                cl.getParent();
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(SourceRegistry.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        }
+
+        if ( clas.length()==0 ) {
+            throw new IllegalArgumentException("class must be defined");
+        }
+        try {
+            Class c;
+            if ( cl!=null ) {
+                c= Class.forName(clas,true,cl);
+            } else {
+                c= Class.forName(clas);
+            }
+            Object o;
+            JSONArray args= jo.optJSONArray("args");
+            if ( args==null ) {
+                Method method= c.getMethod( methodString );
+                if ( method.getReturnType()!=String.class ) {
+                    throw new IllegalArgumentException("method should return String: " + clas + "."+ methodString );
+                }
+                String catalogString= (String)method.invoke( null );
+                try {
+                    return new JSONObject(catalogString);
+                } catch ( JSONException ex ) {
+                    throw new IllegalArgumentException("JSON parse error for String returned by " + clas + "."+ methodString);
+                }
+
+
+            } else {
+                Class[] cc= new Class[args.length()];
+                Object[] oo= new Object[args.length()];
+                for ( int i=0; i<cc.length; i++ ) {
+                    try {
+                        oo[i]= args.get(i);
+                        cc[i]= oo[i].getClass();
+                        if ( cc[i]==String.class ) { // check for macros
+                            String ss= SpawnRecordSource.doMacros( HAPI_HOME, "", (String)oo[i] );
+                            oo[i]= ss;
+                        }
+                    } catch (JSONException ex) {
+                        Logger.getLogger(SourceRegistry.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                Method method= c.getMethod( methodString, cc );
+                String infoString= (String)method.invoke( null );
+                try {
+                    return new JSONObject(infoString);
+                } catch ( JSONException ex ) {
+                    throw new IllegalArgumentException("JSON parse error for String returned by " + clas + "."+ methodString);
+                }
+            }
+
+        } catch ( ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | InvocationTargetException ex ) {
+            throw new RuntimeException(ex);
+        }
+                        
+    }
+    
+    /**
+     * Allow a java call to produce the info for a dataset id.  The JSONObject should 
+     * have the tags "class" and "method" which identify a static method which takes the
+     * id as an argument.
+     * 
+     * @param jo
+     * @param HAPI_HOME
+     * @param id
+     * @return
+     * @throws IOException 
+     */
+    public static JSONObject getInfoFromClasspath( JSONObject jo, String HAPI_HOME, String id ) throws IOException {
+        String clas= jo.optString( "class", jo.optString("x_class",""));
+
+        String methodString = jo.optString("method", jo.optString("x_method",""));
+        String classpath= jo.optString("classpath", jo.optString("x_classpath",""));
+        ClassLoader cl=null;
+        if ( classpath.length()>0 ) {
+            try {
+                String s= classpath;
+                s= SpawnRecordSource.doMacros( HAPI_HOME, id, s );
+                URL url;
+                if ( s.startsWith("http://") || s.startsWith("https://") || s.startsWith("file:") ) { 
+                    url= new URL( s );
+                } else {
+                    url= new File(s).toURI().toURL();
+                }
+                cl= new URLClassLoader( new URL[] { url }, SourceRegistry.class.getClassLoader());
+                cl.getParent();
+            } catch (MalformedURLException ex) {
+                Logger.getLogger(SourceRegistry.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+        }
+        try {
+            Class c;
+            if ( cl!=null ) {
+                c= Class.forName(clas,true,cl);
+            } else {
+                c= Class.forName(clas);
+            }
+            Object o;
+            JSONArray args= jo.optJSONArray("args");
+            if ( args==null ) args= jo.optJSONArray("x_args");
+            if ( args==null ) {
+                Method method= c.getMethod( methodString, String.class );
+                if ( method.getReturnType()!=String.class ) {
+                    throw new IllegalArgumentException("method should return String: " + clas + "."+ methodString );
+                }
+                String infoString= (String)method.invoke( id );
+                try {
+                    return new JSONObject(infoString);
+                } catch ( JSONException ex ) {
+                    throw new IllegalArgumentException("JSON parse error for String returned by " + clas + "."+ methodString);
+                }
+
+
+            } else {
+                Class[] cc= new Class[args.length()];
+                Object[] oo= new Object[args.length()];
+                for ( int i=0; i<cc.length; i++ ) {
+                    try {
+                        oo[i]= args.get(i);
+                        cc[i]= oo[i].getClass();
+                        if ( cc[i]==String.class ) { // check for macros
+                            String s= SpawnRecordSource.doMacros( HAPI_HOME, id, (String)oo[i] );
+                            oo[i]= s;
+                        }
+                    } catch (JSONException ex) {
+                        Logger.getLogger(SourceRegistry.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                Method method= c.getMethod( methodString, cc );
+                String infoString= (String)method.invoke( id, oo );
+                try {
+                    return new JSONObject(infoString);
+                } catch ( JSONException ex ) {
+                    throw new IllegalArgumentException("JSON parse error for String returned by " + clas + "."+ methodString);
+                }
+            }
+
+        } catch ( ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | InvocationTargetException ex ) {
+            throw new RuntimeException(ex);
+        }
+         
     }
     
     
@@ -613,15 +815,22 @@ public class HapiServerSupport {
             
             try {
                 jo= jo.getJSONObject("info");
-                if ( jo.has("source") ) {
-                    if ( jo.optString("source","").equals("spawn") ) {
+                String source= jo.optString("source",jo.optString("x_source","") );
+                if ( source.length()>0 ) {
+                    if ( source.equals("spawn") ) {
                         jo= getInfoFromSpawnCommand( jo, HAPI_HOME, id );
                         try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
                             Files.copy( ins, 
                                 infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
                         }
+                    } else if ( source.equals("classpath") ) {
+                        jo= getInfoFromClasspath( jo, HAPI_HOME, id );
+                        try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                            Files.copy( ins, 
+                                infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                        }
                     } else {
-                        warnWebMaster(new RuntimeException("catalog source can only be spawn") );
+                        warnWebMaster(new RuntimeException("catalog source can only be spawn or classpath") );
                     }
                 } else {
                     validInfoObject(jo);
