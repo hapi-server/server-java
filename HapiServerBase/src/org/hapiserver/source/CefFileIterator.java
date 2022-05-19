@@ -1,8 +1,10 @@
 
 package org.hapiserver.source;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -10,21 +12,33 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
+
 import org.hapiserver.AbstractHapiRecord;
 import org.hapiserver.HapiRecord;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 
 /**
  * make CEF reader which provides records as the CEF is read in.
  * @author jbf
  */
 public class CefFileIterator implements Iterator<HapiRecord> {
+	
+	public Cef getCef() {
+		return cef;
+	}
 
     public CefFileIterator( ReadableByteChannel lun ) throws IOException {
         
@@ -38,7 +52,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         cef = readerh.read(lun);
         
         readNextRecord();
-        
+
     }
 
     private static final Logger logger= Logger.getLogger("hapi.cef");
@@ -457,38 +471,30 @@ public class CefFileIterator implements Iterator<HapiRecord> {
      * @return the position of the last end-of-record, or -1 if one is not found.
      */
     private int getLastEor(ByteBuffer work_buffer) {
+    	ByteBuffer scanBuffer = work_buffer.slice();
         int pos_eor;
-        for (pos_eor = work_buffer.limit() - 1; pos_eor >= 0; pos_eor--) {
-            if (work_buffer.get(pos_eor) == eor) {
+        for (pos_eor = scanBuffer.limit() - 1; pos_eor >= 0; pos_eor--) {
+            if (scanBuffer.get(pos_eor) == eor) {
                 break;
             }
         }
         return pos_eor;
     }
 
-    /**
-     * convert the ByteByffer into a HapiRecord.  Note this delays parsing until the data is accessed.
-     * @param bbuf
-     * @param irec
-     * @param fieldDelim
-     * @return
-     * @throws CharacterCodingException
-     * @throws ParseException 
-     */
-    private static HapiRecord parseRecord(ByteBuffer bbuf, int[] fieldDelim) throws CharacterCodingException, ParseException {
-        
-        //final byte[] bb= bbuf.array(); //TODO: this saves an additional bit of time, but assumes bbuf won't be modified.
-        final byte[] bb= Arrays.copyOf( bbuf.array(), bbuf.limit() );
-        
+    private static HapiRecord parseRecord(ByteBuffer record) {
+		String s = StandardCharsets.UTF_8.decode(record).toString();
+		System.err.println("Record String: "+s);
+		List<String> fields = new ArrayList<>(Splitter.on(',').trimResults().splitToList(s));
+
         return new AbstractHapiRecord() {
             @Override
             public int length() {
-                return fieldDelim.length-1;
+                return fields.size();
             }
 
             @Override
             public String getIsoTime(int i) {
-                return getAsString(i);
+                return fields.get(i);
             }
 
             @Override
@@ -503,15 +509,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
             @Override
             public String getAsString(int i) {
-                int star= fieldDelim[i];
-                int stop= fieldDelim[i+1];
-                try {
-                    return new String( bb, star, stop-star-1, CHARSET );
-                } catch ( Exception ex ) {
-                    new String( bb );
-                    System.err.println(ex);
-                    throw ex;
-                }
+                return fields.get(i);
             }
 
             @Override
@@ -552,60 +550,32 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     }
 
 
-    /**
-     * scan the record to find the field delimiters and the end of record.  Field
-     * delimiter positions are inserted into fieldDelim array.
-     * @param work_buffer
-     * @param irec record counter, the number of records read in.  This is useful for debugging, and is 
-     *    needed by the DataSetBuilder.
-     * @param recPos the position of the beginning of the record.
-     * @param work_size the limit of the useable data in work_buffer.  Processing will stop when the 
-     *    record delimiter is encountered, or when this point is reached.
-     * @param fieldDelim used to return the position of the delimiters.
-     * @param parsers 
-     * @return
-     */
-    private int splitRecord(ByteBuffer work_buffer, int recPos, int work_size, int[] fieldDelim) {
-        int ifield = 0;
-
-        fieldDelim[0] = recPos;
-        while (recPos < work_size) {
-
-            if (work_buffer.get(recPos) == eor) {
-                break;
+   
+    private int findDelimeterPosition(ByteBuffer work_buffer) {
+        ByteBuffer scanBuffer = work_buffer.slice();
+    	while (scanBuffer.hasRemaining()) {
+            if (scanBuffer.get() == eor) {
+                return scanBuffer.position()-1;
             }
-            if (work_buffer.get(recPos) == comma) {
-                ifield++;
-                fieldDelim[ifield] = recPos + 1;
-            }
-            recPos++;
         }
-        return recPos;
+        return -1;
 
     }    
     
     Cef cef;
-    int buffer_size = 100;
+    int buffer_size = 600000;
 
     /**
      * usable limit in work_buffer.  This is the position of the end of the
      * last complete record
      */
-    int work_size = 0;
+//    int work_size = 0;
     byte[] work_buf = new byte[2 * buffer_size];
     ByteBuffer read_buffer = ByteBuffer.wrap(new byte[buffer_size]);
     ByteBuffer work_buffer = ByteBuffer.wrap(work_buf);
     boolean eof= false;
     
-    /**
-     * position within the work_buf.
-     */
-    int pos;
-    
-    int streamPosition=0;
-    
     // *** Set the processing state flag (1=first record, 2=subsequent records, 0 = end of file )
-    int trflag = 1;     //*** set to 0 if no more data required in requested time range
     int n_fields= -1;     //*** number of fields per record, -1 means we haven't counted.
 
     int irec = 0;
@@ -613,96 +583,72 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     
     private HapiRecord nextRecord;
     
-    private static String stringPeek( ByteBuffer buf ) {
-        return new String( buf.array(), 0, Math.min(buf.limit(),200) );
-    }
-    
     private void readNextRecord() throws IOException {
-        
-        eor= cef.eor;
-        
-        
-            // *** Keep reading until we reach the end of the file.
-            if ( eof || trflag <= 0) {
-                this.nextRecord= null;
+    	
+    	eor= cef.eor;
+    	
+    	// *** Keep reading until we reach the end of the file.
+    	if ( eof) {
+    		this.nextRecord= null;
+    		
+    	} else {
+    		
+    		
+    		//    removeComments(work_buffer, work_buffer.limit() );
+    		int last_eor = getLastEor(work_buffer); //*** look for delimeters, EOR, comments, EOL etc
+    		
+    		while (last_eor<0) { // reload the work_buffer
+    			try {
+    				//*** read the next chunk of the file
+    				//*** catch errors to avoid warning message if we read past end of file
+    				read_buffer.rewind();
+    				read_buffer.limit(read_buffer.capacity());
+    				
+    				int read_size = lun.read(read_buffer);
+    				System.err.println("Read "+read_size+" bytes");
+    				
+    				if (read_size == -1) {
+    					eof = true;
+    					this.nextRecord= null;
+    					return;
+    				}
+    				
+    				//*** transfer this onto the end of the work buffer and update size of work buffer
+    				if (read_size > 0) {
+    					read_buffer.flip();
+    					if ( work_buffer.position()>0 ) {
+    						work_buffer.compact();
+    					}
+    					work_buffer.put(read_buffer);
+    					work_buffer.flip();
+    				}
 
-            } else {
-                
-                removeComments(work_buffer, work_buffer.limit() );
-                int pos_eor = getLastEor(work_buffer); //*** look for delimeters, EOR, comments, EOL etc
+    			} catch ( IOException ex ) {
+    				throw new RuntimeException(ex);
+    			}
+    			//removeComments(work_buffer, work_buffer.limit() );                
+    			last_eor = getLastEor(work_buffer);
+    			if(last_eor<0) {
+    				throw new IllegalArgumentException("No complete record available");
+    			}
+    		}
+    		
+    		
+    		int delimeterPos = findDelimeterPosition(work_buffer);
+    		int stringLength = delimeterPos;
+    		ByteBuffer record = work_buffer.slice();
+    		record.limit(stringLength);
+    		nextRecord = parseRecord(record);
+    		System.err.println("Read: "+nextRecord);
 
-                while (pos >= work_size || pos > pos_eor ) { // reload the work_buffer
-                    try {
-                        //*** read the next chunk of the file
-                        //*** catch errors to avoid warning message if we read past end of file
-                        read_buffer.rewind();
+    		//advance the position
+    		work_buffer.position(work_buffer.position()+delimeterPos+1);
 
-                        int read_size = lun.read(read_buffer);
-
-                        if (read_size == -1) {
-                            eof = true;
-                            this.nextRecord= null;
-                            return;
-                        }
-
-                        //*** transfer this onto the end of the work buffer and update size of work buffer
-                        if (read_size > 0) {
-                            stringPeek(read_buffer);
-                            read_buffer.flip();
-                            if ( work_buffer.position()>0 ) {
-                                work_buffer.compact();
-                                work_size= work_buffer.position();
-                                pos= 0;
-                            }
-                            work_buffer.put(read_buffer);
-                            work_buffer.flip();
-                            stringPeek(work_buffer);
-                        }
-                        work_size = work_size + read_size;
-                    } catch ( IOException ex ) {
-                        throw new RuntimeException(ex);
-                    }
-                    removeComments(work_buffer, work_buffer.limit() );                
-                    pos_eor = getLastEor(work_buffer);
-                }
-
-                // count the number of fields before the first record
-                if ( n_fields==-1 ) n_fields = countFields(work_buffer);
-
-                int[] fieldDelim = new int[n_fields + 1]; // +1 is for record delim position
-                fieldDelim[0] = 0;
-
-                if (pos < work_size) {
-                    int recPos = pos;
-
-                    recPos = splitRecord(work_buffer, recPos, work_size, fieldDelim);
-                    if (recPos <= work_size) {
-                        fieldDelim[n_fields] = recPos + 1;
-                        for ( int i=1; i<fieldDelim.length; i++ ) {
-                            if ( fieldDelim[i]-fieldDelim[i-1]< 0 ) {
-                                throw new IllegalArgumentException("this should not happen");
-                            }
-                        }
-                        HapiRecord rec;
-                        try {
-                            rec = parseRecord(work_buffer, fieldDelim);
-                            streamPosition= streamPosition + work_buffer.limit();
-                            nextRecord= rec;
-                            
-                        } catch (CharacterCodingException | ParseException ex) {
-                            logger.log(Level.SEVERE, null, ex);
-                        }
-                        pos = recPos + 1;
-                        work_buffer.position(pos);
-                        irec = irec + 1;
-                    } else {
-                        throw new RuntimeException("Partial record?");
-                    }
-                }
-
-            }
-
-
+    		irec = irec + 1;
+    		
+    	}
+    	
+    	
     }
     
     @Override
@@ -713,52 +659,94 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     @Override
     public HapiRecord next() {
         final HapiRecord rec= nextRecord;
-   
         try {
-            readNextRecord();
+        	readNextRecord();
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+        	throw new RuntimeException(ex);
         }
-
+        
         return rec;
+        
+        
     }
     
     public static void main( String[] args ) throws MalformedURLException, IOException {
         //URL uu= new URL( "file:/home/jbf/ct/hapi/u/larry/20220503/CEF/FGM_SPIN.cef");
+//        String infileString = "C:/Users/brownle1/cef/test.cef";
+//		URL uu= new URL( "file:/"+infileString );
+		
+		String dataSet = "C1_CP_FGM_20030303";
+    	
+    	
+    	String startDate = "2003-03-03T00:00:00Z";
+    	String endDate = "2003-03-03T02:00:00Z";
+    	//                                https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C1_CP_FGM_SPIN&START_DATE=2003-03-03T00:00Z&END_DATE=2003-03-03T02:00Z
+    	String urlString = String.format("https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C1_CP_FGM_SPIN&START_DATE=%s&END_DATE=%s",
+    			startDate,endDate);
+    	URL uu = new URL(urlString);
+		
+		System.err.println("Opening connection to: "+uu);
+    	
         
-        //There's a weird bug where reading this directly causes a partial record.  Loading it from a file works fine.
-        //URL uu= new URL("file:/home/jbf/tmp/foo.cef");
-        //URL uu= new URL("https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C1_CP_FGM_SPIN&START_DATE=2013-03-03T00:00:00Z&END_DATE=2013-03-05T00:00:00Z" );
-        int f1=2;
-        int f2=5;        
-
-        //URL uu= new URL( "file:/home/jbf/ct/hapi/data.nobackup/2022/20220510/cluster-peace.cef" );
-        //int f1=20;
-        //int f2=-137;
-
-        //String dataset= "C1_CP_WBD_WAVEFORM";        
-        //URL uu= new URL( String.format( "https://csa.esac.esa.int/csa-sl-tap/data?"+
-        //    "RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=%s&START_DATE=%s&END_DATE=%s",
-        //    dataset, "2013-03-03T00:00:00Z", "2013-03-03T01:00:00Z" ) );
-        
-        //InputStream in= uu.openStream();
-        InputStream in= new java.util.zip.GZIPInputStream( new java.io.FileInputStream("/home/jbf/tmp/cluster_wbd.cef.gz") );
+        InputStream in= uu.openStream();
         ReadableByteChannel lun= Channels.newChannel(in);
+
+//		String dataSet = "C1_CP_FGM_test";
+		String outfileString = "C:/Users/brownle1/cef/"+dataSet+"csv.gz";
+
+        FileOutputStream fos = new FileOutputStream(outfileString);
+        GZIPOutputStream gzos = new GZIPOutputStream(fos);
+        PrintWriter pw = new PrintWriter(gzos);
+
         
-        //System.err.println("begin reading "+uu);
+        
+        System.err.println("begin reading "+uu);
         long t0= System.currentTimeMillis();
-        int i=0;
-        Iterator<HapiRecord> iter= new CefFileIterator(lun);
-        while ( iter.hasNext() ) {
-            HapiRecord rec= iter.next();
-            i++;
-            if ( f1<0 ) f1= f1 + rec.length();
-            if ( f2<0 ) f2= f2 + rec.length();
-            //System.err.println(rec.toString());
-            //System.err.println(""+rec.getIsoTime(0)+ " "+rec.getDouble(f1)+" " +rec.getDouble(f2));
+
+        CefFileIterator iter = new CefFileIterator(lun);
+        Cef cefSample = iter.getCef();
+        List<String> headerList = new ArrayList<>();
+        headerList.add("Epoch");
+        for(String key:cefSample.parameters.keySet()) {
+        	if (key.contains("time")) {
+        		continue;
+        	}
+        	if (key.contains("xyz")) {
+        		headerList.add(key.replace("xyz", "x"));
+        		headerList.add(key.replace("xyz", "y"));
+        		headerList.add(key.replace("xyz", "z"));
+        	} else {
+        		headerList.add(key);
+        	}
         }
-        System.err.println("records read: "+i);
-        System.err.println("time to read: "+ (System.currentTimeMillis()-t0) + "ms" );
+        pw.println(Joiner.on(",").join(headerList));
+        //Iterator<HapiRecord> iter= new CefFileIterator(lun); 
+    	int i=0;
+
+        try {
+        	while ( iter.hasNext() ) {
+        		HapiRecord rec= null;
+        		rec = iter.next();
+        		i++;
+        		List<String> lineList = new ArrayList<>();
+        		lineList.add(rec.getIsoTime(0));
+        		for(int iField=1;iField<headerList.size()-1;iField++) {
+        			try {
+        				String s = rec.getString(iField);
+        				lineList.add(s);
+        			} catch (Exception e) {
+        				break;
+        			}
+        		}
+        		pw.println(Joiner.on(",").join(lineList));
+        	}
+//      	System.err.println("records read: "+i);
+//      	System.err.println("time to read: "+ (System.currentTimeMillis()-t0) + "ms" );
+        } finally {
+        	pw.close();
+        	System.err.println("Got "+i+" records");
+        	System.err.println("Wrote "+outfileString);
+        }
     }
 
 }
