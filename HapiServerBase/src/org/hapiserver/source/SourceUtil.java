@@ -155,7 +155,7 @@ public class SourceUtil {
      * @return array like [ "C3_PP_CIS","Proton and ion densities, bulk velocities and temperatures, spin resolution" ]
      */
     public static String[] stringSplit( String s ) {
-        String[] ss= s.split(PATTERN_SPLIT_QUOTED_FIELDS_COMMA);
+        String[] ss= s.split(PATTERN_SPLIT_QUOTED_FIELDS_COMMA,-2);
         for ( int i=0; i<ss.length; i++ ) {
             int l= ss[i].length();
             if ( ss[i].charAt(0)=='"' && ss[i].charAt(l-1)=='"' ) {
