@@ -13,6 +13,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.Policy.Parameters;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +21,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
@@ -481,20 +483,39 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         return pos_eor;
     }
 
-    private static HapiRecord parseRecord(ByteBuffer record) {
+    private HapiRecord parseRecord(ByteBuffer record) {
 		String s = StandardCharsets.UTF_8.decode(record).toString();
 		System.err.println("Record String: "+s);
 		List<String> fields = new ArrayList<>(Splitter.on(',').trimResults().splitToList(s));
-
+		Cef cef = getCef();
+		final List<List<Integer>> columnIndices = new ArrayList<>();
+		Iterator<String> params = cef.parameters.keySet().iterator();
+		int fieldIndex = 0;
+		for (int i=0;i<cef.nparam;i++) {
+			String key = params.next();
+			ParamStruct p = cef.parameters.get(key); 
+			if (p.sizes.length != 1) {
+				throw new IllegalArgumentException("Multi-dimensional data types not supported yet");
+			}
+			int vectorLength = p.sizes[0];
+			List<Integer> componentIndices = new ArrayList<Integer>();
+			for (int iComponent=0;iComponent<vectorLength;iComponent++) {
+				componentIndices.add(fieldIndex++);
+			}
+			columnIndices.add(componentIndices);
+		}
+		
+		
+		
         return new AbstractHapiRecord() {
             @Override
             public int length() {
-                return fields.size();
+                return columnIndices.size();
             }
 
             @Override
             public String getIsoTime(int i) {
-                return fields.get(i);
+                return fields.get(0);
             }
 
             @Override
@@ -503,13 +524,42 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             }
 
             @Override
+			public double[] getDoubleArray(int i) {
+            	String[] stringArray = getStringArray(i);
+            	double[] doubleArray = new double[stringArray.length];
+            	for (int iField=0;iField<stringArray.length;iField++) {
+            		doubleArray[iField] = Double.parseDouble(stringArray[iField]);
+            	}
+            	return doubleArray;
+            	
+			}
+
+            @Override
+			public String[] getStringArray(int i) {
+            	List<Integer> indices = columnIndices.get(i);
+            	String[] vector = new String[indices.size()];
+            	for (int iField=0;iField<indices.size();iField++) {
+            		int fieldIndex = indices.get(iField);
+            		vector[iField] = fields.get(fieldIndex);
+            	}
+            	return vector;
+            	
+			}
+
+            
+            
+			@Override
             public double getDouble(int i) {
                 return Double.parseDouble(getAsString(i));
             }
 
             @Override
             public String getAsString(int i) {
-                return fields.get(i);
+				if (columnIndices.get(i).size() !=1) {
+					throw new IllegalArgumentException("Paramter "+i+" is an array type.");
+				}
+				int fieldIndex = columnIndices.get(i).get(0);
+                return fields.get(fieldIndex);
             }
 
             @Override
