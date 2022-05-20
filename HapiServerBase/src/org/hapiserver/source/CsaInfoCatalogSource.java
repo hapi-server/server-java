@@ -112,6 +112,8 @@ public class CsaInfoCatalogSource {
                                 parameter.put("type","isotime");
                             } else if ( t.equals("FLOAT") ) {
                                 parameter.put("type","double");
+                            } else if ( t.equals("INT") ) {
+                                parameter.put("type","integer");
                             }   
                             break;
                         case "SIGNIFICANT_DIGITS":
@@ -187,12 +189,12 @@ public class CsaInfoCatalogSource {
         }
     }
     
-	private static JSONObject getOKStatus() throws JSONException {
-		JSONObject status= new JSONObject();
+    private static JSONObject getOKStatus() throws JSONException {
+        JSONObject status= new JSONObject();
         status.put( "code", 1200 );
         status.put( "message", "OK request successful");
-		return status;
-	}
+        return status;
+    }
             
     private static void printHelp() {
         System.err.println("CsaInfoCatalogSource [id]");
