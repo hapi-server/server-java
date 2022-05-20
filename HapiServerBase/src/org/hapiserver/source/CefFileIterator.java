@@ -529,11 +529,11 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             @Override
             public int[] getIntegerArray(int i) {
                 String[] stringArray = getStringArray(i);
-            	int[] doubleArray = new int[stringArray.length];
+            	int[] intArray = new int[stringArray.length];
             	for (int iField=0;iField<stringArray.length;iField++) {
-                    doubleArray[iField] = Integer.parseInt(stringArray[iField]);
+                    intArray[iField] = Integer.parseInt(stringArray[iField]);
             	}
-            	return doubleArray;
+            	return intArray;
             }
             
             @Override
