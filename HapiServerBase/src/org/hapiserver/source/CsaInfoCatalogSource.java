@@ -2,14 +2,10 @@
 package org.hapiserver.source;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collections;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -28,7 +24,12 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
- * returns catalog and info responses for the 
+ * returns catalog and info responses for the TAP server at ESAC.  Requests are made to
+ * https://csa.esac.esa.int/csa-sl-tap/tap/sync
+ * and reformatted into HAPI responses.  This can be used on the command line
+ * (see main method) or the getCatalog and getInfo methods can be called using
+ * the classpath source.
+ * 
  * @author jbf
  */
 public class CsaInfoCatalogSource {
@@ -45,11 +46,26 @@ public class CsaInfoCatalogSource {
     
     /**
      * produce the info response for a given ID.  This assumes the response will be cached and performance is not an issue.
-     * @param id
-     * @return
+     * @param id the dataset id.
+     * @return the JSON formatted response.
      * @throws IOException 
      */
     public static String getInfo( String id ) throws IOException {
+        
+        // get the start and stop date by posting another request.  TODO: consider if this should be done during the catalog request.
+        String startDate, stopDate;
+        String trurl= String.format( "https://csa.esac.esa.int/csa-sl-tap/tap/sync?REQUEST=doQuery&LANG=ADQL&FORMAT=CSV&QUERY=SELECT+dataset_id,title,start_date,end_date+FROM+csa.v_dataset+where+dataset_id=%%27%s%%27", id );
+        try ( BufferedReader reader= new BufferedReader( new InputStreamReader( new URL(trurl).openStream() ) ) ) {
+            String header= reader.readLine(); 
+            String data= reader.readLine();
+            String[] ss= SourceUtil.stringSplit(data);
+            if ( ss.length!=4 ) {
+                throw new IllegalArgumentException("expected four fields when getting time range");
+            }
+            startDate= ss[ss.length-2];
+            stopDate= ss[ss.length-1];
+        }
+        
         String url= String.format( "https://csa.esac.esa.int/csa-sl-tap/data?retrieval_type=HEADER&DATASET_ID=%s&FORCEPACK=false", id );
         JSONObject jo= new JSONObject();
         
@@ -126,8 +142,8 @@ public class CsaInfoCatalogSource {
                 parameters.put( parameters.length(), parameter );
             }
             jo.put("parameters",parameters);
-            jo.put("startDate", "2003-03-03T00:00:00.000Z");
-            jo.put("stopDate", "2003-04-03T00:00:00.000Z");
+            jo.put("startDate",startDate);
+            jo.put("stopDate",stopDate);
             return jo.toString(4);
             
         } catch (SAXException | ParserConfigurationException | JSONException | XPathExpressionException ex) {
