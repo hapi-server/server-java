@@ -29,9 +29,6 @@ import java.util.zip.GZIPOutputStream;
 import org.hapiserver.AbstractHapiRecord;
 import org.hapiserver.HapiRecord;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-
 /**
  * make CEF reader which provides records as the CEF is read in.
  * @author jbf
@@ -486,7 +483,8 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     private HapiRecord parseRecord(ByteBuffer record) {
 		String s = StandardCharsets.UTF_8.decode(record).toString();
 		System.err.println("Record String: "+s);
-		List<String> fields = new ArrayList<>(Splitter.on(',').trimResults().splitToList(s));
+
+		String[] fields = SourceUtil.stringSplit(s);
 		Cef cef = getCef();
 		final List<List<Integer>> columnIndices = new ArrayList<>();
 		Iterator<String> params = cef.parameters.keySet().iterator();
@@ -510,12 +508,12 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         return new AbstractHapiRecord() {
             @Override
             public int length() {
-                return columnIndices.size();
+                return fields.length;
             }
 
             @Override
             public String getIsoTime(int i) {
-                return fields.get(0);
+                return fields[i];
             }
 
             @Override
@@ -540,7 +538,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             	String[] vector = new String[indices.size()];
             	for (int iField=0;iField<indices.size();iField++) {
             		int fieldIndex = indices.get(iField);
-            		vector[iField] = fields.get(fieldIndex);
+            		vector[iField] = fields[fieldIndex];
             	}
             	return vector;
             	
@@ -555,11 +553,11 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
             @Override
             public String getAsString(int i) {
-				if (columnIndices.get(i).size() !=1) {
+            	if (columnIndices.get(i).size() !=1) {
 					throw new IllegalArgumentException("Paramter "+i+" is an array type.");
 				}
 				int fieldIndex = columnIndices.get(i).get(0);
-                return fields.get(fieldIndex);
+                return fields[fieldIndex];
             }
 
             @Override
@@ -769,7 +767,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         		headerList.add(key);
         	}
         }
-        pw.println(Joiner.on(",").join(headerList));
+        pw.println( String.join(",",headerList));
         //Iterator<HapiRecord> iter= new CefFileIterator(lun); 
     	int i=0;
 
@@ -788,7 +786,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         				break;
         			}
         		}
-        		pw.println(Joiner.on(",").join(lineList));
+        		pw.println( String.join(",",lineList));
         	}
 //      	System.err.println("records read: "+i);
 //      	System.err.println("time to read: "+ (System.currentTimeMillis()-t0) + "ms" );
