@@ -176,15 +176,24 @@ public class CsaInfoCatalogSource {
             JSONObject result= new JSONObject();
             result.put("HAPI", "3.0");
             result.put("catalog",catalog);
-            
+            result.put("status", getOKStatus());
+            System.err.println(result.toString(4));
+
             return result.toString(4);
             
         } catch (JSONException ex) {
-            throw new RuntimeException(ex);
-            
+        	throw new RuntimeException(ex);
+        	
         }
     }
     
+	private static JSONObject getOKStatus() throws JSONException {
+		JSONObject status= new JSONObject();
+        status.put( "code", 1200 );
+        status.put( "message", "OK request successful");
+		return status;
+	}
+            
     private static void printHelp() {
         System.err.println("CsaInfoCatalogSource [id]");
         System.err.println("   [id] if present, then return the info response for the id");
