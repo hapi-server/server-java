@@ -140,4 +140,29 @@ public class SourceUtil {
             }
         };
     }
+            
+    /**
+     * See https://stackoverflow.com/questions/18893390/splitting-on-comma-outside-quotes
+     * which provides the regular expression for splitting a line on commas, but not commas within
+     * quotes.
+     */
+    public static final String PATTERN_SPLIT_QUOTED_FIELDS_COMMA= ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
+    
+    /**
+     * Split the CSV string into fields, minding commas within quotes should not be used to
+     * split the string.  Finally, quotes around fields are removed.
+     * @param s string like "C3_PP_CIS,\"Proton and ion densities, bulk velocities and temperatures, spin resolution\""
+     * @return array like [ "C3_PP_CIS","Proton and ion densities, bulk velocities and temperatures, spin resolution" ]
+     */
+    public static String[] stringSplit( String s ) {
+        String[] ss= s.split(PATTERN_SPLIT_QUOTED_FIELDS_COMMA);
+        for ( int i=0; i<ss.length; i++ ) {
+            int l= ss[i].length();
+            if ( ss[i].charAt(0)=='"' && ss[i].charAt(l-1)=='"' ) {
+                ss[i]= ss[i].substring(1,l-1);
+            }
+        }
+        return ss;
+    }
+
 }
