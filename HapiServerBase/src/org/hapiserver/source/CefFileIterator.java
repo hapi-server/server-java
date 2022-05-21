@@ -485,6 +485,10 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 		System.err.println("Record String: "+s);
 
 		String[] fields = SourceUtil.stringSplit(s);
+                for ( int i=0; i<fields.length; i++ ) {
+                    fields[i]= fields[i].trim();
+                }
+                
 		Cef cef = getCef();
 		final List<List<Integer>> columnIndices = new ArrayList<>();
 		Iterator<String> params = cef.parameters.keySet().iterator();
