@@ -967,5 +967,60 @@ public class HapiServerSupport {
         ex.printStackTrace();
     }
     
+    /**
+     * find the common parts of the two strings.
+     * @param n1
+     * @param n2
+     * @return 
+     */
+    public static String findCommon( String n1, String n2 ) {
+        int beginCommon=0;
+        while ( n1.length()>beginCommon && n2.length()>beginCommon && 
+            n1.charAt(beginCommon)==n2.charAt(beginCommon) ) {
+            beginCommon++;
+        }
+        int endCommon= 1;
+        while ( n1.length()-endCommon>=0 && n2.length()-endCommon>=0 && 
+            n1.charAt(n1.length()-endCommon)==n2.charAt(n2.length()-endCommon) ) {
+            endCommon++;
+        }        
+        if ( endCommon-1 > beginCommon ) {
+            return n1.substring(n1.length()-endCommon+1);
+        } else {
+            return n1.substring(0,beginCommon);
+        }
+    }
+    /**
+     * take out all the common parts of the names.  Often the names contain the group they are in, and 
+     * it would be convenient to have a shortened version of the name.
+     * @param common
+     * @param names
+     * @return
+     * @throws JSONException 
+     */
+    public static String[] maybeShortenLabels( String common, String[] names ) throws JSONException {
+        String[] result= new String[names.length];
+        if ( names[0].endsWith(common) ) {
+            for ( int i=0; i<names.length; i++ ) {
+                if ( names[i].endsWith(common) ) {
+                    result[i]= "..." + names[i].substring(0,names[i].length()-common.length());
+                } else {
+                    return names;
+                }
+            }
+        } else if ( names[0].startsWith(common) ) {
+            for ( int i=0; i<names.length; i++ ) {
+                if ( names[i].startsWith(common) ) {
+                    result[i]= names[i].substring(common.length()) + "...";
+                } else {
+                    return names;
+                }
+            }
+        } else {
+            return names;
+        }
+        return result;
+        
+    }
     
 }

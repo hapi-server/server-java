@@ -118,11 +118,22 @@
 
                         out.println(" ");
                         JSONArray parameters= info.getJSONArray("parameters");
+                        String[] labels= new String[parameters.length()];
+                        for ( int ii=0; ii<labels.length; ii++ ) {
+                            labels[ii]= parameters.getJSONObject(ii).getString("name");
+                        }
+                        if ( labels.length>1 ) {
+                            String common= HapiServerSupport.findCommon(labels[0], labels[1]);
+                            if ( common.length()>3 ) {
+                                common= HapiServerSupport.findCommon(labels[0], labels[1]);
+                                labels= HapiServerSupport.maybeShortenLabels(common,labels);
+                            }
+                        }
                         for ( int j=0; j<Math.min(MAX_PARAMETERS,parameters.length()); j++ ) {
                             if ( j>0 ) out.print("  ");
                             try {
                                 String pname= parameters.getJSONObject(j).getString("name");
-                                out.print( String.format( "<a href=\"data?id=%s&parameters=%s&%s\">%s</a>", ds.getString("id"), pname, exampleTimeRange, pname ) );
+                                out.print( String.format( "<a href=\"data?id=%s&parameters=%s&%s\">%s</a>", ds.getString("id"), pname, exampleTimeRange, labels[j] ) );
                                 if ( j>0 && sparklines ) { //sparklines
                                     //     vap  +hapi  :https      ://jfaden.net  /HapiServerDemo  /hapi  ?id=?parameters=Temperature
                                     //?url=vap%2Bhapi%3Ahttps%3A%2F%2Fjfaden.net%2FHapiServerDemo%2Fhapi%3Fid%3DpoolTemperature%26timerange%3D2020-08-06&format=image%2Fpng&width=70&height=20&column=0%2C100%25&row=0%2C100%25&timeRange=2003-mar&renderType=&color=%23000000&symbolSize=&fillColor=%23aaaaff&foregroundColor=%23000000&backgroundColor=none
