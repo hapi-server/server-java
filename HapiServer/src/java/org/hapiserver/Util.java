@@ -185,14 +185,12 @@ public final class Util {
         info= copyJSONObject( info );
         String[] pps= parameters.split(",");
         Map<String,Integer> map= new HashMap();  // map from name to index in dataset.
-        Map<String,Integer> iMap= new HashMap(); // map from name to position in csv.
         JSONArray jsonParameters= info.getJSONArray("parameters");
         int index=0;
         int[] lens= getNumberOfElements(info);
         for ( int i=0; i<jsonParameters.length(); i++ ) {
             String name= jsonParameters.getJSONObject(i).getString("name");
             map.put( name, i ); 
-            iMap.put( name, index );
             index+= lens[i];
         }
         JSONArray newParameters= new JSONArray();
@@ -207,7 +205,7 @@ public final class Util {
             if ( i==null ) {
                 throw new BadRequestParameterException();
             }
-            indexMap[ip]= iMap.get(pps[ip]);
+            indexMap[ip]= map.get(pps[ip]);
             if ( i==0 ) {
                 hasTime= true;
             }
