@@ -186,12 +186,10 @@ public final class Util {
         String[] pps= parameters.split(",");
         Map<String,Integer> map= new HashMap();  // map from name to index in dataset.
         JSONArray jsonParameters= info.getJSONArray("parameters");
-        int index=0;
         int[] lens= getNumberOfElements(info);
         for ( int i=0; i<jsonParameters.length(); i++ ) {
             String name= jsonParameters.getJSONObject(i).getString("name");
             map.put( name, i ); 
-            index+= lens[i];
         }
         JSONArray newParameters= new JSONArray();
         int[] indexMap= new int[pps.length];
@@ -222,7 +220,6 @@ public final class Util {
             lengths1[0]= 1;
             System.arraycopy( lengths, 0, lengths1, 1, indexMap.length );
             indexMap= indexMap1;
-            lengths= lengths1;
             for ( int k=newParameters.length()-1; k>=0; k-- ) {
                 newParameters.put( k+1, newParameters.get(k) );
             }
