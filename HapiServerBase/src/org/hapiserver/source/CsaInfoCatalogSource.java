@@ -110,15 +110,25 @@ public class CsaInfoCatalogSource {
                             String t= c.getTextContent();
                             if ( t.equals("ISO_TIME") ) {
                                 parameter.put("type","isotime");
+                            } else if ( t.equals("ISO_TIME_RANGE") ) {
+                                parameter.put("type","isotime");
+                                parameter.put("x_type", "ISO_TIME_RANGE");
                             } else if ( t.equals("FLOAT") ) {
                                 parameter.put("type","double");
                             } else if ( t.equals("INT") ) {
                                 parameter.put("type","integer");
+                            } else if ( t.equals("CHAR") ) {
+                                parameter.put("type","string");
                             }   
                             break;
                         case "SIGNIFICANT_DIGITS":
-                            if ( parameter.optString("type","").equals("isotime") ) {
-                                parameter.put("length",c.getTextContent());
+                            String type= parameter.optString("type","");
+                            if ( type.equals("isotime") || type.equals("string") ) {
+                                if ( parameter.optString("x_type","").equals("ISO_TIME_RANGE") ) {
+                                    parameter.put("length",25);
+                                } else {
+                                    parameter.put("length",c.getTextContent());
+                                }
                             }
                             break;
                         case "SIZES":
@@ -141,11 +151,13 @@ public class CsaInfoCatalogSource {
                             break;
                     }
                 }
-                parameters.put( parameters.length(), parameter );
+                
+                parameters.put( parameters.length(), parameter );                
             }
             jo.put("parameters",parameters);
             jo.put("startDate",startDate);
             jo.put("stopDate",stopDate);
+            jo.put("x_tap_url", url );
             return jo.toString(4);
             
         } catch (SAXException | ParserConfigurationException | JSONException | XPathExpressionException ex) {

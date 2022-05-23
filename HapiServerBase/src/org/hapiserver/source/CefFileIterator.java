@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
+import org.codehaus.jettison.json.JSONObject;
 
 import org.hapiserver.AbstractHapiRecord;
 import org.hapiserver.HapiRecord;
@@ -517,7 +518,14 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
             @Override
             public String getIsoTime(int i) {
-                return fields[i];
+                String field= fields[i];
+                if ( fields[i].length()>45 ) {
+                    int is1 = field.indexOf("/");
+                    if ( is1>0 ) {
+                        field= field.substring(0,24)+"Z";
+                    }
+                }        
+                return field;
             }
 
             @Override
