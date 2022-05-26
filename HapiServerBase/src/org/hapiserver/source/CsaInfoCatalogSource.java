@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -32,6 +31,7 @@ import org.xml.sax.SAXException;
  * the classpath source.
  * 
  * Here is an example configuration:
+ * <pre>
  * {
  *     "HAPI": "3.0",
  *     "catalog": [
@@ -60,6 +60,7 @@ import org.xml.sax.SAXException;
  *         "message": "OK request successful"
  *     }
  * }
+ * </pre>
  * @author jbf
  */
 public class CsaInfoCatalogSource {
@@ -204,6 +205,11 @@ public class CsaInfoCatalogSource {
         
     }
     
+    /**
+     *
+     * @return
+     * @throws IOException
+     */
     public static String getCatalog( ) throws IOException {
         try {
             JSONArray catalog= new JSONArray();
@@ -252,6 +258,10 @@ public class CsaInfoCatalogSource {
         System.err.println("   [id] if missing, then return the catalog response");
     }
     
+    /**
+     *
+     * @param args
+     */
     public static void main( String[] args ) {
         if ( args.length==1 ) {
             if ( args[0].equals("--help") ) {
