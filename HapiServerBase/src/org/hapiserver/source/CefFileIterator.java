@@ -671,7 +671,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     		
     		//    removeComments(work_buffer, work_buffer.limit() );
     		int last_eor = getLastEor(work_buffer); //*** look for delimeters, EOR, comments, EOL etc
-    		
+    		int loop = 0;
     		while (last_eor<0) { // reload the work_buffer
     			try {
     				//*** read the next chunk of the file
@@ -691,7 +691,8 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     				//*** transfer this onto the end of the work buffer and update size of work buffer
     				if (read_size > 0) {
     					read_buffer.flip();
-    					if ( work_buffer.position()>0 ) {
+    					if ( work_buffer.position()>0 && loop == 0) {
+    						//There's unused data in the work buffer, so preserve it
     						work_buffer.compact();
     					}
     					work_buffer.put(read_buffer);
@@ -704,8 +705,11 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     			//removeComments(work_buffer, work_buffer.limit() );                
     			last_eor = getLastEor(work_buffer);
     			if(last_eor<0) {
-    				throw new IllegalArgumentException("No complete record available");
+    				//No full record available, so prepare the work buffer to read more
+    				work_buffer.position(work_buffer.limit());
+    				work_buffer.limit(work_buffer.capacity());
     			}
+    			loop++;
     		}
     		
     		
