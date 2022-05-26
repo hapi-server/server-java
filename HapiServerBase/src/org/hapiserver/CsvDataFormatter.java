@@ -105,6 +105,13 @@ public class CsvDataFormatter implements DataFormatter {
                         }
                         if ( field.charAt(lengths[i]-1)!='Z' ) throw new RuntimeException("isotime should end in Z");
                         break;
+                    case "integer": {
+                        if ( parameter.has("size") ) {
+                            types[i]= TYPE_DOUBLE_ARRAY;
+                        } else {
+                            types[i]= TYPE_DOUBLE;
+                        }
+                    }
                     case "double": {
                         if ( parameter.has("size") ) {
                             types[i]= TYPE_DOUBLE_ARRAY;
@@ -116,7 +123,7 @@ public class CsvDataFormatter implements DataFormatter {
                         types[i]= TYPE_STRING;
                     } break;
                     default:
-                        throw new RuntimeException("type not supported");
+                        throw new RuntimeException(parameter.getString("type")+" type not supported");
                     
                 }
             }
@@ -176,12 +183,11 @@ public class CsvDataFormatter implements DataFormatter {
                     build.append(s);
                     break;
                 case TYPE_DOUBLE_ARRAY:
-                    double[] dd= record.getDoubleArray(i);
-                    for ( int j=0; j<dd.length; j++ ) {
-                        if ( j>0 ) build.append(",");
-                        build.append(dd[j]);
-                    }
-                    
+                	double[] dd= record.getDoubleArray(i);
+                	for ( int j=0; j<dd.length; j++ ) {
+                		if ( j>0 ) build.append(",");
+                		build.append(dd[j]);
+                	}
             }
         }
         out.write( build.toString().getBytes( CHARSET ) );
