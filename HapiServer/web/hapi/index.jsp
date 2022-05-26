@@ -165,9 +165,10 @@
                         if ( parameters.length()>MAX_PARAMETERS ) {
                             out.print("...");
                         }
-                    } catch ( JSONException | IOException ex ) {
+                    } catch ( JSONException | IOException | RuntimeException ex ) {
+                        out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
                         out.println( "<p>Unable to load info for dataset: <a href=\"info?id="+id+"\">"+id+"</a><br></p>" ) ;
-                    }
+                    } 
                 }
             } catch ( JSONException ex ) {
                 out.print("<br><br><b>Something has gone wrong, see logs or send an email to faden at cottagesystems.com</b>");
