@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -30,6 +31,35 @@ import org.xml.sax.SAXException;
  * (see main method) or the getCatalog and getInfo methods can be called using
  * the classpath source.
  * 
+ * Here is an example configuration:
+ * {
+ *     "HAPI": "3.0",
+ *     "catalog": [
+ *         {
+ *             "x_group_id": "cfa",
+ *             "x_source": "classpath",
+ *             "x_class": "org.hapiserver.source.CsaInfoCatalogSource",
+ *             "x_method": "getCatalog",
+ *             "x_config": {
+ *                 "info": {
+ *                     "x_source":"classpath",
+ *                     "x_class":"org.hapiserver.source.CsaInfoCatalogSource",
+ *                     "x_method": "getInfo",
+ *                     "x_args": [ "${id}" ]
+ *                 },
+ *                 "data": {
+ *                     "source": "classpath",
+ *                     "class":"org.hapiserver.source.TAPDataSource",
+ *                     "args":["https://csa.esac.esa.int/csa-sl-tap/","${id}"]
+ *                 }
+ *             }
+ *         }
+ *     ],
+ *     "status": {
+ *         "code": 1200,
+ *         "message": "OK request successful"
+ *     }
+ * }
  * @author jbf
  */
 public class CsaInfoCatalogSource {
@@ -72,7 +102,15 @@ public class CsaInfoCatalogSource {
         try ( InputStream ins= new URL(url).openStream() ) {
         	//String s= SourceUtil.getAllFileLines( new URL(url) );
             
-            Document document= readDoc( ins );
+            Document document;
+            
+            try {
+                document = readDoc( ins );
+            } catch ( SAXException | ParserConfigurationException ex ) {
+                System.err.println("Unable to parse document returned by "+url );
+                throw new RuntimeException(ex);
+            }
+            
             jo.put("HAPI","3.0");
             
             XPathFactory factory= XPathFactory.newInstance();
@@ -160,7 +198,7 @@ public class CsaInfoCatalogSource {
             jo.put("x_tap_url", url );
             return jo.toString(4);
             
-        } catch (SAXException | ParserConfigurationException | JSONException | XPathExpressionException ex) {
+        } catch ( JSONException | XPathExpressionException ex) {
             throw new RuntimeException(ex);
         }
         
