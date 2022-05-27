@@ -474,6 +474,47 @@ public class HapiServerSupport {
          
     }
     
+    /**
+     * read the about file from the config directory if it has been modified.
+     * @param HAPI_HOME
+     * @return JSON for the about file.
+     * @throws IOException
+     * @throws JSONException 
+     */
+    public static JSONObject getAbout( String HAPI_HOME ) throws IOException, JSONException {
+        
+        logger.info("getAbout");
+        
+        File aboutFile= new File( HAPI_HOME, "about.json" );
+
+        long latestTimeStamp= aboutFile.exists() ? aboutFile.lastModified() : 0;
+        
+        File aboutConfigFile= new File( new File( HAPI_HOME, "config" ), "about.json" );        
+        if ( aboutConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
+            byte[] bb= Files.readAllBytes( Paths.get( aboutConfigFile.toURI() ) );
+            String s= new String( bb, Charset.forName("UTF-8") );
+            try {
+                logger.info("read about from config");
+                JSONObject jo= Util.newJSONObject(s);
+                                
+                try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                    logger.log(Level.INFO, "write resolved about to {0}", aboutFile.getPath());
+                    Files.copy( ins, 
+                                aboutFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                }
+                latestTimeStamp= aboutFile.lastModified();
+            } catch ( JSONException ex ) {
+                warnWebMaster(ex);
+            }
+        }
+        
+        logger.info("reading about into json");
+        byte[] bb= Files.readAllBytes( Paths.get( aboutFile.toURI() ) );
+        String s= new String( bb, Charset.forName("UTF-8") );
+        JSONObject jo= Util.newJSONObject(s);
+        
+        return jo;
+    }
     
     /**
      * keep and monitor a cached version of the catalog in memory.

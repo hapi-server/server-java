@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -81,39 +82,17 @@ public class AboutServlet extends HttpServlet {
         response.setHeader("Access-Control-Allow-Methods","GET" );
         response.setHeader("Access-Control-Allow-Headers","Content-Type" );
         
-        File aboutFile= new File( HAPI_HOME, "about.json" );
-        if ( aboutFile.exists() ) {
-            logger.log(Level.FINE, "using cached about file {0}", aboutFile);
-            ByteArrayOutputStream outs= new ByteArrayOutputStream();
-            Files.copy( aboutFile.toPath(), outs );
-            try {
-                JSONObject jo= Util.newJSONObject( new String( outs.toByteArray(), HapiServerSupport.CHARSET ) );
-                jo.put( "x_hapi_home", HAPI_HOME );
-                Util.transfer( new ByteArrayInputStream( jo.toString(4).getBytes( HapiServerSupport.CHARSET) ), 
-                    response.getOutputStream(), true );
-            } catch (JSONException ex) {
-                logger.log(Level.SEVERE, null, ex);
+        try {
+            JSONObject about= HapiServerSupport.getAbout(HAPI_HOME);
+            try (PrintWriter out = response.getWriter()) {
+                String s= about.toString(4);
+                out.write(s);
+            } catch ( JSONException ex ) {
+                throw new ServletException(ex);
             }
-            
-        } else {
-            synchronized ( this ) {
-                if ( !aboutFile.exists() ) { // double-check within synchronized block
-                    logger.log(Level.INFO, "copy about.json from internal templates to {0}", aboutFile);
-                    InputStream in= Util.getTemplateAsStream("about.json");
-                    File tmpFile= new File( HAPI_HOME, "_about.json" );
-                    Util.transfer( in, new FileOutputStream(tmpFile), true );
-                    if ( !tmpFile.renameTo(aboutFile) ) {
-                        logger.log(Level.SEVERE, "Unable to write to {0}", aboutFile);
-                        throw new IllegalArgumentException("unable to write about file");
-                    } else {
-                        logger.log(Level.FINE, "wrote cached about file {0}", aboutFile);
-                    }
-                }
-                logger.log(Level.FINE, "using cached about file {0}", aboutFile);
-            }
-            Util.sendFile( aboutFile, request, response );
+        } catch ( JSONException ex ) {
+            throw new RuntimeException(ex);
         }
-        
     }
 
 }

@@ -19,7 +19,8 @@ public class Initialize {
     private static final Logger logger= Logger.getLogger("hapi");
     
     /**
-     * initialize the hapi_home area.
+     * initialize the hapi_home area, writing initial configuration.
+     * 
      * @param hapiHome area where infos are stored.
      */
     public static synchronized void initialize( File hapiHome ) {
@@ -39,12 +40,12 @@ public class Initialize {
         }
 
         try {
-            File aboutFile= new File( hapiHome, "about.json" );
+            File aboutFile= new File( configDir, "about.json" );
             
             logger.log(Level.INFO, "copy about.json from internal templates to {0}", aboutFile);
             
             InputStream in= Util.getTemplateAsStream("about.json");
-            File tmpFile= new File( hapiHome, "_about.json" );
+            File tmpFile= new File( configDir, "_about.json" );
             Util.transfer( in, new FileOutputStream(tmpFile), true );
             if ( !tmpFile.renameTo(aboutFile) ) {
                 logger.log(Level.SEVERE, "Unable to write to {0}", aboutFile);
@@ -58,12 +59,12 @@ public class Initialize {
         }
 
         try {
-            File catalogFile= new File( new File( hapiHome, "config" ), "catalog.json" );
+            File catalogFile= new File( configDir, "catalog.json" );
             
             logger.log(Level.INFO, "copy catalog.json from internal templates to {0}", catalogFile);
             
             InputStream in= Util.getTemplateAsStream("catalog.json");
-            File tmpFile= new File( new File( hapiHome, "config" ), "_catalog.json" );
+            File tmpFile= new File( configDir, "_catalog.json" );
             Util.transfer( in, new FileOutputStream(tmpFile), true );
             if ( !tmpFile.renameTo(catalogFile) ) {
                 logger.log(Level.SEVERE, "Unable to write to {0}", catalogFile);
@@ -86,16 +87,16 @@ public class Initialize {
             throw new RuntimeException("Unable to make data area");
         }
         
-        String[] examples= new String[] { "wind_swe_2m", "temperature", "spawnsource" };
-        
-        for ( String s: examples ) {
-            File exampleData= new File( configDir, s + ".json" );
-            try {
-                Util.transfer( Util.getTemplateAsStream( s+".json" ), new FileOutputStream(exampleData), true );
-            } catch (IOException ex) {
-                logger.log(Level.SEVERE, null, ex);
-            }
-        }
+//        String[] examples= new String[] { "wind_swe_2m", "temperature", "spawnsource" };
+//        
+//        for ( String s: examples ) {
+//            File exampleData= new File( configDir, s + ".json" );
+//            try {
+//                Util.transfer( Util.getTemplateAsStream( s+".json" ), new FileOutputStream(exampleData), true );
+//            } catch (IOException ex) {
+//                logger.log(Level.SEVERE, null, ex);
+//            }
+//        }
         
     }
 }
