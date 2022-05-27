@@ -490,6 +490,8 @@ public class HapiServerSupport {
         long latestTimeStamp= aboutFile.exists() ? aboutFile.lastModified() : 0;
         
         File aboutConfigFile= new File( new File( HAPI_HOME, "config" ), "about.json" );        
+        logger.info(" aboutConfigFile.lastModified(): "+aboutConfigFile.lastModified() );
+        logger.info(" latestTimeStamp: " + latestTimeStamp );
         if ( aboutConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
             byte[] bb= Files.readAllBytes( Paths.get( aboutConfigFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
