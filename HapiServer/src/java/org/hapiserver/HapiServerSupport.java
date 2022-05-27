@@ -489,7 +489,12 @@ public class HapiServerSupport {
 
         long latestTimeStamp= aboutFile.exists() ? aboutFile.lastModified() : 0;
         
-        File aboutConfigFile= new File( new File( HAPI_HOME, "config" ), "about.json" );        
+        File aboutConfigFile= new File( new File( HAPI_HOME, "config" ), "about.json" ); 
+        
+        if ( !aboutConfigFile.exists() ) {
+            throw new IOException("config directory should contain about.json");
+        }
+        
         logger.info(" aboutConfigFile.lastModified(): "+aboutConfigFile.lastModified() );
         logger.info(" latestTimeStamp: " + latestTimeStamp );
         if ( aboutConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
@@ -535,7 +540,12 @@ public class HapiServerSupport {
 
         long latestTimeStamp= catalogFile.lastModified();
         
-        File catalogConfigFile= new File( new File( HAPI_HOME, "config" ), "catalog.json" );        
+        File catalogConfigFile= new File( new File( HAPI_HOME, "config" ), "catalog.json" );     
+        
+        if ( !catalogConfigFile.exists() ) {
+            throw new IOException("config directory should contain catalog.json");
+        }
+        
         if ( catalogConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
             byte[] bb= Files.readAllBytes( Paths.get( catalogConfigFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
