@@ -24,19 +24,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        <h1>Basic HAPI Server</h1>  More information about this type of server is found at <a href="https://github.com/hapi-server/server-java" target="_blank">GitHub</a>.
-        This implementation of the HAPI server uses plug-in readers to load data.  Discussion and more about this 
-        server can be found <a href="https://github.com/hapi-server/server-java/blob/main/README.md">here</a>.
 
-        <!-- <br>The HAPI server <a href="http://hapi-server.org/verify?url=">verifier</a> will test this HAPI server for correctness. -->
-
-        <h3>Some example requests:</h3>
-        <a href="about">About</a> <i>More about this server, like contact info.</i><br>
-        <a href="capabilities">Capabilities</a> <i>Capabilities of the server.</i><br>
-        <a href="catalog">Catalog</a> <i>Show the catalog of available data sets.</i><br>
-        <a href="info?id=wind_swe_2m">Info</a> <i>Get information about a dataset.</i><br>
-        <br>
-        
         <%
             String HAPI_HOME= getServletContext().getInitParameter("hapi_home");
             final int MAX_PARAMETERS=10;
@@ -57,8 +45,23 @@
                     }
                 }
             }
+
+            JSONObject about= HapiServerSupport.getAbout(HAPI_HOME);
+
             %>
-            
+
+            <h1><%= about.optString("title","Basic HAPI Server") %></h1>  More information about this type of server is found at <a href="https://github.com/hapi-server/server-java" target="_blank">GitHub</a>.
+        This implementation of the HAPI server uses plug-in readers to load data.  Discussion and more about this 
+        server can be found <a href="https://github.com/hapi-server/server-java/blob/main/README.md">here</a>.
+
+        <!-- <br>The HAPI server <a href="http://hapi-server.org/verify?url=">verifier</a> will test this HAPI server for correctness. -->
+
+        <h3>Some example requests:</h3>
+        <a href="about">About</a> <i>More about this server, like contact info.</i><br>
+        <a href="capabilities">Capabilities</a> <i>Capabilities of the server.</i><br>
+        <a href="catalog">Catalog</a> <i>Show the catalog of available data sets.</i><br>
+        <br>
+                    
         <%
             try {
             
