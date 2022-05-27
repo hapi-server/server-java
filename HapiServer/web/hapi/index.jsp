@@ -69,7 +69,7 @@
                 
                 JSONArray dss= catalog.getJSONArray("catalog");
                 
-                out.println("This server provides "+catalog.getJSONArray("catalog").length()+" datasets.");
+                out.println("This server provides "+catalog.getJSONArray("catalog").length()+" datasets, examples follow.");
                 
                 String autoplotServer= "https://jfaden.net/AutoplotServlet";
                 //String autoplotServer= "http://localhost:8084/AutoplotServlet";
