@@ -24,6 +24,9 @@ public class Initialize {
      * @param hapiHome area where infos are stored.
      */
     public static synchronized void initialize( File hapiHome ) {
+        
+        logger.log(Level.INFO, "initialize to create config directory");
+        
         if ( hapiHome.exists() ) {
             if ( !hapiHome.canWrite() ) {
                 throw new RuntimeException("Unable to write in hapi_home: "+hapiHome);
