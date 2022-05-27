@@ -78,12 +78,12 @@ public class Initialize {
         }
         
         File infoDir= new File( hapiHome, "info" );
-        if ( !infoDir.mkdirs() ) {
+        if ( !infoDir.exists() && !infoDir.mkdirs() ) {
             throw new RuntimeException("Unable to make info area");
         }
         
         File dataDir= new File( hapiHome, "data" );
-        if ( !dataDir.mkdirs() ) {
+        if ( !dataDir.exists() && !dataDir.mkdirs() ) {
             throw new RuntimeException("Unable to make data area");
         }
         
