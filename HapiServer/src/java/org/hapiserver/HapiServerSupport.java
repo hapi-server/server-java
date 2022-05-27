@@ -508,7 +508,7 @@ public class HapiServerSupport {
             }
         }
         
-        logger.info("reading about into json");
+        logger.info("reading about into json from " + Paths.get( aboutFile.toURI() );
         byte[] bb= Files.readAllBytes( Paths.get( aboutFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         JSONObject jo= Util.newJSONObject(s);
@@ -1012,6 +1012,7 @@ public class HapiServerSupport {
      * @param ex 
      */
     private static void warnWebMaster(Exception ex) {
+        logger.info("warnWebMaster");
         ex.printStackTrace();
     }
     
