@@ -483,6 +483,9 @@ public class HapiServerSupport {
      * @throws org.codehaus.jettison.json.JSONException 
      */
     public static JSONObject getCatalog( String HAPI_HOME ) throws IOException, JSONException {
+        
+        logger.info("getCatalog");
+        
         File catalogFile= new File( HAPI_HOME, "catalog.json" );
         CatalogData cc= catalogCache.get( HAPI_HOME );
 
@@ -495,9 +498,11 @@ public class HapiServerSupport {
             try {
                 JSONObject jo= Util.newJSONObject(s);
                 
+                logger.info("resolveCatalog");
                 jo= resolveCatalog( jo );
                 
                 try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                    logger.log(Level.INFO, "write resolved catalog to {0}", catalogFile.getPath());
                     Files.copy( ins, 
                                 catalogFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
                 }
@@ -512,6 +517,8 @@ public class HapiServerSupport {
                 return cc.catalog;
             }
         }
+        
+        logger.info("reading catalog into json");
         byte[] bb= Files.readAllBytes( Paths.get( catalogFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         JSONObject jo= Util.newJSONObject(s);
