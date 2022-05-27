@@ -494,7 +494,7 @@ public class HapiServerSupport {
             byte[] bb= Files.readAllBytes( Paths.get( aboutConfigFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
             try {
-                logger.info("read about from config");
+                logger.info("read about from config" );
                 JSONObject jo= Util.newJSONObject(s);
                                 
                 try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
