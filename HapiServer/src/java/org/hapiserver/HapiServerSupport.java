@@ -505,10 +505,11 @@ public class HapiServerSupport {
                 latestTimeStamp= aboutFile.lastModified();
             } catch ( JSONException ex ) {
                 warnWebMaster(ex);
+                throw ex;
             }
         }
         
-        logger.info("reading about into json from " + Paths.get( aboutFile.toURI() );
+        logger.info("reading about into json from " + Paths.get( aboutFile.toURI() ) );
         byte[] bb= Files.readAllBytes( Paths.get( aboutFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         JSONObject jo= Util.newJSONObject(s);
