@@ -1,39 +1,28 @@
-{
-    "HAPI": "3.0",
-    "catalog": [
-        {
-            "id": "wind_swe_2m",
-            "title": "Wind SWE Data",
-            "x_documentation": "Custom reader for files from https://cdaweb.gsfc.nasa.gov/pub/data/wind/swe/ascii/2-min/wind_swe_2m_sw2022.asc"
-        },
-        {
-            "id": "spawnsource",
-            "title": "Pool Temperature from spawn",
-            "x_documentation": "Source which spawns calls to wget command"
-        },
-        {
-            "id": "temperature",
-            "title": "Pool Temperature",
-            "x_documentation": "Source which aggregates CSV files"
-        },
-        {
-            "x_group_id": "wrap_hapi_server",
-            "x_source": "spawn",
-            "x_command": "wget -O - https://jfaden.net/HapiServerDemo/hapi/catalog",
-            "x_config": {
-                "info": {
-                    "source":"spawn",
-                    "command":"wget -O - https://jfaden.net/HapiServerDemo/hapi/info?id=${id}"
-                },
-                "data": {
-                    "source": "spawn",
-                    "command": "wget -O - https://jfaden.net/HapiServerDemo/hapi/data?id=${id}&start=${start}&stop=${stop}"
-                }
-            }
-        }
-    ],
-    "status": {
-        "code": 1200,
-        "message": "OK request successful"
-    }
-}
+ {
+     "HAPI": "3.0",
+     "catalog": [
+         {
+             "x_group_id": "cfa",
+             "x_source": "classpath",
+             "x_class": "org.hapiserver.source.CsaInfoCatalogSource",
+             "x_method": "getCatalog",
+             "x_config": {
+                 "info": {
+                     "x_source":"classpath",
+                     "x_class":"org.hapiserver.source.CsaInfoCatalogSource",
+                     "x_method": "getInfo",
+                     "x_args": [ "${id}" ]
+                 },
+                 "data": {
+                     "source": "classpath",
+                     "class":"org.hapiserver.source.TAPDataSource",
+                     "args":["https://csa.esac.esa.int/csa-sl-tap/","${id}"]
+                 }
+             }
+         }
+     ],
+     "status": {
+         "code": 1200,
+         "message": "OK request successful"
+     }
+ }
