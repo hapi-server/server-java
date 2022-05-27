@@ -26,25 +26,12 @@
     <body>
 
         <%
-            String HAPI_HOME= getServletContext().getInitParameter("hapi_home");
             final int MAX_PARAMETERS=10;
             final int MAX_DATASETS=20;
+            
+            String HAPI_HOME= getServletContext().getInitParameter("hapi_home");
                 
-            if ( HAPI_HOME==null ) {
-                %>
-                <h1>This server has not been configured.  Its hapi_home must be set.
-                <%
-            } else {
-                File f= new File( HAPI_HOME );
-                if ( !f.exists() ) {
-                    Initialize.initialize(f);
-                } else {
-                    File configFile= new File( f, "config" );
-                    if ( !configFile.exists() ) {
-                        Initialize.initialize(f);
-                    }
-                }
-            }
+            Initialize.maybeInitialize( HAPI_HOME );
 
             JSONObject about= HapiServerSupport.getAbout(HAPI_HOME);
 

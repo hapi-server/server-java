@@ -485,6 +485,8 @@ public class HapiServerSupport {
         
         logger.info("getAbout");
         
+        Initialize.maybeInitialize( HAPI_HOME );
+        
         File aboutFile= new File( HAPI_HOME, "about.json" );
 
         long latestTimeStamp= aboutFile.exists() ? aboutFile.lastModified() : 0;
@@ -534,6 +536,8 @@ public class HapiServerSupport {
     public static JSONObject getCatalog( String HAPI_HOME ) throws IOException, JSONException {
         
         logger.info("getCatalog");
+        
+        Initialize.maybeInitialize( HAPI_HOME );
         
         File catalogFile= new File( HAPI_HOME, "catalog.json" );
         CatalogData cc= catalogCache.get( HAPI_HOME );
@@ -701,6 +705,9 @@ public class HapiServerSupport {
      * @throws IllegalArgumentException for bad id.
      */
     public static JSONObject getDataConfig( String HAPI_HOME, String id ) throws IOException, JSONException, HapiException {
+        
+        Initialize.maybeInitialize( HAPI_HOME );
+        
         File dir= new File( HAPI_HOME, "data" );
         String safeId= Util.fileSystemSafeName(id);
         File file= new File( dir, safeId + ".json" );
@@ -822,6 +829,9 @@ public class HapiServerSupport {
      * @throws IllegalArgumentException for bad id.
      */
     public static JSONObject getInfo( String HAPI_HOME, String id ) throws IOException, JSONException, HapiException {
+        
+        Initialize.maybeInitialize( HAPI_HOME );
+        
         File infoDir= new File( HAPI_HOME, "info" );
         String safeId= Util.fileSystemSafeName(id);
         File infoFile= new File( infoDir, safeId + ".json" );
