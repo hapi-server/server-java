@@ -237,6 +237,7 @@ public class CsaInfoCatalogSource {
             result.put("HAPI", "3.0");
             result.put("catalog", catalog);
             result.put("status", getOKStatus());
+            result.put("x_tap_url",url);    
 
             if (logger.isLoggable(Level.FINER)) {
                 logger.finer(result.toString(4));
