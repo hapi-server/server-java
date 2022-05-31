@@ -9,22 +9,17 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.security.Policy.Parameters;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
-import org.codehaus.jettison.json.JSONObject;
 
 import org.hapiserver.AbstractHapiRecord;
 import org.hapiserver.HapiRecord;
@@ -483,7 +478,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
     private HapiRecord parseRecord(ByteBuffer record) {
         String s = StandardCharsets.UTF_8.decode(record).toString();
-        logger.finer("Record String: " + s);
+        logger.log(Level.FINER, "Record String: {0}", s);
 
         String[] fields = SourceUtil.stringSplit(s);
         for (int i = 0; i < fields.length; i++) {
@@ -501,7 +496,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                 throw new IllegalArgumentException("Multi-dimensional data types not supported yet");
             }
             int vectorLength = p.sizes[0];
-            List<Integer> componentIndices = new ArrayList<Integer>();
+            List<Integer> componentIndices = new ArrayList<>();
             for (int iComponent = 0; iComponent < vectorLength; iComponent++) {
                 componentIndices.add(fieldIndex++);
             }
@@ -517,7 +512,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             @Override
             public String getIsoTime(int i) {
                 String field = fields[i];
-                if (fields[i].length() > 45) {
+                if (fields[i].length() > 45) { //TODO: kludge for time ranges.
                     int is1 = field.indexOf("/");
                     if (is1 > 0) {
                         field = field.substring(0, 24) + "Z";
@@ -788,7 +783,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
         try {
             while (iter.hasNext()) {
-                HapiRecord rec = null;
+                HapiRecord rec;
                 rec = iter.next();
                 i++;
                 List<String> lineList = new ArrayList<>();
