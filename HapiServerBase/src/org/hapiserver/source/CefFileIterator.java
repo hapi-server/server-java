@@ -483,7 +483,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
     private HapiRecord parseRecord(ByteBuffer record) {
 		String s = StandardCharsets.UTF_8.decode(record).toString();
-		System.err.println("Record String: "+s);
+                logger.finer("Record String: "+s);
 
 		String[] fields = SourceUtil.stringSplit(s);
                 for ( int i=0; i<fields.length; i++ ) {
@@ -680,7 +680,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     				read_buffer.limit(read_buffer.capacity());
     				
     				int read_size = lun.read(read_buffer);
-    				System.err.println("Read "+read_size+" bytes");
+                                logger.log(Level.FINER, "Read {0} bytes", read_size);
     				
     				if (read_size == -1) {
     					eof = true;
@@ -718,7 +718,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     		ByteBuffer record = work_buffer.slice();
     		record.limit(stringLength);
     		nextRecord = parseRecord(record);
-    		System.err.println("Read: "+nextRecord);
+                logger.log(Level.FINER, "Read: {0}", nextRecord);
 
     		//advance the position
     		work_buffer.position(work_buffer.position()+delimeterPos+1);
@@ -764,8 +764,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     			startDate,endDate);
     	URL uu = new URL(urlString);
 		
-		System.err.println("Opening connection to: "+uu);
-    	
+        logger.log(Level.FINE, "Opening connection to: {0}", uu);
         
         InputStream in= uu.openStream();
         ReadableByteChannel lun= Channels.newChannel(in);
