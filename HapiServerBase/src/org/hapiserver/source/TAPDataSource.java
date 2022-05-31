@@ -8,6 +8,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import org.hapiserver.AbstractHapiRecordSource;
 import org.hapiserver.HapiRecord;
@@ -15,7 +16,8 @@ import org.hapiserver.TimeUtil;
 
 public class TAPDataSource extends AbstractHapiRecordSource {
 	
-	
+	private static final Logger logger= Logger.getLogger("hapi.cef");
+        
 	private String tapServerURL;
 	private String id;
 
@@ -42,7 +44,7 @@ public class TAPDataSource extends AbstractHapiRecordSource {
 		
 		String queryString = tapServerURL+"data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID="+id+
 				"&START_DATE="+startTimeString+"&END_DATE="+endTimeString;
-		System.err.println("Querying: "+queryString);
+		logger.fine("Querying: "+queryString);
 		try {
 			URL uu = new URL(queryString);
 			InputStream in= uu.openStream();
