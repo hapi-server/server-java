@@ -1,4 +1,3 @@
-
 package org.hapiserver.source;
 
 import java.io.FileOutputStream;
@@ -32,41 +31,42 @@ import org.hapiserver.HapiRecord;
 
 /**
  * make CEF reader which provides records as the CEF is read in.
+ *
  * @author jbf
  */
 public class CefFileIterator implements Iterator<HapiRecord> {
-	
-	public Cef getCef() {
-		return cef;
-	}
 
-    public CefFileIterator( ReadableByteChannel lun ) throws IOException {
-        
-        for ( int i=0; i<doParse.length; i++ ) {
-            doParse[i]=true;
+    public Cef getCef() {
+        return cef;
+    }
+
+    public CefFileIterator(ReadableByteChannel lun) throws IOException {
+
+        for (int i = 0; i < doParse.length; i++) {
+            doParse[i] = true;
         }
-        
-        this.lun= lun;
-        
+
+        this.lun = lun;
+
         CefReaderHeader readerh = new CefReaderHeader();
         cef = readerh.read(lun);
-        
+
         readNextRecord();
 
     }
 
-    private static final Logger logger= Logger.getLogger("hapi.cef");
-    
+    private static final Logger logger = Logger.getLogger("hapi.cef");
+
     // *** Define the delimeters used in the CEF file
     byte eor;
     byte comma = (byte) ',';
-    static final Charset CHARSET= java.nio.charset.Charset.forName("US-ASCII");
-    
-    public static final int MAX_FIELDS=40000;
-    boolean [] doParse= new boolean[MAX_FIELDS]; 
-    
+    static final Charset CHARSET = java.nio.charset.Charset.forName("US-ASCII");
+
+    public static final int MAX_FIELDS = 40000;
+    boolean[] doParse = new boolean[MAX_FIELDS];
+
     private ReadableByteChannel lun;
-    
+
     protected static class GlobalStruct {
 
         //String name;
@@ -82,7 +82,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         int[] cefFieldPos;  // start, end inclusive
         Map<String, Object> entries = new LinkedHashMap<>();
     }
-    
+
     /**
      * class representing the CEF file and data needed to parse it.
      *
@@ -103,8 +103,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     }
 
     /**
-     * Reads the CEF Header, which contains metadata and information about how to
-     * parse the stream.
+     * Reads the CEF Header, which contains metadata and information about how to parse the stream.
      *
      * @author jbf
      */
@@ -271,48 +270,48 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
                         case TOP: {
 
-                        //*** Use the keyword to determine the action
-                        switch (key) {
-                            case "START_META":
-                                //*** New global metadata item ***
-                                state = State.GLOBAL;
-                                gStru = new GlobalStruct();
-                                gName = value[0];
-                                //gStru.name = value[0];
-                                gStru.valueType = "CHAR";
-                                eCount = 0;
-                                break;
-                            case "START_VARIABLE":
-                                //*** New parameter ***
-                                state = State.PARAM;
-                                pName = value[0];
-                                pStru = new ParamStruct();
-                                pStru.name = value[0];
-                                pStru.recType = 1;
-                                break;
-                            case "INCLUDE":
-                                throw new IllegalArgumentException("not yet supported");
+                            //*** Use the keyword to determine the action
+                            switch (key) {
+                                case "START_META":
+                                    //*** New global metadata item ***
+                                    state = State.GLOBAL;
+                                    gStru = new GlobalStruct();
+                                    gName = value[0];
+                                    //gStru.name = value[0];
+                                    gStru.valueType = "CHAR";
+                                    eCount = 0;
+                                    break;
+                                case "START_VARIABLE":
+                                    //*** New parameter ***
+                                    state = State.PARAM;
+                                    pName = value[0];
+                                    pStru = new ParamStruct();
+                                    pStru.name = value[0];
+                                    pStru.recType = 1;
+                                    break;
+                                case "INCLUDE":
+                                    throw new IllegalArgumentException("not yet supported");
                                 //if ( !value[0].equals(readFile) ) {
                                 //   param = cef_read( findinclude(value[0]), cef );
                                 // }
-                        //*** Special CEF defined items at the top level ***
-                            case "DATA_UNTIL":
-                                //*** Start of data ***
-                                state = State.DATA_READ;
-                                //cef.dataUntil = value[0];
-                                break;
-                        //cef.fileName = value[0];
-                            case "FILE_NAME":
-                                break;
-                        //cef.fileFormatVersion = value[0];
-                            case "FILE_FORMAT_VERSION":
-                                break;
-                            case "END_OF_RECORD_MARKER":
-                                cef.eor = (byte) value[0].charAt(0);
-                                break;
-                            default:
-                                throw new IllegalArgumentException("Unsupported key " + key);
-                        }
+                                //*** Special CEF defined items at the top level ***
+                                case "DATA_UNTIL":
+                                    //*** Start of data ***
+                                    state = State.DATA_READ;
+                                    //cef.dataUntil = value[0];
+                                    break;
+                                //cef.fileName = value[0];
+                                case "FILE_NAME":
+                                    break;
+                                //cef.fileFormatVersion = value[0];
+                                case "FILE_FORMAT_VERSION":
+                                    break;
+                                case "END_OF_RECORD_MARKER":
+                                    cef.eor = (byte) value[0].charAt(0);
+                                    break;
+                                default:
+                                    throw new IllegalArgumentException("Unsupported key " + key);
+                            }
 
                         }
                         break;
@@ -444,14 +443,14 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         }
     }
 
-    public void skipParse( int i ) {
-        doParse[i]= false;
+    public void skipParse(int i) {
+        doParse[i] = false;
     }
-    
-    public void doParse( int i ) {
-        doParse[i]= true;
+
+    public void doParse(int i) {
+        doParse[i] = true;
     }
-    
+
     private int countFields(ByteBuffer work_buffer) {
         int fields = 1;
         for (int k = 0;; k++) {
@@ -467,11 +466,12 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
     /**
      * returns the position of the last end-of-record, or -1 if one is not found.
+     *
      * @param work_buffer
      * @return the position of the last end-of-record, or -1 if one is not found.
      */
     private int getLastEor(ByteBuffer work_buffer) {
-    	ByteBuffer scanBuffer = work_buffer.slice();
+        ByteBuffer scanBuffer = work_buffer.slice();
         int pos_eor;
         for (pos_eor = scanBuffer.limit() - 1; pos_eor >= 0; pos_eor--) {
             if (scanBuffer.get(pos_eor) == eor) {
@@ -482,34 +482,32 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     }
 
     private HapiRecord parseRecord(ByteBuffer record) {
-		String s = StandardCharsets.UTF_8.decode(record).toString();
-                logger.finer("Record String: "+s);
+        String s = StandardCharsets.UTF_8.decode(record).toString();
+        logger.finer("Record String: " + s);
 
-		String[] fields = SourceUtil.stringSplit(s);
-                for ( int i=0; i<fields.length; i++ ) {
-                    fields[i]= fields[i].trim();
-                }
-                
-		Cef cef = getCef();
-		final List<List<Integer>> columnIndices = new ArrayList<>();
-		Iterator<String> params = cef.parameters.keySet().iterator();
-		int fieldIndex = 0;
-		for (int i=0;i<cef.nparam;i++) {
-			String key = params.next();
-			ParamStruct p = cef.parameters.get(key); 
-			if (p.sizes.length != 1) {
-				throw new IllegalArgumentException("Multi-dimensional data types not supported yet");
-			}
-			int vectorLength = p.sizes[0];
-			List<Integer> componentIndices = new ArrayList<Integer>();
-			for (int iComponent=0;iComponent<vectorLength;iComponent++) {
-				componentIndices.add(fieldIndex++);
-			}
-			columnIndices.add(componentIndices);
-		}
-		
-		
-		
+        String[] fields = SourceUtil.stringSplit(s);
+        for (int i = 0; i < fields.length; i++) {
+            fields[i] = fields[i].trim();
+        }
+
+        Cef cef = getCef();
+        final List<List<Integer>> columnIndices = new ArrayList<>();
+        Iterator<String> params = cef.parameters.keySet().iterator();
+        int fieldIndex = 0;
+        for (int i = 0; i < cef.nparam; i++) {
+            String key = params.next();
+            ParamStruct p = cef.parameters.get(key);
+            if (p.sizes.length != 1) {
+                throw new IllegalArgumentException("Multi-dimensional data types not supported yet");
+            }
+            int vectorLength = p.sizes[0];
+            List<Integer> componentIndices = new ArrayList<Integer>();
+            for (int iComponent = 0; iComponent < vectorLength; iComponent++) {
+                componentIndices.add(fieldIndex++);
+            }
+            columnIndices.add(componentIndices);
+        }
+
         return new AbstractHapiRecord() {
             @Override
             public int length() {
@@ -518,13 +516,13 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
             @Override
             public String getIsoTime(int i) {
-                String field= fields[i];
-                if ( fields[i].length()>45 ) {
+                String field = fields[i];
+                if (fields[i].length() > 45) {
                     int is1 = field.indexOf("/");
-                    if ( is1>0 ) {
-                        field= field.substring(0,24)+"Z";
+                    if (is1 > 0) {
+                        field = field.substring(0, 24) + "Z";
                     }
-                }        
+                }
                 return field;
             }
 
@@ -535,55 +533,53 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
             @Override
             public int getInteger(int i) {
-                return Integer.parseInt( getAsString(i) );
+                return Integer.parseInt(getAsString(i));
             }
 
             @Override
             public int[] getIntegerArray(int i) {
                 String[] stringArray = getStringArray(i);
-            	int[] intArray = new int[stringArray.length];
-            	for (int iField=0;iField<stringArray.length;iField++) {
+                int[] intArray = new int[stringArray.length];
+                for (int iField = 0; iField < stringArray.length; iField++) {
                     intArray[iField] = Integer.parseInt(stringArray[iField]);
-            	}
-            	return intArray;
+                }
+                return intArray;
             }
-            
-            @Override
-			public double[] getDoubleArray(int i) {
-            	String[] stringArray = getStringArray(i);
-            	double[] doubleArray = new double[stringArray.length];
-            	for (int iField=0;iField<stringArray.length;iField++) {
-            		doubleArray[iField] = Double.parseDouble(stringArray[iField]);
-            	}
-            	return doubleArray;
-            	
-			}
 
             @Override
-			public String[] getStringArray(int i) {
-            	List<Integer> indices = columnIndices.get(i);
-            	String[] vector = new String[indices.size()];
-            	for (int iField=0;iField<indices.size();iField++) {
-            		int fieldIndex = indices.get(iField);
-            		vector[iField] = fields[fieldIndex];
-            	}
-            	return vector;
-            	
-			}
+            public double[] getDoubleArray(int i) {
+                String[] stringArray = getStringArray(i);
+                double[] doubleArray = new double[stringArray.length];
+                for (int iField = 0; iField < stringArray.length; iField++) {
+                    doubleArray[iField] = Double.parseDouble(stringArray[iField]);
+                }
+                return doubleArray;
 
-            
-            
-			@Override
+            }
+
+            @Override
+            public String[] getStringArray(int i) {
+                List<Integer> indices = columnIndices.get(i);
+                String[] vector = new String[indices.size()];
+                for (int iField = 0; iField < indices.size(); iField++) {
+                    int fieldIndex = indices.get(iField);
+                    vector[iField] = fields[fieldIndex];
+                }
+                return vector;
+
+            }
+
+            @Override
             public double getDouble(int i) {
                 return Double.parseDouble(getAsString(i));
             }
 
             @Override
             public String getAsString(int i) {
-            	if (columnIndices.get(i).size() !=1) {
-					throw new IllegalArgumentException("Paramter "+i+" is an array type.");
-				}
-				int fieldIndex = columnIndices.get(i).get(0);
+                if (columnIndices.get(i).size() != 1) {
+                    throw new IllegalArgumentException("Paramter " + i + " is an array type.");
+                }
+                int fieldIndex = columnIndices.get(i).get(0);
                 return fields[fieldIndex];
             }
 
@@ -591,7 +587,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             public String toString() {
                 return getAsString(0) + " " + length() + " fields";
             }
-            
+
         };
     }
 
@@ -599,7 +595,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         // remove comments by replacing them with whitespace.  When the 
         // record delimiter is not EOL, replace EOLs with whitespace.
 
-        if ( work_size!=work_buffer.limit() ) {
+        if (work_size != work_buffer.limit()) {
             throw new IllegalArgumentException("work_size must be the same as the limit");
         }
         byte comment = (byte) '!';
@@ -619,211 +615,200 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             } else if (ch == eol && eor != eol) {
                 work_buffer.put(pos_comment, (byte) 32);
             } else if (ch == eor) {
-            //work_buffer.put( pos_comment, comma ); //leave them in in this parser
+                //work_buffer.put( pos_comment, comma ); //leave them in in this parser
             }
         }
     }
 
-
-   
     private int findDelimeterPosition(ByteBuffer work_buffer) {
         ByteBuffer scanBuffer = work_buffer.slice();
-    	while (scanBuffer.hasRemaining()) {
+        while (scanBuffer.hasRemaining()) {
             if (scanBuffer.get() == eor) {
-                return scanBuffer.position()-1;
+                return scanBuffer.position() - 1;
             }
         }
         return -1;
 
-    }    
-    
+    }
+
     Cef cef;
     int buffer_size = 600000;
 
     /**
-     * usable limit in work_buffer.  This is the position of the end of the
-     * last complete record
+     * usable limit in work_buffer. This is the position of the end of the last complete record
      */
 //    int work_size = 0;
     byte[] work_buf = new byte[2 * buffer_size];
     ByteBuffer read_buffer = ByteBuffer.wrap(new byte[buffer_size]);
     ByteBuffer work_buffer = ByteBuffer.wrap(work_buf);
-    boolean eof= false;
-    
+    boolean eof = false;
+
     // *** Set the processing state flag (1=first record, 2=subsequent records, 0 = end of file )
-    int n_fields= -1;     //*** number of fields per record, -1 means we haven't counted.
+    int n_fields = -1;     //*** number of fields per record, -1 means we haven't counted.
 
     int irec = 0;
-                    
-    
+
     private HapiRecord nextRecord;
-    
+
     private void readNextRecord() throws IOException {
-    	
-    	eor= cef.eor;
-    	
-    	// *** Keep reading until we reach the end of the file.
-    	if ( eof) {
-    		this.nextRecord= null;
-    		
-    	} else {
-    		
-    		
-    		//    removeComments(work_buffer, work_buffer.limit() );
-    		int last_eor = getLastEor(work_buffer); //*** look for delimeters, EOR, comments, EOL etc
-    		int loop = 0;
-    		while (last_eor<0) { // reload the work_buffer
-    			try {
-    				//*** read the next chunk of the file
-    				//*** catch errors to avoid warning message if we read past end of file
-    				read_buffer.rewind();
-    				read_buffer.limit(read_buffer.capacity());
-    				
-    				int read_size = lun.read(read_buffer);
-                                logger.log(Level.FINER, "Read {0} bytes", read_size);
-    				
-    				if (read_size == -1) {
-    					eof = true;
-    					this.nextRecord= null;
-    					return;
-    				}
-    				
-    				//*** transfer this onto the end of the work buffer and update size of work buffer
-    				if (read_size > 0) {
-    					read_buffer.flip();
-    					if ( work_buffer.position()>0 && loop == 0) {
-    						//There's unused data in the work buffer, so preserve it
-    						work_buffer.compact();
-    					}
-    					work_buffer.put(read_buffer);
-    					work_buffer.flip();
-    				}
 
-    			} catch ( IOException ex ) {
-    				throw new RuntimeException(ex);
-    			}
-    			//removeComments(work_buffer, work_buffer.limit() );                
-    			last_eor = getLastEor(work_buffer);
-    			if(last_eor<0) {
-    				//No full record available, so prepare the work buffer to read more
-    				work_buffer.position(work_buffer.limit());
-    				work_buffer.limit(work_buffer.capacity());
-    			}
-    			loop++;
-    		}
-    		
-    		
-    		int delimeterPos = findDelimeterPosition(work_buffer);
-    		int stringLength = delimeterPos;
-    		ByteBuffer record = work_buffer.slice();
-    		record.limit(stringLength);
-    		nextRecord = parseRecord(record);
-                logger.log(Level.FINER, "Read: {0}", nextRecord);
+        eor = cef.eor;
 
-    		//advance the position
-    		work_buffer.position(work_buffer.position()+delimeterPos+1);
+        // *** Keep reading until we reach the end of the file.
+        if (eof) {
+            this.nextRecord = null;
 
-    		irec = irec + 1;
-    		
-    	}
-    	
-    	
+        } else {
+
+            //    removeComments(work_buffer, work_buffer.limit() );
+            int last_eor = getLastEor(work_buffer); //*** look for delimeters, EOR, comments, EOL etc
+            int loop = 0;
+            while (last_eor < 0) { // reload the work_buffer
+                try {
+                    //*** read the next chunk of the file
+                    //*** catch errors to avoid warning message if we read past end of file
+                    read_buffer.rewind();
+                    read_buffer.limit(read_buffer.capacity());
+
+                    int read_size = lun.read(read_buffer);
+                    logger.log(Level.FINER, "Read {0} bytes", read_size);
+
+                    if (read_size == -1) {
+                        eof = true;
+                        this.nextRecord = null;
+                        return;
+                    }
+
+                    //*** transfer this onto the end of the work buffer and update size of work buffer
+                    if (read_size > 0) {
+                        read_buffer.flip();
+                        if (work_buffer.position() > 0 && loop == 0) {
+                            //There's unused data in the work buffer, so preserve it
+                            work_buffer.compact();
+                        }
+                        work_buffer.put(read_buffer);
+                        work_buffer.flip();
+                    }
+
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+                //removeComments(work_buffer, work_buffer.limit() );                
+                last_eor = getLastEor(work_buffer);
+                if (last_eor < 0) {
+                    //No full record available, so prepare the work buffer to read more
+                    work_buffer.position(work_buffer.limit());
+                    work_buffer.limit(work_buffer.capacity());
+                }
+                loop++;
+            }
+
+            int delimeterPos = findDelimeterPosition(work_buffer);
+            int stringLength = delimeterPos;
+            ByteBuffer record = work_buffer.slice();
+            record.limit(stringLength);
+            nextRecord = parseRecord(record);
+            logger.log(Level.FINER, "Read: {0}", nextRecord);
+
+            //advance the position
+            work_buffer.position(work_buffer.position() + delimeterPos + 1);
+
+            irec = irec + 1;
+
+        }
+
     }
-    
+
     @Override
     public boolean hasNext() {
-        return nextRecord!=null;
+        return nextRecord != null;
     }
 
     @Override
     public HapiRecord next() {
-        final HapiRecord rec= nextRecord;
+        final HapiRecord rec = nextRecord;
         try {
-        	readNextRecord();
+            readNextRecord();
         } catch (IOException ex) {
-        	throw new RuntimeException(ex);
+            throw new RuntimeException(ex);
         }
-        
+
         return rec;
-        
-        
+
     }
-    
-    public static void main( String[] args ) throws MalformedURLException, IOException {
+
+    public static void main(String[] args) throws MalformedURLException, IOException {
         //URL uu= new URL( "file:/home/jbf/ct/hapi/u/larry/20220503/CEF/FGM_SPIN.cef");
 //        String infileString = "C:/Users/brownle1/cef/test.cef";
 //		URL uu= new URL( "file:/"+infileString );
-		
-		String dataSet = "C1_CP_FGM_20030303";
-    	
-    	
-    	String startDate = "2003-03-03T00:00:00Z";
-    	String endDate = "2003-03-03T02:00:00Z";
-    	//                                https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C1_CP_FGM_SPIN&START_DATE=2003-03-03T00:00Z&END_DATE=2003-03-03T02:00Z
-    	String urlString = String.format("https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C1_CP_FGM_SPIN&START_DATE=%s&END_DATE=%s",
-    			startDate,endDate);
-    	URL uu = new URL(urlString);
-		
+
+        String dataSet = "C1_CP_FGM_20030303";
+
+        String startDate = "2003-03-03T00:00:00Z";
+        String endDate = "2003-03-03T02:00:00Z";
+        //                                https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C1_CP_FGM_SPIN&START_DATE=2003-03-03T00:00Z&END_DATE=2003-03-03T02:00Z
+        String urlString = String.format("https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C1_CP_FGM_SPIN&START_DATE=%s&END_DATE=%s",
+            startDate, endDate);
+        URL uu = new URL(urlString);
+
         logger.log(Level.FINE, "Opening connection to: {0}", uu);
-        
-        InputStream in= uu.openStream();
-        ReadableByteChannel lun= Channels.newChannel(in);
+
+        InputStream in = uu.openStream();
+        ReadableByteChannel lun = Channels.newChannel(in);
 
 //		String dataSet = "C1_CP_FGM_test";
-		String outfileString = "C:/Users/brownle1/cef/"+dataSet+"csv.gz";
+        String outfileString = "C:/Users/brownle1/cef/" + dataSet + "csv.gz";
 
         FileOutputStream fos = new FileOutputStream(outfileString);
         GZIPOutputStream gzos = new GZIPOutputStream(fos);
         PrintWriter pw = new PrintWriter(gzos);
 
-        
-        
-        System.err.println("begin reading "+uu);
-        long t0= System.currentTimeMillis();
+        System.err.println("begin reading " + uu);
+        long t0 = System.currentTimeMillis();
 
         CefFileIterator iter = new CefFileIterator(lun);
         Cef cefSample = iter.getCef();
         List<String> headerList = new ArrayList<>();
         headerList.add("Epoch");
-        for(String key:cefSample.parameters.keySet()) {
-        	if (key.contains("time")) {
-        		continue;
-        	}
-        	if (key.contains("xyz")) {
-        		headerList.add(key.replace("xyz", "x"));
-        		headerList.add(key.replace("xyz", "y"));
-        		headerList.add(key.replace("xyz", "z"));
-        	} else {
-        		headerList.add(key);
-        	}
+        for (String key : cefSample.parameters.keySet()) {
+            if (key.contains("time")) {
+                continue;
+            }
+            if (key.contains("xyz")) {
+                headerList.add(key.replace("xyz", "x"));
+                headerList.add(key.replace("xyz", "y"));
+                headerList.add(key.replace("xyz", "z"));
+            } else {
+                headerList.add(key);
+            }
         }
-        pw.println( String.join(",",headerList));
+        pw.println(String.join(",", headerList));
         //Iterator<HapiRecord> iter= new CefFileIterator(lun); 
-    	int i=0;
+        int i = 0;
 
         try {
-        	while ( iter.hasNext() ) {
-        		HapiRecord rec= null;
-        		rec = iter.next();
-        		i++;
-        		List<String> lineList = new ArrayList<>();
-        		lineList.add(rec.getIsoTime(0));
-        		for(int iField=1;iField<headerList.size()-1;iField++) {
-        			try {
-        				String s = rec.getString(iField);
-        				lineList.add(s);
-        			} catch (Exception e) {
-        				break;
-        			}
-        		}
-        		pw.println( String.join(",",lineList));
-        	}
+            while (iter.hasNext()) {
+                HapiRecord rec = null;
+                rec = iter.next();
+                i++;
+                List<String> lineList = new ArrayList<>();
+                lineList.add(rec.getIsoTime(0));
+                for (int iField = 1; iField < headerList.size() - 1; iField++) {
+                    try {
+                        String s = rec.getString(iField);
+                        lineList.add(s);
+                    } catch (Exception e) {
+                        break;
+                    }
+                }
+                pw.println(String.join(",", lineList));
+            }
 //      	System.err.println("records read: "+i);
 //      	System.err.println("time to read: "+ (System.currentTimeMillis()-t0) + "ms" );
         } finally {
-        	pw.close();
-        	System.err.println("Got "+i+" records");
-        	System.err.println("Wrote "+outfileString);
+            pw.close();
+            System.err.println("Got " + i + " records");
+            System.err.println("Wrote " + outfileString);
         }
     }
 
