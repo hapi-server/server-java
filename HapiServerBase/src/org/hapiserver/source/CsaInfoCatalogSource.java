@@ -191,6 +191,10 @@ public class CsaInfoCatalogSource {
                             break;
                     }
                 }
+                
+                if ( parameter.optString("type","").equals("isotime") ) {
+                    parameter.remove("units");
+                }
 
                 parameters.put(parameters.length(), parameter);
             }
