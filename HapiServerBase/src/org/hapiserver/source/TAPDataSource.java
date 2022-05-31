@@ -12,14 +12,13 @@ import java.util.logging.Logger;
 
 import org.hapiserver.AbstractHapiRecordSource;
 import org.hapiserver.HapiRecord;
-import org.hapiserver.TimeUtil;
 
 public class TAPDataSource extends AbstractHapiRecordSource {
 	
 	private static final Logger logger= Logger.getLogger("hapi.cef");
         
-	private String tapServerURL;
-	private String id;
+	private final String tapServerURL;
+	private final String id;
 
 	public TAPDataSource(String tapServerURL,String id) {
 		this.tapServerURL = tapServerURL;
@@ -52,8 +51,7 @@ public class TAPDataSource extends AbstractHapiRecordSource {
 			CefFileIterator iter = new CefFileIterator(lun);
 	
 			return iter;
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
