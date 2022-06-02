@@ -704,6 +704,9 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             record.limit(stringLength);
             nextRecord = parseRecord(record);
             logger.log(Level.FINER, "Read: {0}", nextRecord);
+            if ( nextRecord.getIsoTime(0).compareTo("2100")>0 ) { // If it is appearently fill
+                logger.warning("Need to deal with fill value in time");
+            }
 
             //advance the position
             work_buffer.position(work_buffer.position() + delimeterPos + 1);

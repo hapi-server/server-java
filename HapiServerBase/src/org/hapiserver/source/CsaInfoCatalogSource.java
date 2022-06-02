@@ -185,7 +185,11 @@ public class CsaInfoCatalogSource {
                             parameter.put("label", c.getTextContent());
                             break;
                         case "FILLVAL":
-                            parameter.put("fill", c.getTextContent());
+                            if ( j==0 ) {
+                                parameter.put("fill", JSONObject.NULL );
+                            } else {
+                                parameter.put("fill", c.getTextContent());
+                            }
                             break;
                         default:
                             break;
