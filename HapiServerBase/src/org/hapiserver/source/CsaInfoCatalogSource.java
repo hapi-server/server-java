@@ -130,9 +130,45 @@ public class CsaInfoCatalogSource {
             JSONArray parameters = new JSONArray();
 
             for (int i = 0; i < nl.getLength(); i++) {
+                boolean isTime;
                 Node p = nl.item(i);
                 JSONObject parameter = new JSONObject();
                 NodeList n = p.getChildNodes();
+                for (int j = 0; j < n.getLength(); j++) {
+                    Node c = n.item(j); // parameter
+                    if ( c.getNodeName().equals("VALUE_TYPE") ) {
+                        String t = c.getTextContent();
+                        switch (t) {
+                            case "ISO_TIME":
+                                parameter.put("type", "isotime");
+                                parameter.put("units", "UTC" );
+                                break;
+                            case "ISO_TIME_RANGE":
+                                parameter.put("type", "isotime");
+                                parameter.put("x_type", "ISO_TIME_RANGE");
+                                parameter.put("units", "UTC" );
+                                break;
+                            case "FLOAT":
+                                parameter.put("type", "double");
+                                break;
+                            case "INT":
+                                parameter.put("type", "integer");
+                                break;
+                            case "CHAR":
+                                parameter.put("type", "string");
+                                break;
+                            default:
+                                break;
+                        }             
+                    }
+                }
+                
+                if ( !parameter.has("type") ) {
+                    throw new IllegalArgumentException("Expected type for id: "+id);
+                } else {
+                    isTime= parameter.getString("type").equals("isotime");
+                }
+                
                 for (int j = 0; j < n.getLength(); j++) {
                     Node c = n.item(j); // parameter
                     switch (c.getNodeName()) {
@@ -140,36 +176,19 @@ public class CsaInfoCatalogSource {
                             parameter.put("name", c.getTextContent());
                             break;
                         case "UNITS":
-                            if (c.getTextContent().equals("unitless")) {
-                                parameter.put("units", JSONObject.NULL);
+                            if ( isTime ) {
+                                parameter.put("units", "UTC" );
                             } else {
-                                if ( parameter.optString("type","").equals("isotime") ) {
-                                    parameter.put("units", "UTC" );
+                                if (c.getTextContent().equals("unitless")) {
+                                    parameter.put("units", JSONObject.NULL);
                                 } else {
                                     parameter.put("units", c.getTextContent());
                                 }
                             }
                             break;
-                        case "VALUE_TYPE":
-                            String t = c.getTextContent();
-                            if (t.equals("ISO_TIME")) {
-                                parameter.put("type", "isotime");
-                                parameter.put("units", "UTC" );
-                            } else if (t.equals("ISO_TIME_RANGE")) {
-                                parameter.put("type", "isotime");
-                                parameter.put("x_type", "ISO_TIME_RANGE");
-                                parameter.put("units", "UTC" );
-                            } else if (t.equals("FLOAT")) {
-                                parameter.put("type", "double");
-                            } else if (t.equals("INT")) {
-                                parameter.put("type", "integer");
-                            } else if (t.equals("CHAR")) {
-                                parameter.put("type", "string");
-                            }
-                            break;
                         case "SIGNIFICANT_DIGITS":
                             String type = parameter.optString("type", "");
-                            if (type.equals("isotime") || type.equals("string")) {
+                            if ( isTime || type.equals("string")) {
                                 if (parameter.optString("x_type", "").equals("ISO_TIME_RANGE")) {
                                     parameter.put("length", 25);
                                 } else {
@@ -191,7 +210,7 @@ public class CsaInfoCatalogSource {
                             parameter.put("label", c.getTextContent());
                             break;
                         case "FILLVAL":
-                            if ( j==0 ) {
+                            if ( isTime ) {
                                 parameter.put("fill", JSONObject.NULL );
                             } else {
                                 parameter.put("fill", c.getTextContent());
@@ -200,10 +219,6 @@ public class CsaInfoCatalogSource {
                         default:
                             break;
                     }
-                }
-                
-                if ( parameter.optString("type","").equals("isotime") ) {
-                    parameter.remove("units");
                 }
 
                 parameters.put(parameters.length(), parameter);
