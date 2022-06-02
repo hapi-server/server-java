@@ -167,7 +167,7 @@ public class CsaInfoCatalogSource {
                                 if (parameter.optString("x_type", "").equals("ISO_TIME_RANGE")) {
                                     parameter.put("length", 25);
                                 } else {
-                                    parameter.put("length", c.getTextContent());
+                                    parameter.put("length", Integer.parseInt(c.getTextContent()));
                                 }
                             }
                             break;
