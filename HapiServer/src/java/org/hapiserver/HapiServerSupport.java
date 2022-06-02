@@ -497,14 +497,15 @@ public class HapiServerSupport {
             throw new IOException("config directory should contain about.json");
         }
         
-        logger.info(" aboutConfigFile.lastModified(): "+aboutConfigFile.lastModified() );
-        logger.info(" latestTimeStamp: " + latestTimeStamp );
+        logger.log(Level.INFO, " aboutConfigFile.lastModified(): {0}", aboutConfigFile.lastModified());
+        logger.log(Level.INFO, " latestTimeStamp: {0}", latestTimeStamp);
         if ( aboutConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
             byte[] bb= Files.readAllBytes( Paths.get( aboutConfigFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
             try {
                 logger.info("read about from config" );
                 JSONObject jo= Util.newJSONObject(s);
+                jo.put("x_hapi_home",HAPI_HOME);
                                 
                 try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
                     logger.log(Level.INFO, "write resolved about to {0}", aboutFile.getPath());
