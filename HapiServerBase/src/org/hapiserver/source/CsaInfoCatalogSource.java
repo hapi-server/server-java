@@ -143,16 +143,22 @@ public class CsaInfoCatalogSource {
                             if (c.getTextContent().equals("unitless")) {
                                 parameter.put("units", JSONObject.NULL);
                             } else {
-                                parameter.put("units", c.getTextContent());
+                                if ( parameter.optString("type","").equals("isotime") ) {
+                                    parameter.put("units", "UTC" );
+                                } else {
+                                    parameter.put("units", c.getTextContent());
+                                }
                             }
                             break;
                         case "VALUE_TYPE":
                             String t = c.getTextContent();
                             if (t.equals("ISO_TIME")) {
                                 parameter.put("type", "isotime");
+                                parameter.put("units", "UTC" );
                             } else if (t.equals("ISO_TIME_RANGE")) {
                                 parameter.put("type", "isotime");
                                 parameter.put("x_type", "ISO_TIME_RANGE");
+                                parameter.put("units", "UTC" );
                             } else if (t.equals("FLOAT")) {
                                 parameter.put("type", "double");
                             } else if (t.equals("INT")) {
