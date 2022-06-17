@@ -73,8 +73,8 @@ public class AggregationRecordSource extends AbstractHapiRecordSource {
             
             Iterator<String> iter;
             
-            if ( file.startsWith("file:") ) {
-                File ff= new File(file);
+            if ( file.startsWith(FILE_URL_PROTOCOL) ) {
+                File ff= new File(file.substring(FILE_URL_PROTOCOL.length()));
                 if ( !ff.exists() ) {
                     return SourceUtil.getEmptyHapiRecordIterator();
                 }
@@ -101,5 +101,7 @@ public class AggregationRecordSource extends AbstractHapiRecordSource {
             throw new RuntimeException(ex);
         }
     }
+    
+    private static final String FILE_URL_PROTOCOL = "file:";
     
 }
