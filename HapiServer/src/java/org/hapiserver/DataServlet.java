@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -25,6 +26,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.exceptions.BadRequestIdException;
 import org.hapiserver.exceptions.HapiException;
+import org.hapiserver.exceptions.ServerImplementationException;
 import org.hapiserver.source.AggregatingIterator;
 
 /**
@@ -70,6 +72,62 @@ public class DataServlet extends HttpServlet {
     private static final Pattern PATTERN_INCLUDE = Pattern.compile("(|header)");
     
     /**
+     * throw exception when times are out of bounds
+     * @param info info for the parameter, which contains startDate and stopDate
+     * @param start requested start time 
+     * @param stop requested stop time
+     * @return true if everything is okay, throw HapiException otherwise
+     */
+    private boolean check1405TimeRange( JSONObject info, String start, String stop ) throws HapiException {
+        String startTime= info.optString("startDate","");
+        String stopTime= info.optString("stopDate","");
+        if ( startTime.length()==0 ) throw new IllegalArgumentException("info must contain startDate");
+        if ( stopTime.length()==0 ) throw new IllegalArgumentException("info must contain stopDate");
+        try {
+            start= TimeUtil.reformatIsoTime( startTime, start );
+        } catch ( IllegalArgumentException ex ) {
+            throw new HapiException( 1402, "Bad request - error in start time" );
+        }
+        try {
+            stop= TimeUtil.reformatIsoTime( startTime, stop );
+        } catch ( IllegalArgumentException ex ) {
+            throw new HapiException( 1403, "Bad request - error in stop time" );
+        }
+        if ( stop.compareTo(start)<=0 ) {
+            throw new HapiException( 1404, "start time equal to or after stop time" );
+        }
+        if ( start.compareTo(startTime)<0 ) {
+            throw new HapiException( 1405, "time outside valid range", "start time must be no earlier than "+startTime );
+        }
+        if ( stopTime.compareTo(stop)<0 ) {
+            throw new HapiException( 1405, "time outside valid range", "stop time must be no later than "+stopTime );
+        }
+        if ( info.has("x_requestLimits") ) {
+            try {
+                JSONObject requestLimits= info.getJSONObject("x_requestLimits");
+                String duration= requestLimits.optString("duration","");
+                if ( duration.length()>0 ) {
+                    try {
+                        int[] iduration= TimeUtil.parseISO8601Duration(duration);
+                        int[] istart= TimeUtil.parseISO8601Time(start);
+                        int[] stopLimit= TimeUtil.add( istart, iduration );
+                        String fstopLimit= TimeUtil.formatIso8601Time(stopLimit);
+                        fstopLimit= TimeUtil.reformatIsoTime( startTime, fstopLimit );
+                        if ( stop.compareTo(fstopLimit)>0 ) {
+                            throw new HapiException( 1408, "Bad request - too much time or data requested", "limit is "+duration );
+                        }
+                    } catch (ParseException ex) {
+                        throw new ServerImplementationException("unable to parse time duration");
+                    }
+                }
+            } catch (JSONException ex) {
+                logger.log(Level.SEVERE, null, ex);
+            }
+        }
+        return true;
+    }
+    
+    /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      *
      * @param request servlet request
@@ -94,8 +152,6 @@ public class DataServlet extends HttpServlet {
             getParam( params, "parameters", "", "The comma separated list of parameters to include in the response ", null );
         String include= getParam(params, "include", "", "include header at the top", PATTERN_INCLUDE);
         String format= getParam(params, "format", "", "The desired format for the data stream.", PATTERN_FORMAT);
-        String stream= getParam(params, "_stream", "true", "allow/disallow streaming.", PATTERN_TRUE_FALSE);
-        //String timer= getParam(params, "_timer", "false", "service request with timing output stream", PATTERN_TRUE_FALSE);
         
         if ( !params.isEmpty() ) {
             Util.raiseError( 1401, "Bad request - unknown API parameter name " + params.entrySet().iterator().next().getKey(), 
@@ -123,13 +179,6 @@ public class DataServlet extends HttpServlet {
         response.setHeader("Access-Control-Allow-Methods","GET" );
         response.setHeader("Access-Control-Allow-Headers","Content-Type" );
         
-        int[] dr;
-        try {
-            dr = TimeUtil.createTimeRange( TimeUtil.parseISO8601Time(timeMin), TimeUtil.parseISO8601Time(timeMax) );
-        } catch ( ParseException ex ) {
-            throw new RuntimeException(ex); //TODO: HAPI Exceptions
-        }
-
         Iterator<HapiRecord> dsiter;
         
         JSONObject jo;
@@ -141,10 +190,24 @@ public class DataServlet extends HttpServlet {
         } catch (JSONException | HapiException ex) {
             throw new RuntimeException(ex);
         }
-                
-        // boolean allowStream= !stream.equals("false");
+
+        try {
+            check1405TimeRange( jo, timeMin, timeMax );
+        } catch ( HapiException ex ) {
+            try (ServletOutputStream out = response.getOutputStream()) {
+                Util.raiseError( ex.getCode(), ex.getMessage(), response, out );
+                return;
+            }
+        }
 
         OutputStream out = response.getOutputStream();
+
+        int[] dr;
+        try {
+            dr = TimeUtil.createTimeRange( TimeUtil.parseISO8601Time(timeMin), TimeUtil.parseISO8601Time(timeMax) );
+        } catch ( ParseException ex ) {
+            throw new RuntimeException(ex); //TODO: HAPI Exceptions
+        }
         
         long t0= System.currentTimeMillis();
 
