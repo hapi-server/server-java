@@ -9,8 +9,7 @@ import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.hapiserver.DataFormatter;
-import org.hapiserver.HapiRecord;
+import org.hapiserver.exceptions.InconsistentDataException;
 
 
 /**
@@ -99,8 +98,9 @@ public class CsvDataFormatter implements DataFormatter {
                             if ( field.length()==lengths[i]-1 && field.charAt(field.length()-1)!='Z' ) {
                                 field= field+"Z";
                             } else {
-                                throw new RuntimeException( String.format( "length of field is in correct, should be %d but is %d", 
-                                                                       lengths[i], field.length() ));
+                                throw new InconsistentDataException( 
+                                    String.format( "length of field is in correct, should be %d but is %d", 
+                                    lengths[i], field.length() ) );
                             }
                         }
                         if ( field.charAt(lengths[i]-1)!='Z' ) throw new RuntimeException("isotime should end in Z");
