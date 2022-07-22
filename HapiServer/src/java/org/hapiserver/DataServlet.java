@@ -326,11 +326,13 @@ public class DataServlet extends HttpServlet {
         
         try {
             assert dsiter!=null;
-            while ( dsiter.hasNext() ) {
+            if ( dsiter.hasNext() ) {
                 logger.fine("dsiter has at least one record");
                             
                 HapiRecord first= dsiter.next();
             
+                logger.log(Level.FINER, "first record read from source: {0}", first.getIsoTime(0));
+                
                 dataFormatter.initialize( jo, out, first );
                 
                 if ( verify ) {
