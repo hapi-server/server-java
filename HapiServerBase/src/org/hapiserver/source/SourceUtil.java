@@ -24,6 +24,29 @@ public class SourceUtil {
     
     private static final Logger logger= Logger.getLogger("hapi");
     
+    private static boolean lineStartsWithTimeTag( String line ) {
+        if ( line.length()<2 ) {
+            return false;
+        } else if ( line.charAt(0)=='1' ) {
+            switch ( line.charAt(1) ) {
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                    return true;
+                default:
+                    return false;
+            }
+        } else if ( line.charAt(0)=='2' ) {
+            return Character.isDigit(line.charAt(1) );
+        } else if ( Character.isDigit(line.charAt(0) ) ) {
+            // TODO: check upper limits of times.
+            return false;
+        } else {
+            return false;
+        }
+    }
+    
     private static class AsciiSourceIterator implements Iterator<String> {
 
         BufferedReader reader;
@@ -32,11 +55,24 @@ public class SourceUtil {
         public AsciiSourceIterator( File file ) throws IOException {
             this.reader= new BufferedReader( new FileReader(file) );
             this.line= reader.readLine();
+            // allow for one or two header lines.
+            int headerLinesLimit = 2;
+            int iline= 1;
+            while ( line!=null && iline<=headerLinesLimit ) {
+                if ( lineStartsWithTimeTag(line) ) {
+                    break;
+                } else {
+                    logger.finer("advance to next line because this appears to be header: ");
+                    this.line= reader.readLine();
+                    iline= iline+1;
+                } 
+            }
         }
         
         public AsciiSourceIterator( URL url ) throws IOException {
             this.reader= new BufferedReader( new InputStreamReader( url.openStream() ) );
             this.line= reader.readLine();
+            line = line+1;
         }
         
         @Override
