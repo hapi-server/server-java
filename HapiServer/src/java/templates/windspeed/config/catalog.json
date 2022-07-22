@@ -1,0 +1,10 @@
+ {
+     "HAPI": "3.0",
+     "catalog": [
+        { "id": "WindSpeed34803" }
+     ],
+     "status": {
+         "code": 1200,
+         "message": "OK request successful"
+     }
+ }
