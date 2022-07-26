@@ -51,3 +51,6 @@ framework.  The CDAWeb server has known problems which need to be resolved.
 When changes are pushed to the github server, the war file is rebuilt and will be available 
 within a minute or two at
 https://cottagesystems.com/autoplot/git/server-java/HapiServer/dist/HapiServer.war
+
+last_modified_at:
+
