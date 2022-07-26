@@ -57,6 +57,17 @@ public class BinaryDataFormatter implements DataFormatter {
         bytes= Arrays.copyOf( bytes, k );
         return bytes;
     }
+    
+    /**
+     * return the fill value or NaN if a fill value is not used.
+     * @param parameter the JSONObject for the parameter, containing "name" and "units"
+     * @return the fill value or NaN if a fill value is not used.
+     */
+    private double getFill( JSONObject parameter ) {
+        String sfill= parameter.optString("fill","NaN");
+        if ( sfill==null ) sfill= "NaN";
+        return Double.parseDouble( sfill );        
+    }
         
     @Override
     public void initialize( JSONObject info, OutputStream out, HapiRecord record) {
@@ -169,7 +180,7 @@ public class BinaryDataFormatter implements DataFormatter {
                                 }
                             };                            
                         }
-                        fl= Double.parseDouble( parameter.getString("fill") );
+                        fl= getFill(parameter);
                         break;
                     case "integer":
                         if ( nfields==1 ) {
@@ -200,7 +211,7 @@ public class BinaryDataFormatter implements DataFormatter {
                                 }
                             };                            
                         }
-                        fl= Double.parseDouble( parameter.getString("fill") );
+                        fl= getFill(parameter);
                         break;
                     default:
                     throw new IllegalArgumentException("server is misconfigured, using unsupported type: "+stype );
