@@ -420,7 +420,7 @@ public final class Util {
     }
     
     /**
-     * return a unique string for the build to aid in debugging.  This is the last push
+     * return a unique string for the build to aid in debugging.  This is the last commit
      * of this file, only this file.
      * @return the time this file was last modified.
      */
