@@ -420,10 +420,12 @@ public final class Util {
     }
     
     /**
-     * return a unique string for the build to aid in debugging.
-     * @return 
+     * return a unique string for the build to aid in debugging.  This is the last push
+     * of this file, only this file.
+     * @return the time this file was last modified.
      */
     public static String buildTime() {
-        return "2022-06-02T07:57"; // https://mademistakes.com/notes/adding-last-modified-timestamps-with-git/
+        String time= "last_modified_at: 2022-07-26T16:26:24";
+        return time.substring(18);
     }
 }
