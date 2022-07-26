@@ -52,6 +52,7 @@ When changes are pushed to the github server, the war file is rebuilt and will b
 within a minute or two at
 https://cottagesystems.com/autoplot/git/server-java/HapiServer/dist/HapiServer.war
 
-last_modified_at:
-
+---
+last_modified_at: 2022-07-26T16:26:24
+---
 
