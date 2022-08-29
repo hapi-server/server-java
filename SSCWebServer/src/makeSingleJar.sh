@@ -18,3 +18,4 @@ done
 rsync -a /home/jbf/ct/hapi/git/server-java/SSCWebServer/build/classes/ ./
 
 jar cvf ../store/SSCWebReader.jar *
+echo "wrote ../store/SSCWebReader.jar"
