@@ -134,7 +134,7 @@ public class ExtendedTimeUtil {
                 now[2]=1;
                 now[1]=1;
             } else {
-                throw new IllegalArgumentException("unsupported last component: "+label);
+                throw new IllegalArgumentException("unsupported last component, must be one of minute, day, month, or year: "+label);
             }
         } else if ( label.equals("now") ) {
             //do nothing
