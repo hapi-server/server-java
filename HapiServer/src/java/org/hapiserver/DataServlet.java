@@ -166,12 +166,12 @@ public class DataServlet extends HttpServlet {
             response.setContentType("application/binary");
             dataFormatter= new BinaryDataFormatter();
             response.setHeader("Content-disposition", "attachment; filename="
-                + Util.fileSystemSafeName(id) + "_"+timeMin+ "_"+timeMax + ".bin" );
+                + Util.fileSystemSafeName(id).replaceAll("\\/", "_" ) + "_"+timeMin+ "_"+timeMax + ".bin" );
         } else {
             response.setContentType("text/csv;charset=UTF-8");  
             dataFormatter= new CsvDataFormatter();
             response.setHeader("Content-disposition", "attachment; filename=" 
-                + Util.fileSystemSafeName(id) + "_"+timeMin+ "_"+timeMax + ".csv" ); 
+                + Util.fileSystemSafeName(id).replaceAll("\\/", "_" ) + "_"+timeMin+ "_"+timeMax + ".csv" ); 
         }
         
         

@@ -907,6 +907,11 @@ public class HapiServerSupport {
                 } else {
                     validInfoObject(jo);
                     String infoString= jo.toString(4);
+                    if ( !infoFile.getParentFile().exists() ) {
+                        if ( !infoFile.getParentFile().mkdirs() ) {
+                            logger.log(Level.WARNING, "unable to create folder for dataset id: {0}", infoFile);
+                        }
+                    }
                     Files.copy( new ByteArrayInputStream( infoString.getBytes(CHARSET) ), infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
                 }
                 latestTimeStamp= infoFile.lastModified();
