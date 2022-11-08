@@ -127,18 +127,20 @@ public final class Util {
      * <li>poolTemperature &rarr; poolTemperature
      * <li>Iowa City Conditions &rarr; _Iowa+City+Conditions
      * </ul>
+     * Note too that forward-slashes are allowed, so special handling of these is required,
+     * for example when subdirectories are created.
      * @param s the name of the ID.
      * @return a file-system safe name, not containing spaces, spaces replaced by pluses.  If strange characters remain everything is escaped.
      */
     public static final String fileSystemSafeName( String s ) {
-        Pattern p= Pattern.compile("[a-zA-Z0-9\\-\\+\\*\\._]+");
+        Pattern p= Pattern.compile("[a-zA-Z0-9\\-\\+\\*\\._\\/]+");
         Matcher m= p.matcher(s);
-        if ( m.matches() ) {
+        if ( m.matches() && !s.contains("..") ) {
             return s;
         } else {
             String s1= s.replaceAll("\\+","2B");
             s1= s1.replaceAll(" ","\\+");
-            if ( p.matcher(s1).matches() ) {
+            if ( p.matcher(s1).matches() && !s.contains("..") ) {
                 return "_" + s1;
             } else {
                 byte[] bb= s.getBytes( Charset.forName("UTF-8") );
