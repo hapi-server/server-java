@@ -752,6 +752,11 @@ public class HapiServerSupport {
             try {
                 jo= jo.getJSONObject("data");
                 String dataString= jo.toString(4);
+                if ( !file.getParentFile().exists() ) {
+                    if ( !file.getParentFile().mkdirs() ) {
+                        throw new RuntimeException("unable to create folder for dataset id: " + id );
+                    }
+                }
                 Files.copy( new ByteArrayInputStream( dataString.getBytes(CHARSET) ), file.toPath(), StandardCopyOption.REPLACE_EXISTING );
                 latestTimeStamp= dataConfigFile.lastModified();
             } catch ( JSONException ex ) {
@@ -909,7 +914,7 @@ public class HapiServerSupport {
                     String infoString= jo.toString(4);
                     if ( !infoFile.getParentFile().exists() ) {
                         if ( !infoFile.getParentFile().mkdirs() ) {
-                            logger.log(Level.WARNING, "unable to create folder for dataset id: {0}", infoFile);
+                            throw new RuntimeException("unable to create folder for dataset id: " + id );
                         }
                     }
                     Files.copy( new ByteArrayInputStream( infoString.getBytes(CHARSET) ), infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
