@@ -874,7 +874,7 @@ public class HapiServerSupport {
         
         long configTimeStamp= config==null ? infoConfigFile.lastModified() : cc.catalogTimeStamp;
             
-        if ( configTimeStamp > latestTimeStamp ) { // verify that it can be parsed and then copy it.
+        if ( configTimeStamp - latestTimeStamp > 0 ) { // verify that it can be parsed and then copy it.
                 
             JSONObject jo;
             if ( config==null ) {
