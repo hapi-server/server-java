@@ -274,7 +274,7 @@ public class HapiServerSupport {
     
     /**
      * Allow a command to produce the info for a dataset id
-     * @param jo
+     * @param jo configuration containing nodes like "x_command"
      * @param HAPI_HOME
      * @param id
      * @return
@@ -304,6 +304,8 @@ public class HapiServerSupport {
     
     /**
      * Allow a Java method to produce the catalog. 
+     * @param jo configuration containing nodes like "x_classpath", "x_class", and "x_method"
+     * @param HAPI_HOME
      * @return the JSONObject for the catalog.
      * @throws java.io.IOException
      */
@@ -392,9 +394,9 @@ public class HapiServerSupport {
      * have the tags "class" and "method" which identify a static method which takes the
      * id as an argument.
      * 
-     * @param jo
+     * @param jo configuration containing nodes like "x_classpath", "x_class", and "x_method"
      * @param HAPI_HOME
-     * @param id
+     * @param id dataset id
      * @return
      * @throws IOException 
      */
@@ -519,13 +521,96 @@ public class HapiServerSupport {
             }
         }
         
-        logger.info("reading about into json from " + Paths.get( aboutFile.toURI() ) );
+        logger.log(Level.INFO, "reading about into json from {0}", Paths.get( aboutFile.toURI() ));
         byte[] bb= Files.readAllBytes( Paths.get( aboutFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         JSONObject jo= Util.newJSONObject(s);
         
         return jo;
     }
+
+    /**
+     * read the relations file from the config directory if it has been modified.
+     * @param HAPI_HOME
+     * @return JSON for the about file.
+     * @throws IOException
+     * @throws JSONException 
+     */
+    public static JSONObject getRelations( String HAPI_HOME ) throws IOException, JSONException {
+        
+        logger.info("getRelations");
+        
+        String ff= "relations.json";
+        
+        JSONObject jo= loadAndCheckConfig(HAPI_HOME, ff);
+        
+        return jo;
+    }
+    
+    /**
+     * read the capabilities file from the config directory if it has been modified.
+     * @param HAPI_HOME
+     * @return JSON for the about file.
+     * @throws IOException
+     * @throws JSONException 
+     */
+    public static JSONObject getCapabilities( String HAPI_HOME ) throws IOException, JSONException {
+        
+        logger.info("getCapabilities");
+        
+        String ff= "capabilities.json";
+        
+        JSONObject jo= loadAndCheckConfig(HAPI_HOME, ff);
+        
+        return jo;
+    }
+    
+        
+
+    /**
+     * load the file, checking to see if there's a newer version in the config area.
+     * @param HAPI_HOME
+     * @param ff
+     * @return
+     * @throws IOException
+     * @throws JSONException 
+     */
+    private static JSONObject loadAndCheckConfig(String HAPI_HOME, String ff) throws IOException, JSONException {
+        Initialize.maybeInitialize( HAPI_HOME );
+        File releaseFile= new File( HAPI_HOME, ff );
+        long latestTimeStamp= releaseFile.exists() ? releaseFile.lastModified() : 0;
+        File configFile= new File( new File( HAPI_HOME, "config" ), ff );
+        if ( !configFile.exists() ) {
+            throw new IOException("config directory should contain "+ff);
+        }
+        logger.log(Level.INFO, " aboutConfigFile.lastModified(): {0}", configFile.lastModified());
+        logger.log(Level.INFO, " latestTimeStamp: {0}", latestTimeStamp);
+        if ( configFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
+            byte[] bb= Files.readAllBytes( Paths.get( configFile.toURI() ) );
+            String s= new String( bb, Charset.forName("UTF-8") );
+            try {
+                logger.log(Level.INFO, "read {0} from config", ff);
+                JSONObject jo= Util.newJSONObject(s);
+                jo.put("x_hapi_home",HAPI_HOME);
+                                
+                try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                    logger.log(Level.INFO, "write resolved about to {0}", releaseFile.getPath());
+                    Files.copy( ins,
+                            releaseFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                }
+                latestTimeStamp= releaseFile.lastModified();
+            } catch ( JSONException ex ) {
+                warnWebMaster(ex);
+                throw ex;
+            }
+        }
+        logger.log(Level.INFO, "reading about into json from {0}", releaseFile );
+        byte[] bb= Files.readAllBytes( Paths.get( releaseFile.toURI() ) );
+        String s= new String( bb, Charset.forName("UTF-8") );
+        JSONObject jo= Util.newJSONObject(s);
+        return jo;
+    }
+    
     
     /**
      * keep and monitor a cached version of the catalog in memory.
