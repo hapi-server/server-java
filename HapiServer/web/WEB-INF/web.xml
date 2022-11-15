@@ -31,6 +31,10 @@
         <servlet-name>DataServlet</servlet-name>
         <servlet-class>org.hapiserver.DataServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>RelationsServlet</servlet-name>
+        <servlet-class>org.hapiserver.RelationsServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>AboutServlet</servlet-name>
         <url-pattern>/hapi/about</url-pattern>
@@ -55,6 +59,10 @@
         <servlet-name>LandingServlet</servlet-name>
         <url-pattern>/hapi/</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>RelationsServlet</servlet-name>
+        <url-pattern>/hapi/relations</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             30
@@ -69,6 +77,6 @@
     </error-page>
     <context-param>
         <param-name>hapi_home</param-name>
-        <param-value>/tmp/hapi-server/</param-value>
+        <param-value>/home/jbf/ct/hapi/servers/fun/</param-value>
     </context-param>
 </web-app>
