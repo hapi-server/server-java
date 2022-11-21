@@ -35,6 +35,12 @@
         <servlet-name>RelationsServlet</servlet-name>
         <servlet-class>org.hapiserver.RelationsServlet</servlet-class>
     </servlet>
+    <servlet>
+        <description>Returns server semantics, which is 
+experimental and proposed for 3.2</description>
+        <servlet-name>SemanticsServlet</servlet-name>
+        <servlet-class>org.hapiserver.SemanticsServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>AboutServlet</servlet-name>
         <url-pattern>/hapi/about</url-pattern>
@@ -62,6 +68,10 @@
     <servlet-mapping>
         <servlet-name>RelationsServlet</servlet-name>
         <url-pattern>/hapi/relations</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SemanticsServlet</servlet-name>
+        <url-pattern>/hapi/semantics</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
