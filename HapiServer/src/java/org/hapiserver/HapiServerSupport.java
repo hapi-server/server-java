@@ -529,6 +529,26 @@ public class HapiServerSupport {
         return jo;
     }
 
+
+    /**
+     * read the relations file from the config directory if it has been modified.
+     * @param HAPI_HOME
+     * @return JSON for the about file.
+     * @throws IOException
+     * @throws JSONException 
+     */
+    public static JSONObject getSemantics( String HAPI_HOME ) throws IOException, JSONException {
+        
+        logger.info("getSemantics");
+        
+        String ff= "semantics.json";
+        
+        JSONObject jo= loadAndCheckConfig(HAPI_HOME, ff);
+        
+        return jo;
+    }
+    
+    
     /**
      * read the relations file from the config directory if it has been modified.
      * @param HAPI_HOME
