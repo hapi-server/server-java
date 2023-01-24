@@ -1,10 +1,7 @@
 
 package org.hapiserver;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,7 +25,7 @@ public class RelationsServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init(); 
-        HAPI_HOME= getServletContext().getInitParameter("hapi_home");
+        HAPI_HOME= Initialize.getHapiHome(getServletContext());
         logger.log(Level.INFO, "hapi_home is {0}", HAPI_HOME);
     }
     

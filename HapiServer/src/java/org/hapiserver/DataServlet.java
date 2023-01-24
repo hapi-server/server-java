@@ -44,9 +44,8 @@ public class DataServlet extends HttpServlet {
     
     @Override
     public void init() throws ServletException {
-        super.init(); 
-        HAPI_HOME= getServletContext().getInitParameter("hapi_home");
-        logger.log(Level.INFO, "hapi_home is {0}", HAPI_HOME);
+        super.init();
+        HAPI_HOME= Initialize.getHapiHome( getServletContext() );
     }
     
     private String getParam( Map<String,String[]> request, String name, String deft, String doc, Pattern constraints ) {

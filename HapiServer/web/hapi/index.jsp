@@ -29,7 +29,7 @@
             final int MAX_PARAMETERS=10;
             final int MAX_DATASETS=10;
             
-            String HAPI_HOME= getServletContext().getInitParameter("hapi_home");
+            String HAPI_HOME= Initialize.getHapiHome(getServletContext());
                 
             Initialize.maybeInitialize( HAPI_HOME );
 

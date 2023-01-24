@@ -33,7 +33,7 @@ public class AboutServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init(); 
-        HAPI_HOME= getServletContext().getInitParameter("hapi_home");
+        HAPI_HOME= Initialize.getHapiHome(getServletContext());
         logger.log(Level.INFO, "hapi_home is {0}", HAPI_HOME);
     }
     
