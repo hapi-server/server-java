@@ -87,6 +87,6 @@ experimental and proposed for 3.2</description>
     </error-page>
     <context-param>
         <param-name>hapi_home</param-name>
-        <param-value>/home/jbf/ct/hapi/servers/fun/</param-value>
+        <param-value>/tmp/hapi-server/</param-value>
     </context-param>
 </web-app>
