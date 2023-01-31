@@ -8,9 +8,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletContext;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 /**
  * One place where the hapi-server home directory is configured.  This folder
@@ -92,7 +97,7 @@ public class Initialize {
                 logger.log(Level.SEVERE, "Unable to write to {0}", aboutFile);
                 throw new IllegalArgumentException("unable to write about file");
             } else {
-                logger.log(Level.FINE, "wrote cached about file {0}", aboutFile);
+                logger.log(Level.FINE, "wrote config about file {0}", aboutFile);
             }
 
             File catalogFile= new File( configDir, "catalog.json" );
@@ -106,7 +111,36 @@ public class Initialize {
                 logger.log(Level.SEVERE, "Unable to write to {0}", catalogFile);
                 throw new IllegalArgumentException("unable to write catalog file");
             } else {
-                logger.log(Level.FINE, "wrote cached catalog file {0}", catalogFile);
+                logger.log(Level.FINE, "wrote config catalog file {0}", catalogFile);
+            }
+            
+            // load each of the template's info files.
+            try {
+                byte[] bb= Files.readAllBytes( Paths.get( catalogFile.toURI() ) );        
+                JSONObject jo= new JSONObject( new String(bb,"UTF-8") );
+                JSONObject jo2= HapiServerSupport.getCatalog(hapiHome.toString());
+                JSONArray cat=  jo.getJSONArray("catalog");
+                for ( int i=0; i<cat.length(); i++ ) {
+                    try {
+                        JSONObject ds= cat.getJSONObject(i);
+                        String id= ds.getString("id");
+                        id= Util.fileSystemSafeName(id);
+                        in= Util.getTemplateAsStream(id + ".json");
+                        tmpFile= new File( configDir, "_" + id + ".json" );
+                        Util.transfer( in, new FileOutputStream(tmpFile), true );
+                        File infoConfigFile = new File( configDir, id + ".json" );
+                        if ( !tmpFile.renameTo( infoConfigFile ) ) {
+                            logger.log(Level.SEVERE, "Unable to write to {0}", infoConfigFile);
+                            throw new IllegalArgumentException("unable to write info file");
+                        } else {
+                            logger.log(Level.FINE, "wrote config info file {0}", infoConfigFile);
+                        }
+                    } catch ( IOException ex2 ) {
+                        logger.log(Level.SEVERE, "Unable to write to {0}",ex2);
+                    }
+                }
+            } catch ( JSONException ex ) {
+                ex.printStackTrace();
             }
         
             File infoDir= new File( hapiHome, "info" );

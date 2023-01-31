@@ -968,9 +968,14 @@ public class HapiServerSupport {
             if ( thisId==null ) {
                 infoConfigFile= new File( configFile, "config.json" ); // allow config.json to contain "source"
             } else {
-                String groupId= thisId.getString("x_group_id");
-                JSONObject groups= cc.catalog.getJSONObject("x_groups");
-                config= groups.getJSONObject(groupId);
+                if ( thisId.has("x_group_id") ) {
+                    String groupId= thisId.getString("x_group_id");
+                    JSONObject groups= cc.catalog.getJSONObject("x_groups");
+                    config= groups.getJSONObject(groupId);
+                } else {
+                    
+                }
+
             }
         }
         
