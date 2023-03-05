@@ -49,7 +49,7 @@
         <a href="catalog">Catalog</a> <i>Show the catalog of available data sets.</i><br>
         <a href="semantics">Semantics</a> <i>Show declared relationships of data sets.</i><br>
         <br>
-                    
+                
         <%
             try {
             
@@ -161,12 +161,15 @@
                     } catch ( JSONException | IOException | RuntimeException ex ) {
                         out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
                         out.println( "<p>Unable to load info for dataset: <a href=\"info?id="+id+"\">"+id+"</a><br></p>" ) ;
+                        System.err.println(ex);
+                        //out.println( "ex: " + ex ); //TODO: security!!!
                     } 
                 }
             } catch ( JSONException ex ) {
                 out.print("<br><br><b>Something has gone wrong, see logs or send an email to faden at cottagesystems.com</b>");
-                out.println("<br>"+ex.getMessage());
+                //out.println("<br>"+ex.getMessage()); //TODO: security
                 out.println("<br>"+out.toString());
+                System.err.println(ex);
             }
             
             out.println("<br><br><br><small>build id: "+Util.buildTime()+"</small>");
