@@ -57,7 +57,8 @@
                 
                 JSONArray dss= catalog.getJSONArray("catalog");
                 
-                out.println("This server provides "+catalog.getJSONArray("catalog").length()+" datasets, examples follow.");
+                String pps= dss.length()>1 ? "s" : "";
+                out.println("This server provides "+dss.length()+" dataset" + pps + ", examples follow.");
                 
                 String autoplotServer= "https://jfaden.net/AutoplotServlet";
                 //String autoplotServer= "http://localhost:8084/AutoplotServlet";
@@ -160,16 +161,15 @@
                         }
                     } catch ( JSONException | IOException | RuntimeException ex ) {
                         out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
-                        out.println( "<p>Unable to load info for dataset: <a href=\"info?id="+id+"\">"+id+"</a><br></p>" ) ;
-                        System.err.println(ex);
+                        out.println( "<p>Unable to load info for dataset: <a href=\"info?id="+id+"\">"+id+"</a>, log files should notify the server host.<br></p>" ) ;
+                        Util.logError(ex);
                         //out.println( "ex: " + ex ); //TODO: security!!!
-                    } 
+                    }
                 }
             } catch ( JSONException ex ) {
                 out.print("<br><br><b>Something has gone wrong, see logs or send an email to faden at cottagesystems.com</b>");
                 //out.println("<br>"+ex.getMessage()); //TODO: security
-                out.println("<br>"+out.toString());
-                System.err.println(ex);
+                Util.logError(ex);
             }
             
             out.println("<br><br><br><small>build id: "+Util.buildTime()+"</small>");
