@@ -1,7 +1,7 @@
  {
      "HAPI": "3.0",
      "catalog": [
-        { "id": "pool_temperature" }
+        { "id": "hawkeye_mag" }
      ],
      "status": {
          "code": 1200,

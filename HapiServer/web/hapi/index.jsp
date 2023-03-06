@@ -29,7 +29,7 @@
             final int MAX_PARAMETERS=10;
             final int MAX_DATASETS=10;
             
-            String HAPI_HOME= getServletContext().getInitParameter("hapi_home");
+            String HAPI_HOME= Initialize.getHapiHome(getServletContext());
                 
             Initialize.maybeInitialize( HAPI_HOME );
 
@@ -47,8 +47,22 @@
         <a href="about">About</a> <i>More about this server, like contact info.</i><br>
         <a href="capabilities">Capabilities</a> <i>Capabilities of the server.</i><br>
         <a href="catalog">Catalog</a> <i>Show the catalog of available data sets.</i><br>
+        <% 
+            boolean hasSemantics= false;
+            try {
+                JSONObject json= HapiServerSupport.getSemantics(HAPI_HOME);
+                hasSemantics= true;
+            } catch ( IOException ex ) {
+            }
+            if ( hasSemantics ) {
+        %>
+        <a href="semantics">Semantics</a> <i>Show declared relationships of data sets.</i><br>
+        <%
+            }
+        %>
+        
         <br>
-                    
+                
         <%
             try {
             
@@ -56,7 +70,8 @@
                 
                 JSONArray dss= catalog.getJSONArray("catalog");
                 
-                out.println("This server provides "+catalog.getJSONArray("catalog").length()+" datasets, examples follow.");
+                String pps= dss.length()>1 ? "s" : "";
+                out.println("This server provides "+dss.length()+" dataset" + pps + ", examples follow.");
                 
                 String autoplotServer= "https://jfaden.net/AutoplotServlet";
                 //String autoplotServer= "http://localhost:8084/AutoplotServlet";
@@ -159,13 +174,20 @@
                         }
                     } catch ( JSONException | IOException | RuntimeException ex ) {
                         out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
-                        out.println( "<p>Unable to load info for dataset: <a href=\"info?id="+id+"\">"+id+"</a><br></p>" ) ;
-                    } 
+                        out.println( "<p>Unable to load info for dataset: <a href=\"info?id="+id+"\">"+id+"</a>, log files should notify the server host.<br></p>" ) ;
+                        Util.logError(ex);
+                        //out.println( "ex: " + ex ); //TODO: security!!!
+                    }
                 }
+                if ( numDataSets<dss.length() ) {
+                    pps= (dss.length()-numDataSets)>1 ? "s" : "";
+                    out.println("<br><p>("+(dss.length()-numDataSets)+" additional dataset" + pps +" can be accessed using a HAPI client.)</p>" );
+                }
+                
             } catch ( JSONException ex ) {
                 out.print("<br><br><b>Something has gone wrong, see logs or send an email to faden at cottagesystems.com</b>");
-                out.println("<br>"+ex.getMessage());
-                out.println("<br>"+out.toString());
+                //out.println("<br>"+ex.getMessage()); //TODO: security
+                Util.logError(ex);
             }
             
             out.println("<br><br><br><small>build id: "+Util.buildTime()+"</small>");

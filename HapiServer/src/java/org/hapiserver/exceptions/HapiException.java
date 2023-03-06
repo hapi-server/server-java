@@ -18,7 +18,6 @@ public class HapiException extends Throwable {
     public HapiException( int code, String message, String extra ) {
         super( message );
         this.code= code;
-        System.err.println("** " + extra);
     }
     
     public HapiException( int code, String message ) {

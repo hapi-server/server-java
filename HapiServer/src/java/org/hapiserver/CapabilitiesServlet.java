@@ -27,7 +27,7 @@ public class CapabilitiesServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         super.init(); 
-        HAPI_HOME= getServletContext().getInitParameter("hapi_home");
+        HAPI_HOME= Initialize.getHapiHome(getServletContext());
         logger.log(Level.INFO, "hapi_home is {0}", HAPI_HOME);
     }
     
@@ -82,8 +82,8 @@ public class CapabilitiesServlet extends HttpServlet {
             Util.sendFile(capabilitiesFile, request, response );
             
         } else {
-            synchronized ( this ) {
-                if ( !capabilitiesFile.exists() ) { // double-check within synchronized block
+            synchronized ( this ) { // double-check within synchronized block
+                if ( !capabilitiesFile.exists() ) { 
                     logger.log(Level.INFO, "copy capabilities.json from internal templates to {0}", capabilitiesFile);
                     InputStream in= Util.getTemplateAsStream("capabilities.json");
                     File tmpFile= new File( HAPI_HOME, "_capabilities.json" );

@@ -44,9 +44,8 @@ public class DataServlet extends HttpServlet {
     
     @Override
     public void init() throws ServletException {
-        super.init(); 
-        HAPI_HOME= getServletContext().getInitParameter("hapi_home");
-        logger.log(Level.INFO, "hapi_home is {0}", HAPI_HOME);
+        super.init();
+        HAPI_HOME= Initialize.getHapiHome( getServletContext() );
     }
     
     private String getParam( Map<String,String[]> request, String name, String deft, String doc, Pattern constraints ) {
@@ -166,12 +165,12 @@ public class DataServlet extends HttpServlet {
             response.setContentType("application/binary");
             dataFormatter= new BinaryDataFormatter();
             response.setHeader("Content-disposition", "attachment; filename="
-                + Util.fileSystemSafeName(id) + "_"+timeMin+ "_"+timeMax + ".bin" );
+                + Util.fileSystemSafeName(id).replaceAll("\\/", "_" ) + "_"+timeMin+ "_"+timeMax + ".bin" );
         } else {
             response.setContentType("text/csv;charset=UTF-8");  
             dataFormatter= new CsvDataFormatter();
             response.setHeader("Content-disposition", "attachment; filename=" 
-                + Util.fileSystemSafeName(id) + "_"+timeMin+ "_"+timeMax + ".csv" ); 
+                + Util.fileSystemSafeName(id).replaceAll("\\/", "_" ) + "_"+timeMin+ "_"+timeMax + ".csv" ); 
         }
         
         
@@ -383,6 +382,7 @@ public class DataServlet extends HttpServlet {
             dataFormatter.finalize(out);
             
         } catch ( RuntimeException ex ) {
+            Util.logError( ex );
             Util.raiseError( 1500, ex.getMessage(), response, out );
             
         } finally {

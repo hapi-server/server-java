@@ -8,8 +8,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.ServletContext;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 /**
  * One place where the hapi-server home directory is configured.  This folder
@@ -22,12 +28,19 @@ public class Initialize {
     private static final Logger logger= Logger.getLogger("hapi");
     
     /**
+     * This is the default location for the HAPI Server configuration.  When the
+     * configuration is this, then check the environment variable HAPI_HOME to
+     * see if it has been set.
+     */
+    public static final String DEFAULT_HAPI_HOME = "/tmp/hapi-server/";
+            
+    /**
      * initialize the HAPI_HOME if does not exist or the config directory does not exist.
      * @param hapiHome 
      */
     public static void maybeInitialize( String hapiHome ) {
         if ( hapiHome==null ) {
-            throw new IllegalArgumentException("HAPI_HOME is not set");
+            throw new IllegalArgumentException("hapiHome is not set, set in web.xml or with environment variable HAPI_HOME.");
         } else {
             File f= new File( hapiHome );
             if ( !f.exists() ) {
@@ -42,9 +55,9 @@ public class Initialize {
     }
     
     /**
-     * initialize the hapi_home area, writing initial configuration.
+     * initialize the hapi_home area, writing initial configuration.  
      * 
-     * @param hapiHome area where infos are stored.
+     * @param hapiHome directory where configuration is stored.
      */
     public static synchronized void initialize( File hapiHome ) {
         
@@ -84,7 +97,7 @@ public class Initialize {
                 logger.log(Level.SEVERE, "Unable to write to {0}", aboutFile);
                 throw new IllegalArgumentException("unable to write about file");
             } else {
-                logger.log(Level.FINE, "wrote cached about file {0}", aboutFile);
+                logger.log(Level.FINE, "wrote config about file {0}", aboutFile);
             }
 
             File catalogFile= new File( configDir, "catalog.json" );
@@ -98,7 +111,36 @@ public class Initialize {
                 logger.log(Level.SEVERE, "Unable to write to {0}", catalogFile);
                 throw new IllegalArgumentException("unable to write catalog file");
             } else {
-                logger.log(Level.FINE, "wrote cached catalog file {0}", catalogFile);
+                logger.log(Level.FINE, "wrote config catalog file {0}", catalogFile);
+            }
+            
+            // load each of the template's info files.
+            try {
+                byte[] bb= Files.readAllBytes( Paths.get( catalogFile.toURI() ) );        
+                JSONObject jo= new JSONObject( new String(bb,"UTF-8") );
+                JSONObject jo2= HapiServerSupport.getCatalog(hapiHome.toString());
+                JSONArray cat=  jo.getJSONArray("catalog");
+                for ( int i=0; i<cat.length(); i++ ) {
+                    try {
+                        JSONObject ds= cat.getJSONObject(i);
+                        String id= ds.getString("id");
+                        id= Util.fileSystemSafeName(id);
+                        in= Util.getTemplateAsStream(id + ".json");
+                        tmpFile= new File( configDir, "_" + id + ".json" );
+                        Util.transfer( in, new FileOutputStream(tmpFile), true );
+                        File infoConfigFile = new File( configDir, id + ".json" );
+                        if ( !tmpFile.renameTo( infoConfigFile ) ) {
+                            logger.log(Level.SEVERE, "Unable to write to {0}", infoConfigFile);
+                            throw new IllegalArgumentException("unable to write info file");
+                        } else {
+                            logger.log(Level.FINE, "wrote config info file {0}", infoConfigFile);
+                        }
+                    } catch ( IOException ex2 ) {
+                        logger.log(Level.SEVERE, "Unable to write to {0}",ex2);
+                    }
+                }
+            } catch ( JSONException ex ) {
+                ex.printStackTrace();
             }
         
             File infoDir= new File( hapiHome, "info" );
@@ -130,5 +172,27 @@ public class Initialize {
 //            }
 //        }
         
+    }
+
+    /**
+     * This is the one spot where the HAPI_HOME is calculated.  If the value from the servletContext is
+     * the default, Initialize.DEFAULT_HAPI_HOME, then also check if the environment variable HAPI_HOME
+     * is set.
+     * @param servletContext
+     * @return the directory where the HAPI configuration is found. 
+     */
+    public static String getHapiHome(ServletContext servletContext) {
+        String HAPI_HOME= servletContext.getInitParameter("hapi_home");
+        if ( HAPI_HOME.equals(Initialize.DEFAULT_HAPI_HOME) ) {
+            String x= System.getenv("HAPI_HOME");
+            if ( x==null ) {
+                x= System.getProperty("HAPI_HOME");
+            }
+            if ( x!=null ) {
+                logger.info("setting HAPI_HOME with environment variable.");
+                HAPI_HOME= x;
+            }
+        }
+        return HAPI_HOME;
     }
 }

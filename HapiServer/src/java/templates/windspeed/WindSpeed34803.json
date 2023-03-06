@@ -1,0 +1,30 @@
+{
+    "info": {
+        "HAPI": "3.0",
+        "cadence": "PT3S",
+        "parameters": [
+        {
+            "name": "Time",
+            "fill": null,
+            "length": 24,
+            "type": "isotime",
+            "units": "UTC"
+        },
+        {
+            "name": "WindSpeedAndDirection",
+            "description": "Wind Speed and Direction",
+            "units": [ "m/s", "degrees" ],
+            "label": [ "speed", "direction" ],
+            "size": [2],
+            "type": "double",
+            "fill": null
+        }
+        ],
+	"startDate":"2021-12-11T00:00Z",
+        "stopDate":"2022-01-07T00:00Z" 
+    },
+    "data": {
+        "source":"aggregation",
+        "files":"file:/home/jbf/data/tempest/34803/$Y/$m/34803.wind.$Y$m$d.csv"
+    }
+}

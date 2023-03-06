@@ -1,7 +1,7 @@
  {
      "HAPI": "3.0",
      "catalog": [
-        { "id": "pool_temperature" }
+        { "id": "WindSpeed34803" }
      ],
      "status": {
          "code": 1200,
