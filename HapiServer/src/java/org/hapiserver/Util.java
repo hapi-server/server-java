@@ -289,14 +289,25 @@ public final class Util {
     }
     
     /**
+     * log the error so that the webmaster can see it.
+     * @param ex the exception
+     */
+    public static void logError(Exception ex) {
+        ex.printStackTrace();
+    }
+        
+    /**
      * send an error response to the client. The document 
      * <a href="https://github.com/hapi-server/data-specification/blob/master/hapi-3.0.1/HAPI-data-access-spec-3.0.1.md#42-status-codes">status codes</a>
-     * talks about the status codes.
+     * talks about the status codes.  The error will be logged in the web logs,
+     * but not otherwise.  (This is for errors which don't need resolution on the 
+     * server side.)
      * @param statusCode HAPI status code, such as 1406
      * @param statusMessage the message, such as "HAPI error 1406: unknown dataset id"
      * @param response the response object
      * @param out the output stream from the response object.
      * @throws java.io.IOException when there are errors in I/O
+     * @see #logError(java.lang.Exception) 
      */
     public static void raiseError( int statusCode, String statusMessage, HttpServletResponse response, final OutputStream out ) 
         throws IOException {
@@ -423,11 +434,11 @@ public final class Util {
     
     /**
      * return a unique string for the build to aid in debugging.  This is the last commit
-     * of this file, only this file.
+     * of this file, only this file.  This should be updated by the revision control system.
      * @return the time this file was last modified.
      */
     public static String buildTime() {
-        String time= "last_modified_at: 2022-07-26T16:26:24";
+        String time= "last_modified_at: 2023-03-06T07:37:00";
         return time.substring(18);
     }
 }
