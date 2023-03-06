@@ -47,7 +47,20 @@
         <a href="about">About</a> <i>More about this server, like contact info.</i><br>
         <a href="capabilities">Capabilities</a> <i>Capabilities of the server.</i><br>
         <a href="catalog">Catalog</a> <i>Show the catalog of available data sets.</i><br>
+        <% 
+            boolean hasSemantics= false;
+            try {
+                JSONObject json= HapiServerSupport.getSemantics(HAPI_HOME);
+                hasSemantics= true;
+            } catch ( IOException ex ) {
+            }
+            if ( hasSemantics ) {
+        %>
         <a href="semantics">Semantics</a> <i>Show declared relationships of data sets.</i><br>
+        <%
+            }
+        %>
+        
         <br>
                 
         <%
