@@ -382,6 +382,7 @@ public class DataServlet extends HttpServlet {
             dataFormatter.finalize(out);
             
         } catch ( RuntimeException ex ) {
+            Util.logError( ex );
             Util.raiseError( 1500, ex.getMessage(), response, out );
             
         } finally {
