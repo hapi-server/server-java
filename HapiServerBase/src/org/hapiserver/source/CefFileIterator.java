@@ -740,13 +740,25 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 //        String infileString = "C:/Users/brownle1/cef/test.cef";
 //		URL uu= new URL( "file:/"+infileString );
 
-        String dataSet = "C1_CP_FGM_20030303";
+        String dataSet;
+        String startDate;
+        String endDate;
+        String urlString;
 
-        String startDate = "2003-03-03T00:00:00Z";
-        String endDate = "2003-03-03T02:00:00Z";
-        //                                https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C1_CP_FGM_SPIN&START_DATE=2003-03-03T00:00Z&END_DATE=2003-03-03T02:00Z
-        String urlString = String.format("https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C1_CP_FGM_SPIN&START_DATE=%s&END_DATE=%s",
-            startDate, endDate);
+        if ( false ) {
+            dataSet= "C1_CP_FGM_20030303";
+            startDate = "2003-03-03T00:00:00Z";
+            endDate = "2003-03-03T02:00:00Z";
+        //                             https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C1_CP_FGM_SPIN&START_DATE=2003-03-03T00:00Z&END_DATE=2003-03-03T02:00Z
+            urlString = String.format("https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C1_CP_FGM_SPIN&START_DATE=%s&END_DATE=%s",
+                startDate, endDate);
+        }
+        
+        if ( true ) {
+            dataSet="CL_SP_WHI";
+            urlString = "https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=CL_SP_WHI&START_DATE=2012-12-25T00:00:00Z&END_DATE=2012-12-26T00:00:00Z";
+        }
+        
         URL uu = new URL(urlString);
 
         logger.log(Level.FINE, "Opening connection to: {0}", uu);
@@ -755,7 +767,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         ReadableByteChannel lun = Channels.newChannel(in);
 
 //		String dataSet = "C1_CP_FGM_test";
-        String outfileString = "C:/Users/brownle1/cef/" + dataSet + "csv.gz";
+        String outfileString = "/home/jbf/tmp/20230314/" + dataSet + "csv.gz";
 
         FileOutputStream fos = new FileOutputStream(outfileString);
         GZIPOutputStream gzos = new GZIPOutputStream(fos);
