@@ -497,7 +497,8 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         for (int i = 0; i < cef.nparam; i++) {
             String key = params.next();
             ParamStruct p = cef.parameters.get(key);
-            if (p.cefFieldPos[0]==-1 ) { // Non-record-varying
+            int index= p.cefFieldPos[0];
+            if (index==-1 ) { // Non-record-varying
                 columnIndices.add(Collections.singletonList(-1));
                 String[] nonRecordVaryingValues= (String[])p.entries.get("DATA");
                 ffields.addAll( Arrays.asList(nonRecordVaryingValues) );
@@ -509,7 +510,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             int vectorLength = p.sizes[0];
             List<Integer> componentIndices = new ArrayList<>();
             for (int iComponent = 0; iComponent < vectorLength; iComponent++) {
-                componentIndices.add(p.cefFieldPos[0]+iComponent);
+                componentIndices.add(index+iComponent);
                 ffields.add(f1s[if1s++]);
             }
             columnIndices.add(componentIndices);
