@@ -61,4 +61,15 @@ public class TAPDataSource extends AbstractHapiRecordSource {
         return timeString;
     }
 
+    public static void main( String[] args ) {
+        String tapServerURL="https://csa.esac.esa.int/csa-sl-tap/";
+        String id= "CL_SP_WHI";
+        int[] start= new int[] { 2012, 12, 25, 0, 0, 0, 0 };
+        int[] stop= new int[] { 2012, 12, 26, 0, 0, 0, 0 };
+        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
+        while ( iter.hasNext() ) {
+            HapiRecord r= iter.next();
+            System.err.println( String.format( "%s %d fields", r.getIsoTime(0), r.length() ) );
+        }
+    }
 }
