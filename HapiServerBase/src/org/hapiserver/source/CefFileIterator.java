@@ -13,6 +13,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -480,28 +481,41 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         String s = StandardCharsets.UTF_8.decode(record).toString();
         logger.log(Level.FINER, "Record String: {0}", s);
 
-        String[] fields = SourceUtil.stringSplit(s);
-        for (int i = 0; i < fields.length; i++) {
-            fields[i] = fields[i].trim();
+        // Because of non-varying fields, this may be shorter than the number of fields.
+        String[] f1s = SourceUtil.stringSplit(s);
+        for (int i = 0; i < f1s.length; i++) {
+            f1s[i] = f1s[i].trim();
         }
 
-        Cef cef = getCef();
+        String[] fields;
+        
         final List<List<Integer>> columnIndices = new ArrayList<>();
+        final List<String> ffields= new ArrayList<>();
+        
         Iterator<String> params = cef.parameters.keySet().iterator();
-        int fieldIndex = 0;
+        int if1s = 0; // index into string array which contains physical records split up.
         for (int i = 0; i < cef.nparam; i++) {
             String key = params.next();
             ParamStruct p = cef.parameters.get(key);
+            if (p.cefFieldPos[0]==-1 ) { // Non-record-varying
+                columnIndices.add(Collections.singletonList(-1));
+                String[] nonRecordVaryingValues= (String[])p.entries.get("DATA");
+                ffields.addAll( Arrays.asList(nonRecordVaryingValues) );
+                continue;
+            }
             if (p.sizes.length != 1) {
                 throw new IllegalArgumentException("Multi-dimensional data types not supported yet");
             }
             int vectorLength = p.sizes[0];
             List<Integer> componentIndices = new ArrayList<>();
             for (int iComponent = 0; iComponent < vectorLength; iComponent++) {
-                componentIndices.add(fieldIndex++);
+                componentIndices.add(p.cefFieldPos[0]+iComponent);
+                ffields.add(f1s[if1s++]);
             }
             columnIndices.add(componentIndices);
         }
+        
+        fields= ffields.toArray( new String[ffields.size()] );
 
         return new AbstractHapiRecord() {
             @Override
@@ -575,7 +589,11 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                     throw new IllegalArgumentException("Paramter " + i + " is an array type.");
                 }
                 int fieldIndex = columnIndices.get(i).get(0);
-                return fields[fieldIndex];
+                if ( fieldIndex==-1 ) { // non-time-varying
+                    return fields[i];
+                } else {
+                    return fields[fieldIndex];
+                }
             }
 
             @Override
@@ -705,7 +723,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             nextRecord = parseRecord(record);
             logger.log(Level.FINER, "Read: {0}", nextRecord);
             if ( nextRecord.getIsoTime(0).compareTo("2100")>0 ) { // If it is appearently fill
-                logger.warning("Need to deal with fill value in time");
+                logger.warning("TODO: Need to deal with fill value in time");
             }
 
             //advance the position
