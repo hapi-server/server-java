@@ -1,2 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context path="/HapiServer"/>
+<Context path="/HapiServer">
+    <Parameter name="hapi_home" value="/tmp/hapi-server/"/>
+</Context>

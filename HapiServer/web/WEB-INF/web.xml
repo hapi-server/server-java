@@ -85,8 +85,4 @@ experimental and proposed for 3.2</description>
         <exception-type>java.lang.RuntimeException</exception-type>
         <location>/hapi/error.jsp</location>
     </error-page>
-    <context-param>
-        <param-name>hapi_home</param-name>
-        <param-value>/tmp/hapi-server/</param-value>
-    </context-param>
 </web-app>
