@@ -82,18 +82,18 @@ public class DataServlet extends HttpServlet {
         String stopTime= info.optString("stopDate","");
         if ( startTime.length()==0 ) throw new IllegalArgumentException("info must contain startDate");
         if ( stopTime.length()==0 ) throw new IllegalArgumentException("info must contain stopDate");
+        if ( stop.compareTo(start)<=0 ) {
+            throw new HapiException( 1404, "start time equal to or after stop time" );
+        }
         try {
             start= TimeUtil.reformatIsoTime( startTime, start );
         } catch ( IllegalArgumentException ex ) {
             throw new HapiException( 1402, "Bad request - error in start time" );
         }
         try {
-            stop= TimeUtil.reformatIsoTime( startTime, stop );
+            stop= TimeUtil.reformatIsoTime( stopTime, stop );
         } catch ( IllegalArgumentException ex ) {
             throw new HapiException( 1403, "Bad request - error in stop time" );
-        }
-        if ( stop.compareTo(start)<=0 ) {
-            throw new HapiException( 1404, "start time equal to or after stop time" );
         }
         if ( start.compareTo(startTime)<0 ) {
             throw new HapiException( 1405, "time outside valid range", "start time must be no earlier than "+startTime );
@@ -111,7 +111,7 @@ public class DataServlet extends HttpServlet {
                         int[] istart= TimeUtil.parseISO8601Time(start);
                         int[] stopLimit= TimeUtil.add( istart, iduration );
                         String fstopLimit= TimeUtil.formatIso8601Time(stopLimit);
-                        fstopLimit= TimeUtil.reformatIsoTime( startTime, fstopLimit );
+                        fstopLimit= TimeUtil.reformatIsoTime( stop, fstopLimit );
                         if ( stop.compareTo(fstopLimit)>0 ) {
                             throw new HapiException( 1408, "Bad request - too much time or data requested", "limit is "+duration );
                         }
