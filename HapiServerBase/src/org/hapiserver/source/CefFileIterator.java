@@ -504,10 +504,12 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                 ffields.addAll( Arrays.asList(nonRecordVaryingValues) );
                 continue;
             }
-            if (p.sizes.length != 1) {
-                throw new IllegalArgumentException("Multi-dimensional data types not supported yet");
+            int vectorLength;
+            vectorLength = p.sizes[0];
+            for ( int j=1; j<p.sizes.length; j++ ) {
+                vectorLength*= p.sizes[j];
             }
-            int vectorLength = p.sizes[0];
+            
             List<Integer> componentIndices = new ArrayList<>();
             for (int iComponent = 0; iComponent < vectorLength; iComponent++) {
                 componentIndices.add(index+iComponent);
