@@ -35,7 +35,8 @@ public class Initialize {
     public static final String DEFAULT_HAPI_HOME = "/tmp/hapi-server/";
             
     /**
-     * initialize the HAPI_HOME if does not exist or the config directory does not exist.
+     * initialize the HAPI_HOME if does not exist or the config directory does not exist.  Note
+     * if the HAPI_HOME is not DEFAULT_HAPI_HOME, the HAPI_HOME directory must exist already and be writable by the web server.
      * @param hapiHome 
      */
     public static void maybeInitialize( String hapiHome ) {
@@ -43,7 +44,7 @@ public class Initialize {
             throw new IllegalArgumentException("hapiHome is not set, set in web.xml or with environment variable HAPI_HOME.");
         } else {
             File f= new File( hapiHome );
-            if ( !f.exists() ) {
+            if ( !f.exists() && f.toString().equals(DEFAULT_HAPI_HOME)) {
                 Initialize.initialize(f);
             } else {
                 File configFile= new File( f, "config" );
