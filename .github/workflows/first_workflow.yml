@@ -24,11 +24,11 @@ jobs:
           cd /var/www/cottagesystems.com/autoplot/git/server-java/HapiServerBase
           ant clean jar
           echo "see https://cottagesystems.com/autoplot/git/server-java/HapiServerBase/dist/HapiServerBase.jar"          
-          echo "==="
+          echo "================"
           cd /var/www/cottagesystems.com/autoplot/git/server-java/HapiServer
           ant -Dj2ee.server.home=/usr/local/apache-tomcat-8/ clean dist
           echo "see https://cottagesystems.com/autoplot/git/server-java/HapiServer/dist/HapiServer.war"          
-          echo "==="
+          echo "================"
           cd /var/www/cottagesystems.com/autoplot/git/server-java/SimpleClasspathExtension
           ant clean jar
           echo "see https://cottagesystems.com/autoplot/git/server-java/SimpleClasspathExtension/dist/SimpleClasspathExtension.jar"
