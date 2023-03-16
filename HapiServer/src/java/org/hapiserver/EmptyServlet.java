@@ -1,12 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.hapiserver;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -17,8 +12,8 @@ import javax.servlet.http.HttpServletResponse;
  * redirect the browser to the hapi landing page.
  * @author jbf
  */
-@WebServlet(name = "LandingServlet", urlPatterns = {"/"})
-public class LandingServlet extends HttpServlet {
+@WebServlet(name = "EmptyServlet", urlPatterns = {"/"})
+public class EmptyServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
