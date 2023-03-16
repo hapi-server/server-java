@@ -315,17 +315,20 @@ public final class Util {
             JSONObject jo= createHapiResponse(statusCode,statusMessage);
             String s= jo.toString(4);
             int httpStatus= httpForHapiStatusCode(statusCode);
+            response.setContentType("application/json;charset=UTF-8");
             if ( statusCode==1201 ) {
-                response.sendError( httpStatus, statusMessage );
+                response.setStatus( httpStatus, statusMessage );
+                //response.sendError( httpStatus, statusMessage );
                 // no data means empty response
             } else {
                 if ( statusCode==1406 && statusMessage.equals("HAPI error 1406: unknown dataset id") ) {
-                    response.sendError( httpStatus, "Not Found; HAPI error 1406: unknown dataset id" );
+                    //response.sendError( httpStatus, "Not Found; HAPI error 1406: unknown dataset id" );
+                    //response.setStatus( httpStatus,  "Not Found; HAPI error 1406: unknown dataset id" );
                 } else {
-                    response.sendError( httpStatus, statusMessage );
+                    response.setStatus( httpStatus, statusMessage );
                 }
-                response.setContentType("application/json;charset=UTF-8");
                 out.write(s.getBytes(CHARSET));
+                out.close();
             }
             
         } catch (JSONException ex) {
