@@ -70,8 +70,9 @@
                 
                 JSONArray dss= catalog.getJSONArray("catalog");
                 
-                String pps= dss.length()>1 ? "s" : "";
-                out.println("This server provides "+dss.length()+" dataset" + pps + ", examples follow.");
+                if ( dss.length()>1 ) {
+                    out.println("This server provides "+dss.length()+" datasets, examples follow.");
+                }
                 
                 String autoplotServer= "https://jfaden.net/AutoplotServlet";
                 //String autoplotServer= "http://localhost:8084/AutoplotServlet";
@@ -152,13 +153,13 @@
                                     ub.append("id="+id);
                                     ub.append("&parameters="+pname);
                                     ub.append("&timerange="+exampleRange.toString().replaceAll(" ","+") );
-                                    sb.append( URLEncoder.encode(ub.toString()) );
+                                    sb.append( URLEncoder.encode(ub.toString(),"US-ASCII") );
                                     sb.append("&format=image%2Fpng");
                                     sb.append("&width=70");
                                     sb.append("&height=16");
                                     sb.append("&row=0%25-1px%2C100%25");
                                     sb.append("&column=0%25-1px%2C100%25");
-                                    sb.append("&timerange="+URLEncoder.encode(exampleRange.toString()) );
+                                    sb.append("&timerange="+URLEncoder.encode(exampleRange.toString(),"US-ASCII") );
                                     out.print( "<a href='"+autoplotServer+"/thin/zoom/demo.jsp?"+sb.toString()+"' target='top'>");
                                     out.print( "<img src='"+autoplotServer+"/SimpleServlet?"+sb.toString()+"'>" );
                                     out.print( "</a>");
@@ -180,7 +181,7 @@
                     }
                 }
                 if ( numDataSets<dss.length() ) {
-                    pps= (dss.length()-numDataSets)>1 ? "s" : "";
+                    String pps= (dss.length()-numDataSets)>1 ? "s" : "";
                     out.println("<br><p>("+(dss.length()-numDataSets)+" additional dataset" + pps +" can be accessed using a HAPI client.)</p>" );
                 }
                 
