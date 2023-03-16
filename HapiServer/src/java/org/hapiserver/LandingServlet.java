@@ -14,10 +14,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- *
+ * redirect the browser to the hapi landing page.
  * @author jbf
  */
-@WebServlet(name = "LandingServlet", urlPatterns = {"/hapi"})
+@WebServlet(name = "LandingServlet", urlPatterns = {"/"})
 public class LandingServlet extends HttpServlet {
 
     /**
@@ -31,7 +31,7 @@ public class LandingServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
 
-        response.sendRedirect( "index.jsp");
+        response.sendRedirect( "/hapi");
 
     }
 
