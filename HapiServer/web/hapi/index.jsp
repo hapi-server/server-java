@@ -74,7 +74,10 @@
                     out.println("This server provides "+dss.length()+" datasets, examples follow.");
                 }
                 
-                String autoplotServer= "https://jfaden.net/AutoplotServlet";
+                // There is a method for including sparklines on the landing page, where an "AutoplotServer" is called
+                // to generate graphics for each dataset.  Please ignore this if sparklines=false.
+                
+                String autoplotServer= "https://cottagesystems.com/AutoplotServlet";
                 //String autoplotServer= "http://localhost:8084/AutoplotServlet";
                     
                 String me= "http://spot9/hapi"; // TODO: address this, what is the public name for the server
