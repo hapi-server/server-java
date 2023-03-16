@@ -322,7 +322,7 @@ public final class Util {
                 // no data means empty response
             } else {
                 if ( statusCode==1406 && statusMessage.equals("HAPI error 1406: unknown dataset id") ) {
-                    //response.sendError( httpStatus, "Not Found; HAPI error 1406: unknown dataset id" );
+                    response.setStatus( httpStatus, "Not Found; HAPI error 1406: unknown dataset id" );
                     //response.setStatus( httpStatus,  "Not Found; HAPI error 1406: unknown dataset id" );
                 } else {
                     response.setStatus( httpStatus, statusMessage );
