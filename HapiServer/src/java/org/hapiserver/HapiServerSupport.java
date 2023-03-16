@@ -937,7 +937,8 @@ public class HapiServerSupport {
      * @throws java.io.IOException 
      * @throws org.codehaus.jettison.json.JSONException 
      * @throws org.hapiserver.exceptions.HapiException 
-     * @throws IllegalArgumentException for bad id.
+     * @throws IllegalArgumentException for a bad id.
+     * @throws BadRequestIdException for a bad id.
      */
     public static JSONObject getInfo( String HAPI_HOME, String id ) throws IOException, JSONException, HapiException {
         
@@ -956,6 +957,7 @@ public class HapiServerSupport {
         JSONObject config=null;
         
         if ( !infoConfigFile.exists() ) {
+            if ( cc==null ) throw new BadRequestIdException("",id);
             JSONArray arr= cc.catalog.getJSONArray("catalog");
             JSONObject thisId=null;
             for ( int i=0; i<arr.length(); i++ ) {
