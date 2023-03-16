@@ -320,7 +320,6 @@ public class DataServlet extends HttpServlet {
             Logger.getLogger(DataServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        boolean verify= true;
         boolean sendHeader= include.equals("header");
         
         try {
@@ -334,10 +333,7 @@ public class DataServlet extends HttpServlet {
                 
                 dataFormatter.initialize( jo, out, first );
                 
-                if ( verify ) {
-                    doVerify(dataFormatter, first, jo);
-                    verify= false;
-                }
+                doVerify(dataFormatter, first, jo);
                 
                 // format time boundaries so they are in the same format as the data, and simple string comparisons can be made.
                 String startTime= TimeUtil.reformatIsoTime( first.getIsoTime(0), timeMin );
