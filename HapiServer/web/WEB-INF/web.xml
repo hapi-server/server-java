@@ -46,6 +46,10 @@ experimental and proposed for 3.2</description>
         <servlet-name>EmptyServlet</servlet-name>
         <servlet-class>org.hapiserver.EmptyServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>LandingServlet</servlet-name>
+        <jsp-file>/hapi/index.jsp</jsp-file>
+    </servlet>
     <servlet-mapping>
         <servlet-name>AboutServlet</servlet-name>
         <url-pattern>/hapi/about</url-pattern>
@@ -77,7 +81,7 @@ experimental and proposed for 3.2</description>
     <servlet-mapping>
         <servlet-name>LandingServlet</servlet-name>
         <url-pattern>/hapi</url-pattern>
-    </servlet-mapping>
+    </servlet-mapping>    
     <servlet-mapping>
         <servlet-name>EmptyServlet</servlet-name>
         <url-pattern>/</url-pattern>
