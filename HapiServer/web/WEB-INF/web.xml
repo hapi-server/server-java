@@ -6,7 +6,7 @@
     </filter>
     <filter-mapping>
         <filter-name>GZIPFilter</filter-name>
-        <url-pattern>/hapi/.*</url-pattern>
+        <url-pattern>/hapi/*</url-pattern>
     </filter-mapping>
     <servlet>
         <description>Provides the server about response.</description>
