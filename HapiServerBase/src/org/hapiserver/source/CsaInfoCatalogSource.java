@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -176,6 +177,8 @@ public class CsaInfoCatalogSource {
                     isTime= parameter.getString("type").equals("isotime");
                 }
                 
+                List<String> sizes= new ArrayList<>();
+                
                 for (int j = 0; j < n.getLength(); j++) {
                     Node c = n.item(j); // parameter
                     switch (c.getNodeName()) {
@@ -204,11 +207,7 @@ public class CsaInfoCatalogSource {
                             }
                             break;
                         case "SIZES":
-                            if (!c.getTextContent().equals("1")) {
-                                JSONArray array = new JSONArray();
-                                array.put(0, Integer.parseInt(c.getTextContent())); //TODO: multi-dimensional
-                                parameter.put("size", array);
-                            }
+                            sizes.add(c.getTextContent());
                             break;
                         case "CATDESC":
                             parameter.put("description", c.getTextContent());
@@ -226,6 +225,20 @@ public class CsaInfoCatalogSource {
                         default:
                             break;
                     }
+                }
+
+                if ( sizes.isEmpty() || ( sizes.size()==1 && sizes.get(0).equals("1") ) ) {
+                    // no need to do anything, typical non-array case;
+                } else {
+                    JSONArray array = new JSONArray();
+                    for ( int ia=0; ia<sizes.size(); ia++ ) {
+                        try {     
+                            array.put(ia, Integer.parseInt(sizes.get(ia)));
+                        } catch (JSONException ex) {
+                            logger.log(Level.SEVERE, null, ex);
+                        }
+                    }
+                    parameter.put("size", array);
                 }
 
                 parameters.put(parameters.length(), parameter);
@@ -359,6 +372,13 @@ public class CsaInfoCatalogSource {
                     ex.printStackTrace();
                     System.exit(-1);
                 } catch (JSONException ex) {
+                    Logger.getLogger(CsaInfoCatalogSource.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else if ( args[0].equals("--case=4")) { 
+                try {
+                    String s = getInfo("C4_CP_CIS-CODIF_HS_O1_PEF");
+                    System.out.println(s);
+                } catch (IOException ex) {
                     Logger.getLogger(CsaInfoCatalogSource.class.getName()).log(Level.SEVERE, null, ex);
                 }
             } else {
