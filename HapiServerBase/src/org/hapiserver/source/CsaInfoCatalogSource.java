@@ -262,6 +262,7 @@ public class CsaInfoCatalogSource {
                     String id= s.substring(0, i).trim();
                     if ( exclude.contains(id) ) {
                         logger.log(Level.FINE, "excluding dataset id {0}", id);
+                        s = ins.readLine();
                         continue;
                     }
                     jo.put("id", id);
