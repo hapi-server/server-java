@@ -144,11 +144,15 @@ public class CsaInfoCatalogSource {
                 NodeList n = p.getChildNodes();
                 
                 String name=null;
+                String units=null;
 
                 for (int j = 0; j < n.getLength(); j++) {                    
                     Node c = n.item(j); // parameter
-                    if ( n.item(j).getNodeName().equals("PARAMETER_ID") ) {
+                    String nodeName= c.getNodeName();
+                    if ( nodeName.equals("PARAMETER_ID") ) {
                         name= c.getTextContent();
+                    } else if ( nodeName.equals("UNITS") ) {
+                        units= c.getTextContent();
                     }
                 }
                 
@@ -157,7 +161,8 @@ public class CsaInfoCatalogSource {
                 JSONObject parameter = new JSONObject();
                 for (int j = 0; j < n.getLength(); j++) {
                     Node c = n.item(j); // parameter
-                    if ( c.getNodeName().equals("DATA") ) {
+                    String nodeName= c.getNodeName();
+                    if ( nodeName.equals("DATA") ) {
                         String sdata= c.getFirstChild().getNodeValue();
                         constantData[i]= sdata; 
                         String[] ss= constantData[i].trim().split("\\s+");
@@ -169,11 +174,12 @@ public class CsaInfoCatalogSource {
                                 ja.put( z, Double.parseDouble(ss[z]) );
                             }
                             data.put( "centers", ja );
+                            if ( units!=null ) data.put( "units", units );
                             definitions.put( name, data );
                             hasDefinitions= true;                        
                         }
                     }
-                    if ( c.getNodeName().equals("VALUE_TYPE") ) {
+                    if ( nodeName.equals("VALUE_TYPE") ) {
                         String t = c.getTextContent();
                         switch (t) {
                             case "ISO_TIME":
@@ -280,7 +286,13 @@ public class CsaInfoCatalogSource {
                             if ( depends.size()==sizes.size() ) {
                                 JSONObject bin= new JSONObject();
                                 bin.setEscapeForwardSlashAlways(false);
-                                bin.put( "$ref", "#/definitions/"+ depends.get(ia) );
+                                if ( definitions.has( depends.get(ia) ) ) {
+                                    bin.put( "$ref", "#/definitions/"+ depends.get(ia) );
+                                } else {
+                                    bin.put( "name", depends.get(ia)+"__ref" );
+                                    bin.put( "centers", depends.get(ia) );
+                                }
+                                
                                 bins.put( ia, bin );
                             }
                             
