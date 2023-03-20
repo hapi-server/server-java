@@ -155,6 +155,7 @@ public class CsaInfoCatalogSource {
                                 parameter.put("units", "UTC" );
                                 break;
                             case "FLOAT":
+                            case "DOUBLE":
                                 parameter.put("type", "double");
                                 break;
                             case "INT":
@@ -233,6 +234,7 @@ public class CsaInfoCatalogSource {
             jo.put("startDate", startDate);
             jo.put("stopDate", stopDate);
             jo.put("x_tap_url", url);
+            jo.put("x_tap_data_url", )
             return jo.toString(4);
 
         } catch (JSONException | XPathExpressionException ex) {
