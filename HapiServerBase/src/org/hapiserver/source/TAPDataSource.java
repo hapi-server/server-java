@@ -10,11 +10,14 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.hapiserver.AbstractHapiRecordSource;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
 
+/**
+ * provide the data stream from the ESAC TAP server
+ * @author jbf
+ */
 public class TAPDataSource extends AbstractHapiRecordSource {
 
     private static final Logger logger = Logger.getLogger("hapi.cef");
@@ -45,7 +48,7 @@ public class TAPDataSource extends AbstractHapiRecordSource {
         int minimumDurationNs=200000000;
         int[] duration = TimeUtil.subtract(stop, start);
         if ( duration[0]==0 && duration[1]==0 && duration[2]==0 
-                &&  duration[3]==0 && duration[4]==0 && duration[5]==0 
+                && duration[3]==0 && duration[4]==0 && duration[5]==0 
                 && duration[6]<minimumDurationNs ) {
             startTimeString = formatTime(start);
             stopTimeString = formatTime( TimeUtil.add( start, new int[] { 0, 0, 0, 0, 0, 0, minimumDurationNs } ) );
