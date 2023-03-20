@@ -234,7 +234,12 @@ public class CsaInfoCatalogSource {
             jo.put("startDate", startDate);
             jo.put("stopDate", stopDate);
             jo.put("x_tap_url", url);
-            jo.put("x_tap_data_url", )
+            
+            // this is just to aid in debugging.
+            String queryString = "https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=" + id
+            + "&START_DATE=" + stopDate + "&END_DATE=" + stopDate;
+            jo.put("x_tap_data_url", queryString );
+            
             return jo.toString(4);
 
         } catch (JSONException | XPathExpressionException ex) {
