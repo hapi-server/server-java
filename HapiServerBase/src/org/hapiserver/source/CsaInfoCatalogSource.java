@@ -1,13 +1,10 @@
 package org.hapiserver.source;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -107,7 +104,8 @@ public class CsaInfoCatalogSource {
 
         String url = String.format("https://csa.esac.esa.int/csa-sl-tap/data?retrieval_type=HEADER&DATASET_ID=%s&FORCEPACK=false", id);
         JSONObject jo = new JSONObject();
-
+        jo.setEscapeForwardSlashAlways(false);
+        
         try (InputStream ins = new URL(url).openStream()) {
             //String s= SourceUtil.getAllFileLines( new URL(url) );
 
@@ -136,13 +134,45 @@ public class CsaInfoCatalogSource {
             NodeList nl = (NodeList) xpath.evaluate("/DATASETS/DATASET_METADATA/PARAMETERS/*", document, XPathConstants.NODESET);
             JSONArray parameters = new JSONArray();
 
+            JSONObject definitions = new JSONObject();
+            boolean hasDefinitions= false;
+                    
+            String[] constantData= new String[nl.getLength()];
             for (int i = 0; i < nl.getLength(); i++) {
                 boolean isTime;
                 Node p = nl.item(i);
-                JSONObject parameter = new JSONObject();
                 NodeList n = p.getChildNodes();
+                
+                String name=null;
+
+                for (int j = 0; j < n.getLength(); j++) {                    
+                    Node c = n.item(j); // parameter
+                    if ( n.item(j).getNodeName().equals("PARAMETER_ID") ) {
+                        name= c.getTextContent();
+                    }
+                }
+                
+                if ( name==null ) throw new IllegalArgumentException("unnamed parameter");
+               
+                JSONObject parameter = new JSONObject();
                 for (int j = 0; j < n.getLength(); j++) {
                     Node c = n.item(j); // parameter
+                    if ( c.getNodeName().equals("DATA") ) {
+                        String sdata= c.getFirstChild().getNodeValue();
+                        constantData[i]= sdata; 
+                        String[] ss= constantData[i].trim().split("\\s+");
+                        if ( ss.length>1 ) {
+                            JSONObject data= new JSONObject();
+                            data.put( "name", name );
+                            JSONArray ja= new JSONArray();
+                            for ( int z= 0; z<ss.length; z++ ) {
+                                ja.put( z, Double.parseDouble(ss[z]) );
+                            }
+                            data.put( "centers", ja );
+                            definitions.put( name, data );
+                            hasDefinitions= true;                        
+                        }
+                    }
                     if ( c.getNodeName().equals("VALUE_TYPE") ) {
                         String t = c.getTextContent();
                         switch (t) {
@@ -178,31 +208,41 @@ public class CsaInfoCatalogSource {
                 }
                 
                 List<String> sizes= new ArrayList<>();
+                List<String> depends= new ArrayList<>();
                 
                 for (int j = 0; j < n.getLength(); j++) {
                     Node c = n.item(j); // parameter
+                    String nodeName= c.getNodeName();
+                    String nodeValue= c.getTextContent();
                     switch (c.getNodeName()) {
                         case "PARAMETER_ID":
-                            parameter.put("name", c.getTextContent());
+                            parameter.put("name", nodeValue);
                             break;
                         case "UNITS":
                             if ( isTime ) {
                                 parameter.put("units", "UTC" );
                             } else {
-                                if (c.getTextContent().equals("unitless")) {
+                                if (nodeValue.equals("unitless")) {
                                     parameter.put("units", JSONObject.NULL);
                                 } else {
-                                    parameter.put("units", c.getTextContent());
+                                    parameter.put("units", nodeValue);
                                 }
                             }
                             break;
+                        case "DEPEND_1":
+                        case "DEPEND_2":
+                        case "DEPEND_3":
+                        case "DEPEND_4":
+                            int index= Integer.parseInt( nodeName.substring(7) );
+                            depends.add( index-1, nodeValue );
+                            
                         case "SIGNIFICANT_DIGITS":
                             String type = parameter.optString("type", "");
                             if ( isTime || type.equals("string")) {
                                 if (parameter.optString("x_type", "").equals("ISO_TIME_RANGE")) {
                                     parameter.put("length", 25);
                                 } else {
-                                    parameter.put("length", Integer.parseInt(c.getTextContent()));
+                                    parameter.put("length", Integer.parseInt(nodeValue));
                                 }
                             }
                             break;
@@ -210,16 +250,16 @@ public class CsaInfoCatalogSource {
                             sizes.add(c.getTextContent());
                             break;
                         case "CATDESC":
-                            parameter.put("description", c.getTextContent());
+                            parameter.put("description", nodeValue);
                             break;
                         case "FIELDNAM":
-                            parameter.put("label", c.getTextContent());
+                            parameter.put("label", nodeValue);
                             break;
                         case "FILLVAL":
                             if ( isTime ) {
                                 parameter.put("fill", JSONObject.NULL );
                             } else {
-                                parameter.put("fill", c.getTextContent());
+                                parameter.put("fill", nodeValue);
                             }
                             break;
                         default:
@@ -230,19 +270,43 @@ public class CsaInfoCatalogSource {
                 if ( sizes.isEmpty() || ( sizes.size()==1 && sizes.get(0).equals("1") ) ) {
                     // no need to do anything, typical non-array case;
                 } else {
+
+                    JSONArray bins= new JSONArray();
+
                     JSONArray array = new JSONArray();
                     for ( int ia=0; ia<sizes.size(); ia++ ) {
                         try {     
                             array.put(ia, Integer.parseInt(sizes.get(ia)));
+                            if ( depends.size()==sizes.size() ) {
+                                JSONObject bin= new JSONObject();
+                                bin.setEscapeForwardSlashAlways(false);
+                                bin.put( "$ref", "#/definitions/"+ depends.get(ia) );
+                                bins.put( ia, bin );
+                            }
+                            
                         } catch (JSONException ex) {
                             logger.log(Level.SEVERE, null, ex);
                         }
                     }
-                    parameter.put("size", array);
+                    if ( depends.size()==sizes.size() ) {
+                        parameter.put( "bins", bins );
+                    }
+                    parameter.put( "size", array );
                 }
 
-                parameters.put(parameters.length(), parameter);
+                if ( constantData[i]!=null && parameter.has("size") ) {
+                    
+                    
+                } else {                
+                    parameters.put(parameters.length(), parameter);
+
+                }
             }
+            
+            if ( hasDefinitions ) {
+                jo.put( "definitions", definitions );
+            }
+            
             jo.put("parameters", parameters);
             jo.put("startDate", startDate);
             jo.put("stopDate", stopDate);
@@ -296,6 +360,7 @@ public class CsaInfoCatalogSource {
                 }
             }
             JSONObject result = new JSONObject();
+            result.setEscapeForwardSlashAlways(false);
             result.put("HAPI", "3.0");
             result.put("catalog", catalog);
             result.put("status", getOKStatus());
