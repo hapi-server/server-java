@@ -1,10 +1,16 @@
 package org.hapiserver.source;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
@@ -236,11 +242,12 @@ public class CsaInfoCatalogSource {
     }
 
     /**
-     * return the catalog
+     * return the catalog as a HAPI catalog response
      * @return @throws IOException
      */
     public static String getCatalog() throws IOException {
         try {
+            loadExcludeList();
             JSONArray catalog = new JSONArray();
             String url = "https://csa.esac.esa.int/csa-sl-tap/tap/sync?REQUEST=doQuery&LANG=ADQL&FORMAT=CSV&QUERY=SELECT+dataset_id,title+FROM+csa.v_dataset";
             try (InputStream in = new URL(url).openStream()) {
@@ -252,7 +259,12 @@ public class CsaInfoCatalogSource {
                 while (s != null) {
                     int i = s.indexOf(",");
                     JSONObject jo = new JSONObject();
-                    jo.put("id", s.substring(0, i).trim());
+                    String id= s.substring(0, i).trim();
+                    if ( exclude.contains(id) ) {
+                        logger.log(Level.FINE, "excluding dataset id {0}", id);
+                        continue;
+                    }
+                    jo.put("id", id);
                     String t = s.substring(i + 1).trim();
                     if (t.startsWith("\"") && t.endsWith("\"")) {
                         t = t.substring(1, t.length() - 1);
@@ -293,6 +305,19 @@ public class CsaInfoCatalogSource {
         System.err.println("   [id] if missing, then return the catalog response");
     }
 
+    private static Set<String> exclude;
+    
+    private static void loadExcludeList() throws IOException {
+        exclude= new HashSet<>();
+        try (InputStream ins = CsaInfoCatalogSource.class.getResourceAsStream("/org/hapiserver/source/CsaCatalogExclude.txt") ) {
+            BufferedReader read= new BufferedReader( new InputStreamReader( ins ) );
+            String line= read.readLine();
+            while ( line!=null ) {
+                exclude.add(line);
+                line= read.readLine();
+            }
+        }
+    }
     /**
      *
      * @param args
@@ -302,6 +327,32 @@ public class CsaInfoCatalogSource {
             if (args[0].equals("--help")) {
                 printHelp();
                 System.exit(1);
+            } else if ( args[0].equals("--depth=all")) {
+                // this was to entertain the idea of doing a full catalog with every response info generated.  
+                // I realized I could generate this just as easily by running the "makeGiantCatalog.jy" script
+                // on my instance of this, which has the side-effect of generating all the info responses.
+                try {
+                    String s = getCatalog();
+                    JSONObject jo= new JSONObject(s);
+                    JSONArray ja= jo.getJSONArray("catalog");
+                    JSONArray ja1= new JSONArray();
+                    int n= ja.length();
+                    for ( int i=0; i<n; i++ ) {
+                        JSONObject jo1= ja.getJSONObject(i);
+                        String id= jo1.getString("id");
+                        String sinfo= getInfo(id);
+                        ja1.put(i,new JSONObject(sinfo));
+                        System.err.println("read infos: "+i+" of "+n);
+                    }
+                    jo.put("catalog",ja1);
+                    System.out.println(jo);
+                    
+                } catch ( IOException ex ) {
+                    ex.printStackTrace();
+                    System.exit(-1);
+                } catch (JSONException ex) {
+                    Logger.getLogger(CsaInfoCatalogSource.class.getName()).log(Level.SEVERE, null, ex);
+                }
             } else {
                 try {
                     String s = getInfo(args[0]);
