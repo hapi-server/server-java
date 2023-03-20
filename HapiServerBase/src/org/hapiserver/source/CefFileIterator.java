@@ -673,6 +673,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         // *** Keep reading until we reach the end of the file.
         if (eof) {
             this.nextRecord = null;
+            this.lun.close();
 
         } else {
 
