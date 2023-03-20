@@ -5,12 +5,15 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hapiserver.AbstractHapiRecordSource;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.TimeUtil;
 
 public class TAPDataSource extends AbstractHapiRecordSource {
 
@@ -37,11 +40,22 @@ public class TAPDataSource extends AbstractHapiRecordSource {
 
     @Override
     public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
-        String startTimeString = formatTime(start);
-        String endTimeString = formatTime(stop);
-
+        String startTimeString;
+        String stopTimeString;
+        int minimumDurationNs=200000000;
+        int[] duration = TimeUtil.subtract(stop, start);
+        if ( duration[0]==0 && duration[1]==0 && duration[2]==0 
+                &&  duration[3]==0 && duration[4]==0 && duration[5]==0 
+                && duration[6]<minimumDurationNs ) {
+            startTimeString = formatTime(start);
+            stopTimeString = formatTime( TimeUtil.add( start, new int[] { 0, 0, 0, 0, 0, 0, minimumDurationNs } ) );
+        } else {
+            startTimeString = formatTime(start);
+            stopTimeString = formatTime(stop);
+        }
+        
         String queryString = tapServerURL + "data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=" + id
-            + "&START_DATE=" + startTimeString + "&END_DATE=" + endTimeString;
+            + "&START_DATE=" + startTimeString + "&END_DATE=" + stopTimeString;
         logger.log(Level.FINE, "Querying: {0}", queryString);
         try {
             URL uu = new URL(queryString);
@@ -61,7 +75,7 @@ public class TAPDataSource extends AbstractHapiRecordSource {
         return timeString;
     }
 
-    public static void main( String[] args ) {
+    public static void mainCase1( String[] args ) {
         String tapServerURL="https://csa.esac.esa.int/csa-sl-tap/";
         String id= "CL_SP_WHI";
         int[] start= new int[] { 2012, 12, 25, 0, 0, 0, 0 };
@@ -71,5 +85,37 @@ public class TAPDataSource extends AbstractHapiRecordSource {
             HapiRecord r= iter.next();
             System.err.println( String.format( "%s %d fields", r.getIsoTime(0), r.length() ) );
         }
+    }
+    
+    public static void mainCase2( String[] args ) {
+        String tapServerURL="https://csa.esac.esa.int/csa-sl-tap/";
+        String id= "D1_CG_STA-DWP_COMBI_PNG";
+        int[] start= new int[] { 2012, 12, 25, 0, 0, 0, 0 };
+        int[] stop= new int[] { 2012, 12, 26, 0, 0, 0, 0 };
+        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
+        while ( iter.hasNext() ) {
+            HapiRecord r= iter.next();
+            System.err.println( String.format( "%s %d fields", r.getIsoTime(0), r.length() ) );
+        }
+    }
+    
+    public static void mainCase3( String[] args ) throws ParseException {
+        String tapServerURL="https://csa.esac.esa.int/csa-sl-tap/";
+        String id="CM_CG_WBD_OVERVIEW_500_19_PNG";
+        String tr= "2023-01-18T17:00/18:00";
+        int[] timerange = TimeUtil.parseISO8601TimeRange(tr);
+        int[] start= Arrays.copyOfRange( timerange, 0, 7 );
+        int[] stop= Arrays.copyOfRange( timerange, 7, 14 );
+        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
+        while ( iter.hasNext() ) {
+            HapiRecord r= iter.next();
+            System.err.println( String.format( "%s %d fields", r.getIsoTime(0), r.length() ) );
+        }
+    }
+    
+    public static void main(String[] args ) throws Exception {
+        //mainCase1(args);
+        //mainCase2(args);
+        mainCase3(args);
     }
 }
