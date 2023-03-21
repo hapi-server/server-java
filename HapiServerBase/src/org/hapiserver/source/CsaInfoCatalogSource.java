@@ -458,6 +458,14 @@ public class CsaInfoCatalogSource {
                 } catch (IOException ex) {
                     Logger.getLogger(CsaInfoCatalogSource.class.getName()).log(Level.SEVERE, null, ex);
                 }
+            } else if ( args[0].equals("--case=5") ) {
+                try {
+                    String s = getInfo("C1_CP_PEA_3DRH_PSD");
+                    System.out.println(s);
+                } catch (IOException ex) {
+                    Logger.getLogger(CsaInfoCatalogSource.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                //C1_CP_PEA_3DRH_PSD&parameters=time_tags__C1_CP_PEA_3DRH_PSD,Angle_SR2phi__C1_CP_PEA_3DRH_PSD&timerange=2019-08-01+0:00+to+0:10
             } else {
                 try {
                     String s = getInfo(args[0]);
