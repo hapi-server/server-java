@@ -501,7 +501,9 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             if (index==-1 ) { // Non-record-varying
                 columnIndices.add(Collections.singletonList(-1));
                 String[] nonRecordVaryingValues= (String[])p.entries.get("DATA");
-                ffields.addAll( Arrays.asList(nonRecordVaryingValues) );
+                if ( nonRecordVaryingValues.length==1 ) {
+                    ffields.addAll( Arrays.asList(nonRecordVaryingValues) );
+                }
                 continue;
             }
             int vectorLength;
