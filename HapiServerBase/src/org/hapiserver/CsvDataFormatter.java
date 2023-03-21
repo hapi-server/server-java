@@ -97,6 +97,8 @@ public class CsvDataFormatter implements DataFormatter {
                         if ( field.length()!=lengths[i] ) {
                             if ( field.length()==lengths[i]-1 && field.charAt(field.length()-1)!='Z' ) {
                                 field= field+"Z";
+                            } else if ( field.endsWith("Z") ) {
+                                field= field.substring(0,lengths[i]-1)+"Z";
                             } else {
                                 throw new InconsistentDataException( 
                                     String.format( "length of field is in correct, should be %d but is %d", 
