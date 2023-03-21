@@ -158,6 +158,12 @@ public class DataServlet extends HttpServlet {
             return;
         }
         
+        if ( timeMax.length()>timeMin.length() ) {
+            timeMin= TimeUtil.reformatIsoTime( timeMax, timeMin );
+        } else if ( timeMin.length()>timeMax.length() ) {
+            timeMax= TimeUtil.reformatIsoTime( timeMin, timeMax );
+        }
+        
         logger.log(Level.FINE, "data request for {0} {1}/{2}", new Object[]{id, timeMin, timeMax});
         
         DataFormatter dataFormatter;
