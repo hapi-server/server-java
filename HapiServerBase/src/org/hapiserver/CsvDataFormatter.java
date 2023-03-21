@@ -93,7 +93,7 @@ public class CsvDataFormatter implements DataFormatter {
                 switch ( parameter.getString("type") ) {
                     case "isotime": 
                         types[i]= TYPE_ISOTIME; 
-                        String field= record.getIsoTime(i);
+                        String field= record.getIsoTime(i).trim();
                         if ( field.length()!=lengths[i] ) {
                             if ( field.length()==lengths[i]-1 && field.charAt(field.length()-1)!='Z' ) {
                                 field= field+"Z";
@@ -107,7 +107,7 @@ public class CsvDataFormatter implements DataFormatter {
                                     lengths[i], field.length() ) );
                             }
                         }
-                        if ( field.charAt(lengths[i]-1)!='Z' ) throw new RuntimeException("isotime should end in Z");
+                        if ( field.charAt(field.length()-1)!='Z' ) throw new RuntimeException("isotime should end in Z");
                         break;
                     case "integer": {
                         if ( parameter.has("size") ) {
