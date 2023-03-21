@@ -98,7 +98,9 @@ public class CsvDataFormatter implements DataFormatter {
                             if ( field.length()==lengths[i]-1 && field.charAt(field.length()-1)!='Z' ) {
                                 field= field+"Z";
                             } else if ( field.endsWith("Z") ) {
-                                field= field.substring(0,lengths[i]-1)+"Z";
+                                if ( field.length()>lengths[i] ) {
+                                   logger.log(Level.WARNING, "isotime field is longer than info length ({0}): {1}", new Object[]{lengths[i], parameter.getString("name")});
+                                }
                             } else {
                                 throw new InconsistentDataException( 
                                     String.format( "length of field is in correct, should be %d but is %d", 
@@ -123,6 +125,10 @@ public class CsvDataFormatter implements DataFormatter {
                     } break;
                     case "string": {
                         types[i]= TYPE_STRING;
+                        field= record.getString(i);
+                        if ( field.length()>lengths[i] ) {
+                            logger.log(Level.WARNING, "string field is longer than info length ({0}): {1}", new Object[]{lengths[i], parameter.getString("name")});
+                        }
                     } break;
                     default:
                         throw new RuntimeException(parameter.getString("type")+" type not supported");
