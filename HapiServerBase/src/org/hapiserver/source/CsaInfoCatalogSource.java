@@ -77,6 +77,23 @@ public class CsaInfoCatalogSource {
         Document document = builder.parse(source);
         return document;
     }
+    
+    /**
+     * get the subnode PARAMETER_ID.  I'm sure there's an easier way to do this.
+     * @param p
+     * @return 
+     */
+    private static String getNameForNode( Node p ) {
+        NodeList n = p.getChildNodes();
+        for (int j = 0; j < n.getLength(); j++) {
+            Node c= n.item(j);
+            String nodeName= c.getNodeName();
+            if ( nodeName.equals("PARAMETER_ID") ) {
+                return c.getTextContent();
+            }
+        }
+        throw new IllegalArgumentException("expected to find PARAMETER_ID");
+    }
 
     /**
      * produce the info response for a given ID. This assumes the response will be cached and performance is not an issue.
@@ -134,10 +151,37 @@ public class CsaInfoCatalogSource {
             NodeList nl = (NodeList) xpath.evaluate("/DATASETS/DATASET_METADATA/PARAMETERS/*", document, XPathConstants.NODESET);
             JSONArray parameters = new JSONArray();
 
+            String[] constantData= new String[nl.getLength()];
             JSONObject definitions = new JSONObject();
             boolean hasDefinitions= false;
+            for (int i = 0; i < nl.getLength(); i++) { // scan through looking for non-time-varying data
+                Node p = nl.item(i);
+                String name= getNameForNode(p);
+                String units=null;
+                NodeList n = p.getChildNodes();
+                for (int j = 0; j < n.getLength(); j++) {
+                    Node c = n.item(j); // parameter
+                    String nodeName= c.getNodeName();
+                    if ( nodeName.equals("DATA") ) {
+                        String sdata= c.getTextContent();
+                        constantData[i]= sdata; 
+                        String[] ss= constantData[i].trim().split("\\s+");
+                        if ( ss.length>1 ) {
+                            JSONObject data= new JSONObject();
+                            data.put( "name", name );
+                            JSONArray ja= new JSONArray();
+                            for ( int z= 0; z<ss.length; z++ ) {
+                                ja.put( z, Double.parseDouble(ss[z]) );
+                            }
+                            data.put( "centers", ja );
+                            if ( units!=null ) data.put( "units", units );
+                            definitions.put( name, data );
+                            hasDefinitions= true;                        
+                        }
+                    }
+                }
+            }
                     
-            String[] constantData= new String[nl.getLength()];
             for (int i = 0; i < nl.getLength(); i++) {
                 boolean isTime;
                 Node p = nl.item(i);
@@ -162,23 +206,6 @@ public class CsaInfoCatalogSource {
                 for (int j = 0; j < n.getLength(); j++) {
                     Node c = n.item(j); // parameter
                     String nodeName= c.getNodeName();
-                    if ( nodeName.equals("DATA") ) {
-                        String sdata= c.getFirstChild().getNodeValue();
-                        constantData[i]= sdata; 
-                        String[] ss= constantData[i].trim().split("\\s+");
-                        if ( ss.length>1 ) {
-                            JSONObject data= new JSONObject();
-                            data.put( "name", name );
-                            JSONArray ja= new JSONArray();
-                            for ( int z= 0; z<ss.length; z++ ) {
-                                ja.put( z, Double.parseDouble(ss[z]) );
-                            }
-                            data.put( "centers", ja );
-                            if ( units!=null ) data.put( "units", units );
-                            definitions.put( name, data );
-                            hasDefinitions= true;                        
-                        }
-                    }
                     if ( nodeName.equals("VALUE_TYPE") ) {
                         String t = c.getTextContent();
                         switch (t) {
@@ -421,6 +448,7 @@ public class CsaInfoCatalogSource {
      * @param args
      */
     public static void main(String[] args) {
+        args= new String[] { "--case=4" };
         if (args.length == 1) {
             if (args[0].equals("--help")) {
                 printHelp();
