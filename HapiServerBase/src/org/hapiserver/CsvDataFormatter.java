@@ -29,6 +29,8 @@ public class CsvDataFormatter implements DataFormatter {
     private final int TYPE_STRING=9;
     private final int TYPE_DOUBLE=1;
     private final int TYPE_DOUBLE_ARRAY=2;
+    private final int TYPE_INTEGER=3;
+    private final int TYPE_INTEGER_ARRAY=4;
     
     /**
      * true if the field needs to be quoted.
@@ -108,28 +110,31 @@ public class CsvDataFormatter implements DataFormatter {
                             }
                         }
                         if ( field.charAt(field.length()-1)!='Z' ) throw new RuntimeException("isotime should end in Z");
-                        break;
+                    break;
                     case "integer": {
                         if ( parameter.has("size") ) {
-                            types[i]= TYPE_DOUBLE_ARRAY;
+                            types[i]= TYPE_INTEGER_ARRAY;
                         } else {
-                            types[i]= TYPE_DOUBLE;
+                            types[i]= TYPE_INTEGER;
                         }
                     }
+                    break;
                     case "double": {
                         if ( parameter.has("size") ) {
                             types[i]= TYPE_DOUBLE_ARRAY;
                         } else {
                             types[i]= TYPE_DOUBLE;
                         }
-                    } break;
+                    } 
+                    break;
                     case "string": {
                         types[i]= TYPE_STRING;
                         field= record.getString(i);
                         if ( field.length()>lengths[i] ) {
                             logger.log(Level.WARNING, "string field is longer than info length ({0}): {1}", new Object[]{lengths[i], parameter.getString("name")});
                         }
-                    } break;
+                    } 
+                    break;
                     default:
                         throw new RuntimeException(parameter.getString("type")+" type not supported");
                     
@@ -141,6 +146,10 @@ public class CsvDataFormatter implements DataFormatter {
                     case TYPE_ISOTIME:
                     case TYPE_DOUBLE:
                     case TYPE_DOUBLE_ARRAY:
+                        quotes[i]= false;
+                        break;
+                    case TYPE_INTEGER:
+                    case TYPE_INTEGER_ARRAY:
                         quotes[i]= false;
                         break;
                     case TYPE_STRING:
@@ -195,6 +204,16 @@ public class CsvDataFormatter implements DataFormatter {
                 	for ( int j=0; j<dd.length; j++ ) {
                 		if ( j>0 ) build.append(",");
                 		build.append(dd[j]);
+                	}
+                case TYPE_INTEGER:
+                    s= String.valueOf(record.getInteger(i) );
+                    build.append(s);
+                    break;
+                case TYPE_INTEGER_ARRAY:
+                	int[] ii= record.getIntegerArray(i);
+                	for ( int j=0; j<ii.length; j++ ) {
+                		if ( j>0 ) build.append(",");
+                		build.append(ii[j]);
                 	}
             }
         }
