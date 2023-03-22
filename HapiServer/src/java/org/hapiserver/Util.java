@@ -300,7 +300,8 @@ public final class Util {
      * <a href="https://github.com/hapi-server/data-specification/blob/master/hapi-3.0.1/HAPI-data-access-spec-3.0.1.md#42-status-codes">status codes</a>
      * talks about the status codes.  The error will be logged in the web logs,
      * but not otherwise.  (This is for errors which don't need resolution on the 
-     * server side.)
+     * server side.)  Note the OutputStream is not closed here and must
+     * be closed elsewhere.
      * @param statusCode HAPI status code, such as 1406
      * @param statusMessage the message, such as "HAPI error 1406: unknown dataset id"
      * @param response the response object
@@ -327,7 +328,7 @@ public final class Util {
                     response.setStatus( httpStatus, statusMessage );
                 }
                 out.write(s.getBytes(CHARSET));
-                out.close();
+                
             }
             
         } catch (JSONException ex) {
