@@ -55,7 +55,7 @@ public class SourceRegistry {
             throw new RuntimeException(ex);
         }
         
-        String source= data.optString( "source", "" );
+        String source= data.optString( "source", data.optString("x_source") );
         
         switch (source) {
             case "aggregation":
@@ -65,14 +65,14 @@ public class SourceRegistry {
             case "hapiserver":
                 return new HapiWrapperRecordSource( id, info, data );
             case "classpath":
-                String clas= data.optString("class");
+                String clas= data.optString("class",data.optString("x_class"));
                 if ( clas.endsWith(".java") ) {
                     throw new IllegalArgumentException("class should not end in .java");
                 }
                 ClassLoader cl=null;
-                if ( data.has("classpath") ) {
+                if ( data.has("classpath") || data.has("x_classpath") ) {
                     try {
-                        String s= data.optString("classpath");
+                        String s= data.optString("classpath",data.optString("x_classpath"));
                         s= SpawnRecordSource.doMacros( hapiHome, id, s );
                         URL url;
                         if ( s.startsWith("http://") || s.startsWith("https://") || s.startsWith("file:") ) { 
@@ -92,10 +92,13 @@ public class SourceRegistry {
                     if ( cl!=null ) {
                         c= Class.forName(clas,true,cl);
                     } else {
+                        if ( clas.length()==0 ) {
+                            throw new IllegalArgumentException("class is not specified in configuration");
+                        }
                         c= Class.forName(clas);
                     }
                     Object o;
-                    JSONArray args= data.optJSONArray("args");
+                    JSONArray args= data.optJSONArray("args"); //TODO: x_args
                     if ( args==null ) {
                         Constructor constructor= c.getConstructor( String.class, String.class, JSONObject.class, JSONObject.class );
                         o= constructor.newInstance( hapiHome, id, info, data );
