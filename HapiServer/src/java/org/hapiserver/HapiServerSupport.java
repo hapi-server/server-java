@@ -1009,12 +1009,24 @@ public class HapiServerSupport {
                     if ( source.equals("spawn") ) {
                         jo= getInfoFromSpawnCommand( jo, HAPI_HOME, id );
                         try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                            File parentFile= infoFile.getParentFile();
+                            if ( !parentFile.exists() ) {
+                                if ( !parentFile.mkdirs() ) {
+                                    throw new IllegalArgumentException("unable to make directory for info");
+                                }
+                            }
                             Files.copy( ins, 
                                 infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
                         }
                     } else if ( source.equals("classpath") ) {
                         jo= getInfoFromClasspath( jo, HAPI_HOME, id );
                         try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                            File parentFile= infoFile.getParentFile();
+                            if ( !parentFile.exists() ) {
+                                if ( !parentFile.mkdirs() ) {
+                                    throw new IllegalArgumentException("unable to make directory for info");
+                                }
+                            }
                             Files.copy( ins, 
                                 infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
                         }
