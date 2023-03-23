@@ -60,7 +60,9 @@ public class InfoServlet extends HttpServlet {
 
         JSONObject jo;
         try {
+            
             jo = HapiServerSupport.getInfo( HAPI_HOME, id );
+            
         } catch ( BadRequestIdException ex ) {
             Util.raiseError( 1406, "HAPI error 1406: unknown dataset id", response, response.getOutputStream() );
             return;
