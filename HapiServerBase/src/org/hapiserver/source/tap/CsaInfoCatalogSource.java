@@ -6,8 +6,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,6 +24,7 @@ import javax.xml.xpath.XPathFactory;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -71,6 +75,33 @@ public class CsaInfoCatalogSource {
 
     private static final Logger logger = Logger.getLogger("hapi.cef");
 
+    private static Map<String,String> sampleTimes= new HashMap<>();
+    
+    static {
+        long t0= System.currentTimeMillis();
+        try {
+            String[] avails= new String[] { "esac.avail.C1.txt", "esac.avail.C2.txt", "esac.avail.C3.txt", "esac.avail.C4.txt",
+                "esac.avail.D1.txt", "esac.avail.D2.txt" };
+            for ( String avail : avails ) {
+                Iterator<String> lines= SourceUtil.getFileLines( CsaInfoCatalogSource.class.getResource(avail) );
+                while ( lines.hasNext() ) {
+                    String line = lines.next();
+                    String[] fields=line.trim().split(" ");
+                    if ( fields[0].equals("C4_CP_CIS-CODIF_HS_O1_PEF") ) {
+                        System.err.println("Stop here");
+                    }
+                    if ( fields.length==3 ) {
+                        sampleTimes.put( fields[0],fields[1]+"/"+fields[2] );
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
+        logger.log(Level.INFO, "read in sample times (ms): {0}", System.currentTimeMillis()-t0);
+    
+    }
+            
     private static Document readDoc(InputStream is) throws SAXException, IOException, ParserConfigurationException {
         DocumentBuilder builder;
         builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -352,6 +383,21 @@ public class CsaInfoCatalogSource {
             jo.put("stopDate", stopDate);
             jo.put("x_tap_url", url);
             
+            String sampleTimeRange= sampleTimes.get(id);
+            if ( sampleTimeRange!=null ) {
+                String[] ss= sampleTimeRange.split("/",-2);
+                String sampleStartDate= ss[0];
+                String sampleStopDate= ss[1];
+                sampleStartDate= TimeUtil.reformatIsoTime( startDate, sampleStartDate );
+                sampleStopDate= TimeUtil.reformatIsoTime( stopDate, sampleStopDate );
+                if ( sampleStopDate.compareTo(startDate)<0 ) sampleStartDate= startDate;
+                if ( sampleStopDate.compareTo(stopDate)>0 ) sampleStopDate= stopDate;
+                if ( sampleStopDate.compareTo(sampleStartDate)>0 ) {
+                    jo.put("sampleStartDate", sampleStartDate );
+                    jo.put("sampleStopDate", sampleStopDate );
+                }
+            }
+            
             // this is just to aid in debugging.
             String queryString = "https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=" + id
             + "&START_DATE=" + stopDate + "&END_DATE=" + stopDate;
@@ -435,7 +481,7 @@ public class CsaInfoCatalogSource {
     
     private static void loadExcludeList() throws IOException {
         exclude= new HashSet<>();
-        try (InputStream ins = CsaInfoCatalogSource.class.getResourceAsStream("/org/hapiserver/source/CsaCatalogExclude.txt") ) {
+        try (InputStream ins = CsaInfoCatalogSource.class.getResourceAsStream("CsaCatalogExclude.txt") ) {
             BufferedReader read= new BufferedReader( new InputStreamReader( ins ) );
             String line= read.readLine();
             while ( line!=null ) {
