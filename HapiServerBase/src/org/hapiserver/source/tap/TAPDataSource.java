@@ -1,4 +1,4 @@
-package org.hapiserver.source;
+package org.hapiserver.source.tap;
 
 import java.io.IOException;
 import java.io.InputStream;

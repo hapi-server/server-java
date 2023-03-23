@@ -18,7 +18,6 @@ import org.hapiserver.CsvDataFormatter;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.AggregationGranuleIterator;
-import org.hapiserver.source.CsaInfoCatalogSource;
 import org.hapiserver.source.SourceUtil;
 
 /**
@@ -198,7 +197,10 @@ public class TapAvailabilitySource extends AbstractHapiRecordSource {
         String url= String.format( templ, id, start, stop );
         logger.log(Level.INFO, "readData URL: {0}", url);
         
-        return fromStrings( SourceUtil.getFileLines( new URL(url) ) );
+        Iterator<String> lines= SourceUtil.getFileLines( new URL(url) );
+        if ( lines.hasNext() ) lines.next(); // header line.
+        
+        return fromStrings( lines );
         
     }
     

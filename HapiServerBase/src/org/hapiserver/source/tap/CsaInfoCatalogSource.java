@@ -1,4 +1,4 @@
-package org.hapiserver.source;
+package org.hapiserver.source.tap;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,6 +21,7 @@ import javax.xml.xpath.XPathFactory;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.hapiserver.source.SourceUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;

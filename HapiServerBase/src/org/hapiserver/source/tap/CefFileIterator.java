@@ -1,4 +1,4 @@
-package org.hapiserver.source;
+package org.hapiserver.source.tap;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,6 +24,7 @@ import java.util.zip.GZIPOutputStream;
 
 import org.hapiserver.AbstractHapiRecord;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.source.SourceUtil;
 
 /**
  * make CEF reader which provides records as the CEF is read in.

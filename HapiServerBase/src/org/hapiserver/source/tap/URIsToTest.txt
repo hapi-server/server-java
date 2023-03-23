@@ -1,0 +1,39 @@
+
+http://jfaden.net/server/debug/hapi/data?id=C4_CP_STA_CS_NBR&time.min=2000-09-01T00:00Z&time.max=2000-09-01T00:01:42.400Z
+
+http://jfaden.net/server/debug/hapi/data?id=C4_CP_STA_CS_NBR&time.min=2000-09-01T00:00:00.001Z&time.max=2000-09-01T00:00:00.002Z
+
+https://jfaden.net/server/debug/hapi/data?id=C4_CP_STA_CS_NBR&time.min=2000-09-01T00:00Z&time.max=2000-09-01T00:01:42.400Z
+
+https://jfaden.net/server/debug/hapi/data?id=C4_CP_STA_CS_NBR&time.min=2000-09-01T00:00:00.001Z&time.max=2000-09-01T00:00:00.002Z
+
+https://cottagesystems.com/server/esac/hapi/data?id=C4_CP_CIS-CODIF_HS_O1_PEF&parameters=phi__C4_CP_CIS-CODIF_HS_O1_PEF&time.min=2001-01-01T00:00Z&time.max=2001-01-01T00:00:40.000Z
+
+
+https://cottagesystems.com/server/esac/hapi/data?id=C4_CP_CIS-CODIF_HS_O1_PEF&time.min=2001-01-01T00:00Z&time.max=2001-01-01T00:00:40.000Z
+
+https://cottagesystems.com/server/esac/hapi/data?id=C3_CQ_EDI_ANOMALY_AE&time.min=2001-001T00:00Z&time.max=2001-002T00:00:00.000Z
+
+
+https://cottagesystems.com/server/esac/hapi/data?id=C3_CP_CIS-HIA_HS_SW_IONS_RC&parameters=time_tags__C3_CP_CIS-HIA_HS_SW_IONS_RC&time.min=2001-01-01T00:00Z&time.max=2001-01-01T00:00:40.000Z
+
+
+https://cottagesystems.com/server/esac/hapi/data?id=C2_CP_DWP_PCOR_FX&time.min=2001-01-01T00:00:00.001Z&time.max=2001-01-01T00:00:00.002Z
+
+https://cottagesystems.com/server/esac/hapi/data?id=C3_CP_PEA_3DXPAH_DPFlux&parameters=Status_InterferenceFromWHI__C3_CP_PEA_3DXPAH_DPFlux&time.min=2000-09-13T00:00:00.000Z&time.max=2000-09-13T00:00:40.000Z
+
+https://cottagesystems.com/server/esac/hapi/info?id=D1_PP_HIA
+->   https://csa.esac.esa.int/csa-sl-tap/data?retrieval_type=HEADER&DATASET_ID=D1_PP_HIA&FORCEPACK=false
+
+
+http://localhost:8080/HapiServer/hapi/info?id=C3_CP_PEA_3DXPAH_DPFlux  2020-01-01
+
+http://localhost:8080/HapiServer/hapi/data?id=C1_CP_PEA_3DRH_PSD&start=2019-08-01T00:00:00Z&stop=2019-08-02T00:00:00Z&parameters=time_tags__C1_CP_PEA_3DRH_PSD,Data__C1_CP_PEA_3DRH_PSD,Sweep_Azimuth__C1_CP_PEA_3DRH_PSD,Sweep_Energy__C1_CP_PEA_3DRH_PS
+
+vap+hapi:http://localhost:8080/HapiServer/hapi?id=C1_CP_PEA_3DRH_PSD&parameters=time_tags__C1_CP_PEA_3DRH_PSD&timerange=2019-08-01+0:00+to+10:00
+
+This is 1-D data:
+vap+hapi:http://localhost:8080/HapiServer/hapi?id=C1_CP_PEA_3DRH_PSD&parameters=time_tags__C1_CP_PEA_3DRH_PSD,Angle_SR2phi__C1_CP_PEA_3DRH_PSD&timerange=2019-08-01+0:00+to+0:10
+
+This with 3-D data:
+vap+hapi:http://localhost:8080/HapiServer/hapi?id=C1_CP_PEA_3DRH_PSD&parameters=time_tags__C1_CP_PEA_3DRH_PSD,Data__C1_CP_PEA_3DRH_PSD&timerange=2019-08-01+0:00+to+0:10
