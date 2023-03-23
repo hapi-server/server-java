@@ -72,7 +72,18 @@ public class SourceUtil {
         public AsciiSourceIterator( URL url ) throws IOException {
             this.reader= new BufferedReader( new InputStreamReader( url.openStream() ) );
             this.line= reader.readLine();
-            line = line+1;
+            // allow for one or two header lines.
+            int headerLinesLimit = 2;
+            int iline= 1;
+            while ( line!=null && iline<=headerLinesLimit ) {
+                if ( lineStartsWithTimeTag(line) ) {
+                     break;
+                } else {
+                    logger.finer("advance to next line because this appears to be header: ");
+                    this.line= reader.readLine();
+                    iline= iline+1;
+                } 
+            }
         }
         
         @Override
