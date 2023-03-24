@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -127,6 +128,30 @@ public class CsaInfoCatalogSource {
         throw new IllegalArgumentException("expected to find PARAMETER_ID");
     }
 
+    /**
+     * 
+     * @param timeRange formatted time range, like 2022-02-03T12:14.421/2023-03-04T00:21.224
+     * @param digit the digit, for example TimeUtil.COMPONENT_HOURS means minutes and seconds will be zero.
+     * @return rounded time range like 2022-02-03T12:00/2023-03-04T01:00 expressed in 14 components.
+     * @throws ParseException 
+     */
+    public static int[] roundOut( String timeRange, int digit ) throws ParseException {
+        int[] tr= TimeUtil.parseISO8601TimeRange(timeRange);
+        int[] t1= TimeUtil.getStartTime(tr);
+        int[] t2= TimeUtil.getStopTime(tr);
+        boolean isRoundUp=false;
+        if ( digit<TimeUtil.COMPONENT_DAY ) throw new IllegalArgumentException("digit must be DAY, HOUR, or finer");
+        for ( int i=digit+1; i<TimeUtil.TIME_DIGITS; i++ ) {
+            if ( t2[i]>0 ) isRoundUp=true;
+        }
+        for ( int i=digit+1; i<TimeUtil.TIME_DIGITS; i++ ) {
+            t1[i]=0;
+            t2[i]=0;
+        }
+        if ( isRoundUp ) t2[digit]++;
+        return TimeUtil.createTimeRange( t1, t2 );
+    }
+            
     /**
      * produce the info response for a given ID. This assumes the response will be cached and performance is not an issue.
      *
@@ -379,6 +404,16 @@ public class CsaInfoCatalogSource {
             }
             
             jo.put("parameters", parameters);
+            
+            try {
+                int[] tr= roundOut( startDate + "/" + stopDate, TimeUtil.COMPONENT_HOUR );
+                startDate= TimeUtil.formatIso8601TimeBrief( TimeUtil.getStartTime(tr) );
+                stopDate= TimeUtil.formatIso8601TimeBrief( TimeUtil.getStopTime(tr) );
+                
+            } catch ( ParseException ex ) {
+                throw new RuntimeException(ex);
+            }
+            
             jo.put("startDate", startDate);
             jo.put("stopDate", stopDate);
             jo.put("x_tap_url", url);
@@ -392,9 +427,21 @@ public class CsaInfoCatalogSource {
                 sampleStopDate= TimeUtil.reformatIsoTime( stopDate, sampleStopDate );
                 if ( sampleStopDate.compareTo(startDate)<0 ) sampleStartDate= startDate;
                 if ( sampleStopDate.compareTo(stopDate)>0 ) sampleStopDate= stopDate;
-                if ( sampleStopDate.compareTo(sampleStartDate)>0 ) {
-                    jo.put("sampleStartDate", sampleStartDate );
-                    jo.put("sampleStopDate", sampleStopDate );
+                try { // make sure sample times are no greater than one or two days.
+                    int[] tr= roundOut( sampleStartDate + "/" + sampleStopDate, TimeUtil.COMPONENT_HOUR );
+                    int[] t1= TimeUtil.getStartTime(tr);
+                    int[] t2= TimeUtil.getStopTime(tr);
+                    int[] dt= TimeUtil.subtract( t2,t1 );
+                    if ( dt[TimeUtil.COMPONENT_DAY]>1 ) {
+                        t2= TimeUtil.add( t1, new int[] { 0,0,1,0,0,0 } );
+                        sampleStopDate= TimeUtil.formatIso8601Time(t2);
+                    }
+                    if ( sampleStopDate.compareTo(sampleStartDate)>0 ) {
+                        jo.put("sampleStartDate", sampleStartDate );
+                        jo.put("sampleStopDate", sampleStopDate );
+                    }                    
+                } catch (ParseException ex) {
+                    logger.log(Level.SEVERE, null, ex);
                 }
             }
             
@@ -495,7 +542,6 @@ public class CsaInfoCatalogSource {
      * @param args
      */
     public static void main(String[] args) {
-        args= new String[] { "--case=4" };
         if (args.length == 1) {
             if (args[0].equals("--help")) {
                 printHelp();
