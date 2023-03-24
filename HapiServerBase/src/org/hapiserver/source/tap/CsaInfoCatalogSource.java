@@ -434,8 +434,9 @@ public class CsaInfoCatalogSource {
                     int[] dt= TimeUtil.subtract( t2,t1 );
                     if ( dt[TimeUtil.COMPONENT_DAY]>1 ) {
                         t2= TimeUtil.add( t1, new int[] { 0,0,1,0,0,0 } );
-                        sampleStopDate= TimeUtil.formatIso8601Time(t2);
                     }
+                    sampleStartDate= TimeUtil.formatIso8601TimeBrief(t1);
+                    sampleStopDate= TimeUtil.formatIso8601TimeBrief(t2);
                     if ( sampleStopDate.compareTo(sampleStartDate)>0 ) {
                         jo.put("sampleStartDate", sampleStartDate );
                         jo.put("sampleStopDate", sampleStopDate );
