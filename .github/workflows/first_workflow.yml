@@ -17,6 +17,7 @@ jobs:
         port: 887
         script: |
           echo $HOSTNAME
+          echo $USER
           cd /var/www/cottagesystems.com/autoplot/git/server-java
           git pull origin main
           git status
