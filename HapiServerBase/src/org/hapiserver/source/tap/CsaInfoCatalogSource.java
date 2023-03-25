@@ -44,20 +44,20 @@ import org.xml.sax.SAXException;
  *     "HAPI": "3.0",
  *     "catalog": [
  *         {
- *             "x_group_id": "cfa",
+ *             "x_group_id": "csa",
  *             "x_source": "classpath",
- *             "x_class": "org.hapiserver.source.CsaInfoCatalogSource",
+ *             "x_class": "org.hapiserver.source.tap.CsaInfoCatalogSource",
  *             "x_method": "getCatalog",
  *             "x_config": {
  *                 "info": {
  *                     "x_source":"classpath",
- *                     "x_class":"org.hapiserver.source.CsaInfoCatalogSource",
+ *                     "x_class":"org.hapiserver.source.tap.CsaInfoCatalogSource",
  *                     "x_method": "getInfo",
  *                     "x_args": [ "${id}" ]
  *                 },
  *                 "data": {
  *                     "source": "classpath",
- *                     "class":"org.hapiserver.source.TAPDataSource",
+ *                     "class":"org.hapiserver.source.tap.TAPDataSource",
  *                     "args":["https://csa.esac.esa.int/csa-sl-tap/","${id}"]
  *                 }
  *             }
