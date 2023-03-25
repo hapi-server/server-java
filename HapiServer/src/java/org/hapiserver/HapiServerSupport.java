@@ -590,7 +590,15 @@ public class HapiServerSupport {
             if ( deft==null ) {
                 throw new IOException("config directory should contain "+ff);
             } else {
-                Files.write( configFile.toPath(), deft.toString(4).getBytes(CHARSET) );
+                if ( configFile.canWrite() ) {
+                    Files.write( configFile.toPath(), deft.toString(4).getBytes(CHARSET) );
+                } else {
+                    logger.log(Level.WARNING, "writing to server read area: {0}", releaseFile);
+                    if ( releaseFile.canWrite() ) {
+                        Files.write( releaseFile.toPath(), deft.toString(4).getBytes(CHARSET) );
+                        releaseFileTimeStamp= releaseFile.exists() ? releaseFile.lastModified() : 0;
+                    }
+                }
             }
         }
         logger.log(Level.INFO, " configFile.lastModified(): {0}", configFile.lastModified());
