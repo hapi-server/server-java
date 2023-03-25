@@ -14,6 +14,10 @@ import java.util.logging.Logger;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
+/**
+ * GZIPFilter compresses the response supporting efficient transmission of data.
+ * @author jbf
+ */
 public class GZIPFilter implements Filter {
 
     private static final Logger logger = Logger.getLogger("hapi.gzip");
@@ -37,7 +41,7 @@ public class GZIPFilter implements Filter {
     }
 
     public void init(FilterConfig filterConfig) {
-        System.err.println("here in GZipFilter");
+        logger.fine("initialize GZIPFilter");
         // noop
     }
 
