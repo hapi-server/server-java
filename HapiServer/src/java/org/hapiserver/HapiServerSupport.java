@@ -587,12 +587,15 @@ public class HapiServerSupport {
         long releaseFileTimeStamp= releaseFile.exists() ? releaseFile.lastModified() : 0;
         File configFile= new File( new File( HAPI_HOME, "config" ), ff );
         if ( !configFile.exists() ) {
+            System.err.println("no configFile: "+configFile);
             if ( deft==null ) {
                 throw new IOException("config directory should contain "+ff);
             } else {
                 if ( configFile.canWrite() ) {
+                    System.err.println("can write config file: "+configFile);
                     Files.write( configFile.toPath(), deft.toString(4).getBytes(CHARSET) );
                 } else {
+                    System.err.println("write to server area: "+configFile);
                     logger.log(Level.WARNING, "writing to server read area: {0}", releaseFile);
                     if ( releaseFile.canWrite() ) {
                         Files.write( releaseFile.toPath(), deft.toString(4).getBytes(CHARSET) );
