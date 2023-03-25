@@ -285,6 +285,5 @@
             out.println("<br><br><br><small>build id: "+Util.buildTime()+"</small>");
             
         %>
-            going nuts.
     </body> 
 </html>
