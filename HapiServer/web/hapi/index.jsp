@@ -95,7 +95,6 @@
                 
                 int numDataSets= Math.min( dss.length(), landingConfig.optInt( "x-landing-count", MAX_DATASETS ) );
                 
-                System.err.println("landingConfig: "+landingConfig);
                 Pattern[] incl;
                 if ( landingConfig.has("x-landing-include") ) {
                     JSONArray inclRegex= landingConfig.getJSONArray("x-landing-include");
@@ -286,6 +285,6 @@
             out.println("<br><br><br><small>build id: "+Util.buildTime()+"</small>");
             
         %>
-            
+            going nuts.
     </body> 
 </html>
