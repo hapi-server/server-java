@@ -4,6 +4,12 @@
     Author     : jbf
 --%>
 
+<%@page import="java.util.List"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="java.util.logging.Logger"%>
+<%@page import="java.util.regex.PatternSyntaxException"%>
+<%@page import="java.util.regex.Pattern"%>
 <%@page import="java.io.IOException"%>
 <%@page import="org.hapiserver.ExtendedTimeUtil"%>
 <%@page import="org.codehaus.jettison.json.JSONException"%>
@@ -35,6 +41,10 @@
 
             JSONObject about= HapiServerSupport.getAbout(HAPI_HOME);
 
+            JSONObject landingConfig= HapiServerSupport.getLandingConfig(HAPI_HOME);
+            
+            Logger logger= Util.getLogger();
+            
             %>
 
             <h1><%= about.optString("title","Basic HAPI Server") %></h1>  More information about this type of server is found at <a href="https://github.com/hapi-server/server-java" target="_blank">GitHub</a>.
@@ -83,21 +93,99 @@
                 String me= "http://spot9/hapi"; // TODO: address this, what is the public name for the server
                 boolean sparklines= false;      // don't draw sparklines using external server.
                 
-                int numDataSets= Math.min( dss.length(), MAX_DATASETS );
-                                
-                for ( int i=0; i<numDataSets; i++ ) {
+                int numDataSets= Math.min( dss.length(), landingConfig.optInt( "x-landing-count", MAX_DATASETS ) );
+                
+                Pattern[] incl;
+                if ( landingConfig.has("x-landing-include") ) {
+                    JSONArray inclRegex= landingConfig.getJSONArray("x-landing-include");
+                    incl= new Pattern[inclRegex.length()];
+                    for ( int i=0; i<incl.length; i++ ) {
+                        try {
+                            incl[i]= Pattern.compile(inclRegex.getString(i));
+                        } catch ( PatternSyntaxException ex ) {
+                            logger.warning("bad pattern in landing: "+inclRegex.getString(i));
+                            incl[i]= null;
+                        }
+                    }
+                } else {
+                    incl= null;
+                }
+                
+                Pattern[] excl;
+                if ( landingConfig.has("x-landing-exclude") ) {
+                    JSONArray exclRegex= landingConfig.getJSONArray("x-landing-exclude");
+                    excl= new Pattern[exclRegex.length()];
+                    for ( int i=0; i<excl.length; i++ ) {
+                        try {
+                            excl[i]= Pattern.compile(exclRegex.getString(i));
+                        } catch ( PatternSyntaxException ex ) {
+                            logger.warning("bad pattern in landing: "+exclRegex.getString(i));
+                            excl[i]= null;
+                        }
+                    }
+                } else {
+                    excl= null;
+                }
+                
+                List<String> ids= new ArrayList<>();
+                List<String> titles= new ArrayList<>();
+                
+                for ( int i=0; i<dss.length(); i++ ) {
+                    if ( ids.size()==numDataSets ) break;
+                    
                     JSONObject ds= dss.getJSONObject(i);
-
                     String id= ds.getString("id");
-                    String title= "";
-                    if ( ds.has("title") ) {
-                        title= ds.getString("title");
-                        if ( title.length()==0 ) {
-                            title= id;
-                        } else {
-                            if ( !title.equals(id) ) {
-                                title= id + ": "+ title;
+                    if ( excl!=null ) {
+                        boolean doExclude=false;
+                        for ( Pattern p: excl ) {
+                            if ( p==null ) continue; 
+                            if ( p.matcher(id).matches() ) {
+                                doExclude=true;
+                                break;
                             }
+                        }
+                        if ( doExclude ) continue;
+                    }                                      
+                    if ( incl!=null ) {
+                        boolean doInclude=false;
+                        for ( Pattern p: incl ) {
+                            if ( p==null ) continue; 
+                            if ( p.matcher(id).matches() ) {
+                                ids.add(id);
+                                titles.add( ds.optString( "title", "" ) );
+                            }
+                        }
+                        if ( !doInclude ) continue;
+                    }
+                }
+                if ( ids.size()<numDataSets ) {
+                    for ( int i=0; i<dss.length(); i++ ) {
+                        JSONObject ds= dss.getJSONObject(i);
+                        String id= ds.getString("id");
+                        if ( ids.size()==numDataSets ) break;
+                        if ( excl!=null ) {
+                            boolean doExclude=false;
+                            for ( Pattern p: excl ) {
+                                if ( p==null ) continue; 
+                                if ( p.matcher(id).matches() ) {
+                                    doExclude=true;
+                                    break;
+                                }
+                            }
+                            if ( doExclude ) continue;
+                        }  
+                        ids.add(id);
+                        titles.add( ds.optString( "title", "" ) );
+                    }
+                }
+                        
+                for ( int i=0; i<ids.size(); i++ ) {
+
+                    String id= ids.get(i);      
+                    String title= titles.get(i);
+                    if ( title.length()>0 ) {
+                        if ( !title.equals(id) ) {
+                            title= id + ": "+ title;
                         }
                     } else {
                         title= id;
@@ -117,14 +205,14 @@
                         String exampleTimeRange= exampleRange==null ? null : 
                             String.format( "start=%s&stop=%s", 
                                 TimeUtil.formatIso8601TimeBrief(exampleRange), 
-                                TimeUtil.formatIso8601TimeBrief(exampleRange,TimeUtil.TIME_DIGITS) ); 
+                                TimeUtil.formatIso8601TimeBrief( TimeUtil.getStopTime(exampleRange) ) ); 
                         out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
                         if ( exampleRange!=null ) {
                             out.println( String.format("[<a href=\"hapi/info?id=%s\">Info</a>] [<a href=\"hapi/data?id=%s&%s\">Data</a>]", 
-                                ds.getString("id"), ds.getString("id"), exampleTimeRange ) );
+                                id, id, exampleTimeRange ) );
                         } else {
                             out.println( String.format("[<a href=\"hapi/info?id=%s\">Info</a>] [Data]", 
-                                ds.getString("id"), ds.getString("id") ) );
+                                id, id ) );
                         }
 
                         out.println(" ");
@@ -144,7 +232,7 @@
                             if ( j>0 ) out.print("  ");
                             try {
                                 String pname= parameters.getJSONObject(j).getString("name");
-                                out.print( String.format( "<a href=\"hapi/data?id=%s&parameters=%s&%s\">%s</a>", ds.getString("id"), pname, exampleTimeRange, labels[j] ) );
+                                out.print( String.format( "<a href=\"hapi/data?id=%s&parameters=%s&%s\">%s</a>", id, pname, exampleTimeRange, labels[j] ) );
                                 if ( j>0 && sparklines ) { //sparklines
                                     //     vap  +hapi  :https      ://jfaden.net  /HapiServerDemo  /hapi  ?id=?parameters=Temperature
                                     //?url=vap%2Bhapi%3Ahttps%3A%2F%2Fjfaden.net%2FHapiServerDemo%2Fhapi%3Fid%3DpoolTemperature%26timerange%3D2020-08-06&format=image%2Fpng&width=70&height=20&column=0%2C100%25&row=0%2C100%25&timeRange=2003-mar&renderType=&color=%23000000&symbolSize=&fillColor=%23aaaaff&foregroundColor=%23000000&backgroundColor=none
@@ -198,5 +286,5 @@
             
         %>
             
-    </body>
+    </body> 
 </html>

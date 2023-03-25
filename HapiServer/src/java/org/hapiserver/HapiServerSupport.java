@@ -475,6 +475,21 @@ public class HapiServerSupport {
         }
          
     }
+        
+    /**
+     * read the landing page configuration.  Note this is never served to clients.
+     * @param HAPI_HOME
+     * @return
+     * @throws IOException
+     * @throws JSONException 
+     */
+    public static JSONObject getLandingConfig( String HAPI_HOME ) throws IOException, JSONException {
+        logger.info("getLandingConfig");
+        
+        JSONObject result= loadAndCheckConfig( HAPI_HOME, "x-landing.json", new JSONObject() );
+        return result;
+        
+    }
     
     /**
      * read the about file from the config directory if it has been modified.
@@ -487,46 +502,9 @@ public class HapiServerSupport {
         
         logger.info("getAbout");
         
-        Initialize.maybeInitialize( HAPI_HOME );
-        
-        File aboutFile= new File( HAPI_HOME, "about.json" );
-
-        long latestTimeStamp= aboutFile.exists() ? aboutFile.lastModified() : 0;
-        
-        File aboutConfigFile= new File( new File( HAPI_HOME, "config" ), "about.json" ); 
-        
-        if ( !aboutConfigFile.exists() ) {
-            throw new IOException("config directory should contain about.json");
-        }
-        
-        logger.log(Level.INFO, " aboutConfigFile.lastModified(): {0}", aboutConfigFile.lastModified());
-        logger.log(Level.INFO, " latestTimeStamp: {0}", latestTimeStamp);
-        if ( aboutConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
-            byte[] bb= Files.readAllBytes( Paths.get( aboutConfigFile.toURI() ) );
-            String s= new String( bb, Charset.forName("UTF-8") );
-            try {
-                logger.info("read about from config" );
-                JSONObject jo= Util.newJSONObject(s);
-                jo.put("x_hapi_home",HAPI_HOME);
-                                
-                try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
-                    logger.log(Level.INFO, "write resolved about to {0}", aboutFile.getPath());
-                    Files.copy( ins, 
-                                aboutFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
-                }
-                latestTimeStamp= aboutFile.lastModified();
-            } catch ( JSONException ex ) {
-                warnWebMaster(ex);
-                throw ex;
-            }
-        }
-        
-        logger.log(Level.INFO, "reading about into json from {0}", Paths.get( aboutFile.toURI() ));
-        byte[] bb= Files.readAllBytes( Paths.get( aboutFile.toURI() ) );
-        String s= new String( bb, Charset.forName("UTF-8") );
-        JSONObject jo= Util.newJSONObject(s);
-        
-        return jo;
+        JSONObject result= loadAndCheckConfig( HAPI_HOME, "about.json" );
+                
+        return result;
     }
 
 
@@ -585,46 +563,58 @@ public class HapiServerSupport {
         return jo;
     }
     
-        
+    private static JSONObject loadAndCheckConfig(String HAPI_HOME, String ff) throws IOException, JSONException {
+        return loadAndCheckConfig( HAPI_HOME, ff, null );
+    }
 
     /**
      * load the file, checking to see if there's a newer version in the config area.
      * @param HAPI_HOME
-     * @param ff
+     * @param ff the name of the file, one of "about", "landing-info", "semantics", or "relations"
+     * @param deft a deft value to use.
      * @return
      * @throws IOException
      * @throws JSONException 
      */
-    private static JSONObject loadAndCheckConfig(String HAPI_HOME, String ff) throws IOException, JSONException {
+    private static JSONObject loadAndCheckConfig(String HAPI_HOME, String ff, JSONObject deft ) throws IOException, JSONException {
         Initialize.maybeInitialize( HAPI_HOME );
+        
+        if ( ff.contains("..") ) {
+            throw new IllegalArgumentException("ff cannot contain ..");
+        }
+        
         File releaseFile= new File( HAPI_HOME, ff );
-        long latestTimeStamp= releaseFile.exists() ? releaseFile.lastModified() : 0;
+        long releaseFileTimeStamp= releaseFile.exists() ? releaseFile.lastModified() : 0;
         File configFile= new File( new File( HAPI_HOME, "config" ), ff );
         if ( !configFile.exists() ) {
-            throw new IOException("config directory should contain "+ff);
+            if ( deft==null ) {
+                throw new IOException("config directory should contain "+ff);
+            } else {
+                Files.write( configFile.toPath(), deft.toString(4).getBytes(CHARSET) );
+            }
         }
-        logger.log(Level.INFO, " aboutConfigFile.lastModified(): {0}", configFile.lastModified());
-        logger.log(Level.INFO, " latestTimeStamp: {0}", latestTimeStamp);
-        if ( configFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
+        logger.log(Level.INFO, " configFile.lastModified(): {0}", configFile.lastModified());
+        logger.log(Level.INFO, " latestTimeStamp: {0}", releaseFileTimeStamp);
+        if ( configFile.lastModified() > releaseFileTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
             byte[] bb= Files.readAllBytes( Paths.get( configFile.toURI() ) );
-            String s= new String( bb, Charset.forName("UTF-8") );
+            String s= new String( bb, CHARSET );
             try {
                 logger.log(Level.INFO, "read {0} from config", ff);
                 JSONObject jo= Util.newJSONObject(s);
                 jo.put("x_hapi_home",HAPI_HOME);
                                 
                 try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
-                    logger.log(Level.INFO, "write resolved about to {0}", releaseFile.getPath());
+                    logger.log(Level.INFO, "write resolved config to {0}", releaseFile.getPath());
                     Files.copy( ins,
                             releaseFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
                 }
-                latestTimeStamp= releaseFile.lastModified();
+                releaseFileTimeStamp= releaseFile.lastModified();
             } catch ( JSONException ex ) {
                 warnWebMaster(ex);
                 throw ex;
             }
         }
-        logger.log(Level.INFO, "reading about into json from {0}", releaseFile );
+        logger.log(Level.INFO, "reading config json from {0}", releaseFile );
         byte[] bb= Files.readAllBytes( Paths.get( releaseFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         JSONObject jo= Util.newJSONObject(s);
@@ -694,11 +684,12 @@ public class HapiServerSupport {
     /**
      * keep and monitor a cached version of the configuration in memory.
      * @param HAPI_HOME the location of the server definition
-     * @param id the identifier
+     * @param id the dataset identifier
      * @return the JSONObject for the configuration.
      * @throws java.io.IOException 
      * @throws org.codehaus.jettison.json.JSONException 
      * @throws org.hapiserver.exceptions.HapiException 
+     * @see #loadAndCheckConfig(java.lang.String, java.lang.String) 
      */
     public static JSONObject getConfig( String HAPI_HOME, String id ) throws IOException, JSONException, HapiException {
         File configDir= new File( HAPI_HOME, "config" );
