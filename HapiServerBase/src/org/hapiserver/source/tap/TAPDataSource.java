@@ -144,13 +144,33 @@ public class TAPDataSource extends AbstractHapiRecordSource {
         }
     }
 
+    /**
+     * This returns 769 fields while the info thinks it should be 897 (128 more).
+     * @see https://github.com/hapi-server/server-java/issues/21
+     * @param args
+     * @throws ParseException 
+     */
+    public static void mainCase6( String[] args ) throws ParseException {
+        String tapServerURL="https://csa.esac.esa.int/csa-sl-tap/";
+        String id="C4_CP_STA_CS_NBR";
+        String tr= "2022-07-31T11:00Z/2022-08-01T00:00Z";
+        int[] timerange = TimeUtil.parseISO8601TimeRange(tr);
+        int[] start= Arrays.copyOfRange( timerange, 0, 7 );
+        int[] stop= Arrays.copyOfRange( timerange, 7, 14 );
+        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
+        while ( iter.hasNext() ) {
+            HapiRecord r= iter.next();
+            System.err.println( String.format( "%s %d fields", r.getIsoTime(0), r.length() ) );
+        }
+    }
             
         
     public static void main(String[] args ) throws Exception {
         //mainCase1(args);
         //mainCase2(args);
         //mainCase3(args);
-        mainCase4(args);
+        //mainCase4(args);
         //mainCase5(args);
+        mainCase6(args);
     }
 }
