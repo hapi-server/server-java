@@ -2,7 +2,7 @@
      "HAPI": "3.0",
      "catalog": [
          {
-             "x_group_id": "cfa",
+             "x_group_id": "csa",
              "x_source": "classpath",
              "x_class": "org.hapiserver.source.tap.CsaInfoCatalogSource",
              "x_method": "getCatalog",
