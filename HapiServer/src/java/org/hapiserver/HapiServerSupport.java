@@ -1075,6 +1075,7 @@ public class HapiServerSupport {
                 }
             }
         }
+        jo= resolveTimes(jo);
         
         JSONObject status= Util.newJSONObject();
         status.put( "code", 1200 );
