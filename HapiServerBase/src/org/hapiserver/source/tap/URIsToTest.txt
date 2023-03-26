@@ -37,3 +37,6 @@ vap+hapi:http://localhost:8080/HapiServer/hapi?id=C1_CP_PEA_3DRH_PSD&parameters=
 
 This with 3-D data:
 vap+hapi:http://localhost:8080/HapiServer/hapi?id=C1_CP_PEA_3DRH_PSD&parameters=time_tags__C1_CP_PEA_3DRH_PSD,Data__C1_CP_PEA_3DRH_PSD&timerange=2019-08-01+0:00+to+0:10
+
+# This has the problem https://github.com/hapi-server/server-java/issues/21
+vap+hapi:http://localhost:8080/HapiServer/hapi/data?id=C4_CP_STA_CS_NBR&time.min=2022-07-31T11:00Z&time.max=2022-08-01T00:00Z
