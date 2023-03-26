@@ -533,7 +533,12 @@ public class CsaInfoCatalogSource {
             BufferedReader read= new BufferedReader( new InputStreamReader( ins ) );
             String line= read.readLine();
             while ( line!=null ) {
-                exclude.add(line);
+                int i= line.indexOf("#");
+                if ( i>-1 ) line= line.substring(0,i);
+                line= line.trim();
+                if ( line.length()>0 ) {
+                    exclude.add(line);
+                }
                 line= read.readLine();
             }
         }
