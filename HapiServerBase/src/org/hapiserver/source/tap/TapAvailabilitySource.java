@@ -67,25 +67,23 @@ public class TapAvailabilitySource extends AbstractHapiRecordSource {
         String id= idavail.substring(0,i);
         String sampleTime= CsaInfoCatalogSource.getSampleTime(id);
         String sampleStartDate, sampleStopDate;
-        if ( sampleTime==null ) {
-            sampleStartDate= "2019-04-01T00:00:00.000Z";
-            sampleStopDate="2019-05-01T00:00:00.000Z";
-        } else {
+        sampleStartDate= "2019-04-01T00:00:00.000Z";
+        sampleStopDate="2019-05-01T00:00:00.000Z";
+        if ( sampleTime!=null ) {
             String[] ss= sampleTime.split("/");
             sampleStartDate= ss[0];
             sampleStopDate= ss[1];
             if ( sampleStartDate.charAt(7)=='-' ) { // allow for $Y-$j
-                sampleStartDate= sampleStartDate.substring(0,7)+"-01T00:00Z";
                 try {
+                    int[] ssd= TimeUtil.parseISO8601Time( sampleStartDate );
+                    sampleStartDate= String.format("%04d-%02d-01T00:00Z", ssd[0],ssd[1] );
                     sampleStopDate= TimeUtil.formatIso8601TimeBrief(
-                            TimeUtil.add( TimeUtil.parseISO8601Time( sampleStartDate ), new int[] { 0, 1, 0, 0, 0, 0, 0 } ) );
+                            TimeUtil.add( ssd, new int[] { 0, 1, 0, 0, 0, 0, 0 } ) );
                 } catch (ParseException ex) {
-                    throw new RuntimeException(ex);
+                    // just use the default 2019-04.
+
                 }
-            } else {
-                sampleStartDate= "2019-04-01T00:00:00.000Z";
-                sampleStopDate="2019-05-01T00:00:00.000Z";
-            }
+            } 
             
         }
         
