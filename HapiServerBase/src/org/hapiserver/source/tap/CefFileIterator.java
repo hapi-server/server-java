@@ -592,7 +592,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             @Override
             public String getAsString(int i) {
                 if (columnIndices.get(i).size() != 1) {
-                    throw new IllegalArgumentException("Paramter " + i + " is an array type.");
+                    throw new IllegalArgumentException("Parameter " + i + " is an array type.");
                 }
                 int fieldIndex = columnIndices.get(i).get(0);
                 if ( fieldIndex==-1 ) { // non-time-varying
