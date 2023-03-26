@@ -102,6 +102,16 @@ public class CsaInfoCatalogSource {
         logger.log(Level.INFO, "read in sample times (ms): {0}", System.currentTimeMillis()-t0);
     
     }
+    
+    /**
+     * return the sample time identified for this dataset id. 
+     * @param id the dataset id, for example C1_PP_WHI
+     * @return null if none is available, the time as a formatted isotime otherwise.
+     */
+    public static String getSampleTime( String id ) {
+        String s= sampleTimes.get(id);
+        return s;
+    }
             
     private static Document readDoc(InputStream is) throws SAXException, IOException, ParserConfigurationException {
         DocumentBuilder builder;
