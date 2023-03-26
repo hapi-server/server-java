@@ -2,8 +2,8 @@
 package org.hapiserver.source.tap;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
@@ -59,10 +59,36 @@ public class TapAvailabilitySource extends AbstractHapiRecordSource {
     
     /**
      * get the info for the id.
-     * @param id
+     * @param idavail the dataset id, ending in "/availability"
      * @return 
      */
-    public static String getInfo( String id ) {
+    public static String getInfo( String idavail ) {
+        int i= idavail.indexOf("/");
+        String id= idavail.substring(0,i);
+        String sampleTime= CsaInfoCatalogSource.getSampleTime(id);
+        String sampleStartDate, sampleStopDate;
+        if ( sampleTime==null ) {
+            sampleStartDate= "2019-04-01T00:00:00.000Z";
+            sampleStopDate="2019-05-01T00:00:00.000Z";
+        } else {
+            String[] ss= sampleTime.split("/");
+            sampleStartDate= ss[0];
+            sampleStopDate= ss[1];
+            if ( sampleStartDate.charAt(7)=='-' ) { // allow for $Y-$j
+                sampleStartDate= sampleStartDate.substring(0,7)+"-01T00:00Z";
+                try {
+                    sampleStopDate= TimeUtil.formatIso8601TimeBrief(
+                            TimeUtil.add( TimeUtil.parseISO8601Time( sampleStartDate ), new int[] { 0, 1, 0, 0, 0, 0, 0 } ) );
+                } catch (ParseException ex) {
+                    throw new RuntimeException(ex);
+                }
+            } else {
+                sampleStartDate= "2019-04-01T00:00:00.000Z";
+                sampleStopDate="2019-05-01T00:00:00.000Z";
+            }
+            
+        }
+        
         return "{\n" +
 "    \"HAPI\": \"3.0\",\n" +
 "    \"modificationDate\": \"2023-03-22T13:26:43.835Z\",\n" +
@@ -88,8 +114,8 @@ public class TapAvailabilitySource extends AbstractHapiRecordSource {
 "            \"units\": null\n" +
 "        }\n" +
 "    ],\n" +
-"    \"sampleStartDate\": \"2019-04-01T00:00:00.000Z\",\n" +
-"    \"sampleStopDate\": \"2019-05-01T00:00:00.000Z\",\n" +
+"    \"sampleStartDate\": \""+ sampleStartDate + "\",\n" +
+"    \"sampleStopDate\": \""+ sampleStopDate + "\",\n" +
 "    \"startDate\": \"2000-01-01T00:00:00.000Z\",\n" +
 "    \"status\": {\n" +
 "        \"code\": 1200,\n" +
