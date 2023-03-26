@@ -433,7 +433,7 @@ public class CsaInfoCatalogSource {
                     int[] t2= TimeUtil.getStopTime(tr);
                     int[] dt= TimeUtil.subtract( t2,t1 );
                     if ( dt[TimeUtil.COMPONENT_DAY]>1 ) {
-                        t2= TimeUtil.add( t1, new int[] { 0,0,1,0,0,0 } );
+                        t2= TimeUtil.add( t1, new int[] { 0,0,1,0,0,0,0 } );
                     }
                     sampleStartDate= TimeUtil.formatIso8601TimeBrief(t1);
                     sampleStopDate= TimeUtil.formatIso8601TimeBrief(t2);
