@@ -78,7 +78,7 @@ public class TapAvailabilitySource extends AbstractHapiRecordSource {
                     int[] ssd= TimeUtil.parseISO8601Time( sampleStartDate );
                     sampleStartDate= String.format("%04d-%02d-01T00:00Z", ssd[0],ssd[1] );
                     sampleStopDate= TimeUtil.formatIso8601TimeBrief(
-                            TimeUtil.add( ssd, new int[] { 0, 1, 0, 0, 0, 0, 0 } ) );
+                            TimeUtil.add( new int[] { ssd[0], ssd[1], 1, 0, 0, 0, 0 }, new int[] { 0, 1, 0, 0, 0, 0, 0 } ) );
                 } catch (ParseException ex) {
                     // just use the default 2019-04.
 
