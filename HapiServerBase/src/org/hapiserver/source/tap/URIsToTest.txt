@@ -43,3 +43,6 @@ vap+hapi:http://localhost:8080/HapiServer/hapi/data?id=C4_CP_STA_CS_NBR&time.min
 
 # processors start racing with:
 C4_CP_WHI_NATURAL
+
+# strange 500 error because wrong fill value is used.
+vap+hapi:https://cottagesystems.com/server/debug/hapi?id=C1_PP_WHI&timerange=2012-12-08+through+2012-12-31
