@@ -205,6 +205,7 @@ public class CsvDataFormatter implements DataFormatter {
                 		if ( j>0 ) build.append(",");
                 		build.append(dd[j]);
                 	}
+                    break;
                 case TYPE_INTEGER:
                     s= String.valueOf(record.getInteger(i) );
                     build.append(s);
@@ -215,6 +216,7 @@ public class CsvDataFormatter implements DataFormatter {
                 		if ( j>0 ) build.append(",");
                 		build.append(ii[j]);
                 	}
+                    break;
             }
         }
         out.write( build.toString().getBytes( CHARSET ) );
