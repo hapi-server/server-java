@@ -455,12 +455,26 @@ public class CsaInfoCatalogSource {
                 } catch (ParseException ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
+                String zz= "0000-00-00T00:00:00.000Z";
+                if ( sampleStopDate.length()<zz.length() ) {
+                    sampleStopDate= sampleStopDate+zz.substring(sampleStopDate.length());
+                }
+                if ( sampleStartDate.length()<zz.length() ) {
+                    sampleStartDate= sampleStartDate+zz.substring(sampleStartDate.length());
+                }
+                // this is just to aid in debugging.
+                String queryString = "https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=" + id
+                + "&START_DATE=" + sampleStartDate + "&END_DATE=" + sampleStopDate;
+                jo.put("x_tap_data_url", queryString );
+
+            } else {
+                // this is just to aid in debugging.
+                String queryString = "https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=" + id
+                + "&START_DATE=" + stopDate + "&END_DATE=" + stopDate;
+                jo.put("x_tap_data_url", queryString );
+                
             }
             
-            // this is just to aid in debugging.
-            String queryString = "https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=" + id
-            + "&START_DATE=" + stopDate + "&END_DATE=" + stopDate;
-            jo.put("x_tap_data_url", queryString );
             
             return jo.toString(4);
 
@@ -494,13 +508,15 @@ public class CsaInfoCatalogSource {
                         s = ins.readLine();
                         continue;
                     }
-                    jo.put("id", id);
-                    String t = s.substring(i + 1).trim();
-                    if (t.startsWith("\"") && t.endsWith("\"")) {
-                        t = t.substring(1, t.length() - 1);
+                    if ( id.startsWith("C1") ) {
+                        jo.put("id", id);
+                        String t = s.substring(i + 1).trim();
+                        if (t.startsWith("\"") && t.endsWith("\"")) {
+                            t = t.substring(1, t.length() - 1);
+                        }
+                        jo.put("title", t);
+                        catalog.put(catalog.length(), jo);
                     }
-                    jo.put("title", t);
-                    catalog.put(catalog.length(), jo);
                     s = ins.readLine();
                 }
             }
@@ -599,6 +615,13 @@ public class CsaInfoCatalogSource {
             } else if ( args[0].equals("--case=5") ) {
                 try {
                     String s = getInfo("C1_CP_PEA_3DRH_PSD");
+                    System.out.println(s);
+                } catch (IOException ex) {
+                    Logger.getLogger(CsaInfoCatalogSource.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else if ( args[0].equals("--case=8") ) {
+                try {
+                    String s = getInfo("C1_PP_WHI");
                     System.out.println(s);
                 } catch (IOException ex) {
                     Logger.getLogger(CsaInfoCatalogSource.class.getName()).log(Level.SEVERE, null, ex);
