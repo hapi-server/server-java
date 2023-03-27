@@ -40,3 +40,6 @@ vap+hapi:http://localhost:8080/HapiServer/hapi?id=C1_CP_PEA_3DRH_PSD&parameters=
 
 # This has the problem https://github.com/hapi-server/server-java/issues/21
 vap+hapi:http://localhost:8080/HapiServer/hapi/data?id=C4_CP_STA_CS_NBR&time.min=2022-07-31T11:00Z&time.max=2022-08-01T00:00Z
+
+# processors start racing with:
+C4_CP_WHI_NATURAL
