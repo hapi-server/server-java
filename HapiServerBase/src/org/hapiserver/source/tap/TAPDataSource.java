@@ -182,14 +182,55 @@ public class TAPDataSource extends AbstractHapiRecordSource {
             System.err.println( String.format( "%s %d fields", r.getIsoTime(0), r.length() ) );
         }
     }
-            
         
+/**
+     * This returns 769 fields while the info thinks it should be 897 (128 more).
+     * @see https://github.com/hapi-server/server-java/issues/21
+     * @param args
+     * @throws ParseException 
+     */
+    public static void mainCase7( String[] args ) throws ParseException {
+        String tapServerURL="https://csa.esac.esa.int/csa-sl-tap/";
+        String id="C1_PP_EDI";
+        String tr= "2018-10-24T18:59:56Z/2018-10-25T00:00:04Z";
+        int[] timerange = TimeUtil.parseISO8601TimeRange(tr);
+        int[] start= Arrays.copyOfRange( timerange, 0, 7 );
+        int[] stop= Arrays.copyOfRange( timerange, 7, 14 );
+        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
+        while ( iter.hasNext() ) {
+            HapiRecord r= iter.next();
+            System.err.println( String.format( "%s %d fields", r.getIsoTime(0), r.length() ) );
+        }
+    }    
+        
+/**
+     * This returns 769 fields while the info thinks it should be 897 (128 more).
+     * @see https://github.com/hapi-server/server-java/issues/21
+     * @param args
+     * @throws ParseException 
+     */
+    public static void mainCase8( String[] args ) throws ParseException {
+        String tapServerURL="https://csa.esac.esa.int/csa-sl-tap/";
+        String id="C1_PP_WHI";
+        String tr= "2012-12-15T20:00Z/2012-12-15T20:07Z";
+        int[] timerange = TimeUtil.parseISO8601TimeRange(tr);
+        int[] start= Arrays.copyOfRange( timerange, 0, 7 );
+        int[] stop= Arrays.copyOfRange( timerange, 7, 14 );
+        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
+        while ( iter.hasNext() ) {
+            HapiRecord r= iter.next();
+            System.err.println( String.format( "%s %d fields", r.getIsoTime(0), r.length() ) );
+        }
+    }    
+    
     public static void main(String[] args ) throws Exception {
         //mainCase1(args);
         //mainCase2(args);
         //mainCase3(args);
         //mainCase4(args);
         //mainCase5(args);
-        mainCase6(args);
+        //mainCase6(args);
+        //mainCase7(args);
+        mainCase8(args);
     }
 }
