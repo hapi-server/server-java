@@ -8,6 +8,7 @@ import org.hapiserver.HapiRecordSource;
 /**
  * provides implementations for typical sources.
  * @author jbf
+ * @see org.hapiserver.AbstractHapiRecordSource
  */
 public abstract class AbstractHapiRecordSource implements HapiRecordSource {
 
@@ -37,6 +38,11 @@ public abstract class AbstractHapiRecordSource implements HapiRecordSource {
     @Override
     public String getTimeStamp(int[] start, int[] stop) {
         return null;
+    }
+
+    @Override
+    public void doFinalize() {
+        
     }
     
 }

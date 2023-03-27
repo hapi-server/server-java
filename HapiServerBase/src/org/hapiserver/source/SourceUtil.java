@@ -53,36 +53,46 @@ public class SourceUtil {
         String line;
         
         public AsciiSourceIterator( File file ) throws IOException {
-            this.reader= new BufferedReader( new FileReader(file) );
-            this.line= reader.readLine();
-            // allow for one or two header lines.
-            int headerLinesLimit = 2;
-            int iline= 1;
-            while ( line!=null && iline<=headerLinesLimit ) {
-                if ( lineStartsWithTimeTag(line) ) {
-                    break;
-                } else {
-                    logger.finer("advance to next line because this appears to be header: ");
-                    this.line= reader.readLine();
-                    iline= iline+1;
-                } 
+            try {
+                this.reader= new BufferedReader( new FileReader(file) );
+                this.line= reader.readLine();
+                // allow for one or two header lines.
+                int headerLinesLimit = 2;
+                int iline= 1;
+                while ( line!=null && iline<=headerLinesLimit ) {
+                    if ( lineStartsWithTimeTag(line) ) {
+                        break;
+                    } else {
+                        logger.finer("advance to next line because this appears to be header: ");
+                        this.line= reader.readLine();
+                        iline= iline+1;
+                    } 
+                }
+            } catch ( IOException ex ) {
+                this.reader.close();
+                throw ex;
             }
         }
         
         public AsciiSourceIterator( URL url ) throws IOException {
-            this.reader= new BufferedReader( new InputStreamReader( url.openStream() ) );
-            this.line= reader.readLine();
-            // allow for one or two header lines.
-            int headerLinesLimit = 2;
-            int iline= 1;
-            while ( line!=null && iline<=headerLinesLimit ) {
-                if ( lineStartsWithTimeTag(line) ) {
-                     break;
-                } else {
-                    logger.finer("advance to next line because this appears to be header: ");
-                    this.line= reader.readLine();
-                    iline= iline+1;
-                } 
+            try {
+                this.reader= new BufferedReader( new InputStreamReader( url.openStream() ) );
+                this.line= reader.readLine();
+                // allow for one or two header lines.
+                int headerLinesLimit = 2;
+                int iline= 1;
+                while ( line!=null && iline<=headerLinesLimit ) {
+                    if ( lineStartsWithTimeTag(line) ) {
+                         break;
+                    } else {
+                        logger.finer("advance to next line because this appears to be header: ");
+                        this.line= reader.readLine();
+                        iline= iline+1;
+                    } 
+                }
+            } catch ( IOException ex ) {
+                this.reader.close();
+                throw ex;
             }
         }
         
@@ -98,6 +108,11 @@ public class SourceUtil {
                 line= reader.readLine();
                 return t;
             } catch (IOException ex) {
+                try {
+                    reader.close();
+                } catch ( IOException ex1 ) {
+                    // intentionally hide this exception--the first is the important one.
+                }
                 throw new RuntimeException(ex);
             }
         }

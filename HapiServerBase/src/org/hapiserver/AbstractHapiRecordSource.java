@@ -35,5 +35,9 @@ public abstract class AbstractHapiRecordSource implements HapiRecordSource {
     public String getTimeStamp(int[] start, int[] stop) {
         return null;
     }
+    
+    @Override
+    public void doFinalize() {
+    }
 
 }

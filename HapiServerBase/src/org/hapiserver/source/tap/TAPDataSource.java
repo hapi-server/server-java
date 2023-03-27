@@ -24,6 +24,8 @@ public class TAPDataSource extends AbstractHapiRecordSource {
 
     private final String tapServerURL;
     private final String id;
+    
+    private InputStream in=null;
 
     public TAPDataSource(String tapServerURL, String id) {
         this.tapServerURL = tapServerURL;
@@ -62,16 +64,33 @@ public class TAPDataSource extends AbstractHapiRecordSource {
         logger.log(Level.FINE, "Querying: {0}", queryString);
         try {
             URL uu = new URL(queryString);
-            InputStream in = uu.openStream();
+            in = uu.openStream();
             ReadableByteChannel lun = Channels.newChannel(in);
             CefFileIterator iter = new CefFileIterator(lun);
 
             return iter;
         } catch (IOException e) {
+            try {
+                if ( in!=null ) in.close();
+            } catch (IOException ex) {
+                logger.log(Level.SEVERE, null, ex);
+            }
             throw new RuntimeException(e);
         }
     }
 
+    @Override
+    public void doFinalize() {
+        if ( in!=null ) {
+            try {
+                in.close();
+            } catch ( IOException ex ) {
+                logger.log( Level.WARNING, ex.getMessage(), ex );
+            }
+        }
+    }
+
+    
     private String formatTime(int[] time) {
         String timeString = String.format("%4d-%02d-%02dT%02d:%02d:%02dZ",
             time[0], time[1], time[2], time[3], time[4], time[5]);

@@ -23,7 +23,8 @@ public class HapiWrapperRecordSource extends AbstractHapiRecordSource {
     private final String hapiServer;
     private final String id;
     private final JSONObject info;
-    
+    private HapiWrapperIterator hapiWrapperIterator;
+            
     public HapiWrapperRecordSource( String id, JSONObject info, JSONObject data )  {
         String hapiServ = data.optString("url");
         int i= hapiServ.indexOf("/info?id=");
@@ -43,12 +44,21 @@ public class HapiWrapperRecordSource extends AbstractHapiRecordSource {
     
     @Override
     public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
-        return new HapiWrapperIterator( hapiServer, id, info, params, start, stop );
+        hapiWrapperIterator = new HapiWrapperIterator( hapiServer, id, info, params, start, stop );
+        return hapiWrapperIterator;
     }
 
     @Override
     public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
-        return new HapiWrapperIterator( hapiServer, id, info, start, stop );
+        hapiWrapperIterator = new HapiWrapperIterator( hapiServer, id, info, start, stop );
+        return hapiWrapperIterator;
     }
 
+    @Override
+    public void doFinalize() {
+        if ( hapiWrapperIterator!=null ) {
+            hapiWrapperIterator.doFinalize();
+        }
+    }
+   
 }

@@ -60,4 +60,10 @@ public interface HapiRecordSource {
      * @return the isotime for the range, or null.
      */
     public String getTimeStamp( int[] start, int[] stop );
+    
+    /**
+     * use of this source is complete and any resources used can be disposed of.
+     */
+    public void doFinalize();
+    
 }

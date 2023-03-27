@@ -92,4 +92,9 @@ public class WindSwe2mDataSource implements HapiRecordSource {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public void doFinalize() {
+        
+    }
+
 }

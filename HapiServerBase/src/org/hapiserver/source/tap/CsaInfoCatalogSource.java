@@ -177,6 +177,7 @@ public class CsaInfoCatalogSource {
         logger.log(Level.FINE, "wrap {0}", trurl);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(trurl).openStream()))) {
             String header = reader.readLine();
+            logger.log(Level.FINER, "header: {0}", header);
             String data = reader.readLine();
             String[] ss = SourceUtil.stringSplit(data);
             if (ss.length != 4) {

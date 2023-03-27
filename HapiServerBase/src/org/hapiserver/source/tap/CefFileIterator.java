@@ -684,35 +684,31 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             int last_eor = getLastEor(work_buffer); //*** look for delimeters, EOR, comments, EOL etc
             int loop = 0;
             while (last_eor < 0) { // reload the work_buffer
-                try {
-                    //*** read the next chunk of the file
-                    //*** catch errors to avoid warning message if we read past end of file
-                    read_buffer.rewind();
-                    read_buffer.limit(read_buffer.capacity());
+                //*** read the next chunk of the file
+                //*** catch errors to avoid warning message if we read past end of file
+                read_buffer.rewind();
+                read_buffer.limit(read_buffer.capacity());
 
-                    int read_size = lun.read(read_buffer);
-                    logger.log(Level.FINER, "Read {0} bytes", read_size);
+                int read_size = lun.read(read_buffer);
+                logger.log(Level.FINER, "Read {0} bytes", read_size);
 
-                    if (read_size == -1) {
-                        eof = true;
-                        this.nextRecord = null;
-                        return;
-                    }
-
-                    //*** transfer this onto the end of the work buffer and update size of work buffer
-                    if (read_size > 0) {
-                        read_buffer.flip();
-                        if (work_buffer.position() > 0 && loop == 0) {
-                            //There's unused data in the work buffer, so preserve it
-                            work_buffer.compact();
-                        }
-                        work_buffer.put(read_buffer);
-                        work_buffer.flip();
-                    }
-
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
+                if (read_size == -1) {
+                    eof = true;
+                    this.nextRecord = null;
+                    return;
                 }
+
+                //*** transfer this onto the end of the work buffer and update size of work buffer
+                if (read_size > 0) {
+                    read_buffer.flip();
+                    if (work_buffer.position() > 0 && loop == 0) {
+                        //There's unused data in the work buffer, so preserve it
+                        work_buffer.compact();
+                    }
+                    work_buffer.put(read_buffer);
+                    work_buffer.flip();
+                }
+
                 //removeComments(work_buffer, work_buffer.limit() );                
                 last_eor = getLastEor(work_buffer);
                 if (last_eor < 0) {
@@ -753,6 +749,11 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         try {
             readNextRecord();
         } catch (IOException ex) {
+            try {
+                this.lun.close();
+            } catch (IOException ex1) {
+                // do nothing, the first exception will be visible.
+            }
             throw new RuntimeException(ex);
         }
 

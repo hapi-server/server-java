@@ -102,4 +102,13 @@ public class HapiWrapperIterator implements Iterator<HapiRecord> {
         }
     }
 
+    public void doFinalize() {
+        if ( reader!=null ) {
+            try {
+                reader.close();
+            } catch ( IOException ex ) {
+                logger.log(Level.WARNING,ex.getMessage(),ex);
+            }
+        }
+    }
 }

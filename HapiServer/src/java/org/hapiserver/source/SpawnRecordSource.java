@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,7 +12,6 @@ import java.util.stream.Collectors;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.CsvHapiRecordConverter;
-import org.hapiserver.ExtendedTimeUtil;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
 import org.hapiserver.HapiServerSupport;
@@ -47,6 +45,7 @@ public class SpawnRecordSource implements HapiRecordSource {
     String timeFormat; // "$Y-$m-$d"
     URITemplate uriTemplate;
     int[] granuleSize;
+    SpawnRecordSourceIterator iter;
     
     /**
      * create a new SpawnRecordSource for the command.  Examples include:<ul>
@@ -126,7 +125,8 @@ public class SpawnRecordSource implements HapiRecordSource {
     public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
         try {
             JSONObject infoSubset= Util.subsetParams( info, HapiServerSupport.joinParams( info, params ) );
-            return new SpawnRecordSourceIterator( hapiHome, id, infoSubset, command, start, stop, params );
+            iter= new SpawnRecordSourceIterator( hapiHome, id, infoSubset, command, start, stop, params );
+            return iter;
         } catch ( BadRequestParameterException | JSONException ex ) {
             throw new RuntimeException(ex);
         }
@@ -134,7 +134,8 @@ public class SpawnRecordSource implements HapiRecordSource {
 
     @Override
     public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
-        return new SpawnRecordSourceIterator( hapiHome, id, info, command, start, stop, null );
+        iter = new SpawnRecordSourceIterator( hapiHome, id, info, command, start, stop, null );
+        return iter;
     }
 
     @Override
@@ -271,6 +272,24 @@ public class SpawnRecordSource implements HapiRecordSource {
                 throw new RuntimeException(ex);
             }
         }
+        
+        public void doFinalize() {
+            if ( reader!=null ) {
+                try {
+                    reader.close();
+                } catch ( IOException ex ) {
+                    logger.log( Level.WARNING,ex.getMessage(),ex );
+                }
+            }
+        }
     }
 
+    @Override
+    public void doFinalize() {
+        if ( iter!=null ) {
+            iter.doFinalize();
+        }
+    }
+
+    
 }

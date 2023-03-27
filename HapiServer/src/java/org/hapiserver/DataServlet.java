@@ -290,6 +290,7 @@ public class DataServlet extends HttpServlet {
         if ( dsiter==null ) {
             Util.raiseError( 1500, "HAPI error 1500: internal server error, id has no reader " + id, 
                 response, response.getOutputStream() );
+            source.doFinalize();
             return;
         }
 
@@ -389,6 +390,7 @@ public class DataServlet extends HttpServlet {
             
         } finally {
             
+            source.doFinalize();
             out.close();
             
         }
