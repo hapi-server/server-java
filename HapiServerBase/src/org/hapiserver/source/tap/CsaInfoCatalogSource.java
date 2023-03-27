@@ -508,7 +508,7 @@ public class CsaInfoCatalogSource {
                         s = ins.readLine();
                         continue;
                     }
-                    if ( id.startsWith("C1") ) {
+                    //if ( id.startsWith("C2") ) {
                         jo.put("id", id);
                         String t = s.substring(i + 1).trim();
                         if (t.startsWith("\"") && t.endsWith("\"")) {
@@ -516,7 +516,7 @@ public class CsaInfoCatalogSource {
                         }
                         jo.put("title", t);
                         catalog.put(catalog.length(), jo);
-                    }
+                    //}
                     s = ins.readLine();
                 }
             }
