@@ -484,10 +484,6 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
         // Because of non-varying fields, this may be shorter than the number of fields.
         String[] f1s = SourceUtil.stringSplit(s);
-        for (int i = 0; i < f1s.length; i++) {
-            f1s[i] = f1s[i].trim();
-        }
-
         String[] fields;
         
         final List<List<Integer>> columnIndices = new ArrayList<>();
@@ -576,9 +572,10 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             public String[] getStringArray(int i) {
                 List<Integer> indices = columnIndices.get(i);
                 String[] vector = new String[indices.size()];
-                for (int iField = 0; iField < indices.size(); iField++) {
-                    int fieldIndex = indices.get(iField);
-                    vector[iField] = fields[fieldIndex];
+                int firstIndex= i;
+                int lastIndex= i+indices.size();
+                for (int iField = firstIndex; iField < lastIndex; iField++) {
+                    vector[iField-firstIndex] = fields[iField].trim();
                 }
                 return vector;
 
@@ -594,12 +591,8 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                 if (columnIndices.get(i).size() != 1) {
                     throw new IllegalArgumentException("Parameter " + i + " is an array type.");
                 }
-                int fieldIndex = columnIndices.get(i).get(0);
-                if ( fieldIndex==-1 ) { // non-time-varying
-                    return fields[i];
-                } else {
-                    return fields[fieldIndex];
-                }
+                int fieldIndex = i;
+                return fields[fieldIndex].trim();
             }
 
             @Override
