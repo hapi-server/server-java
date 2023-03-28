@@ -947,6 +947,8 @@ public class HapiServerSupport {
         String safeId= Util.fileSystemSafeName(id);
         File infoFile= new File( infoDir, safeId + ".json" );
 
+        getCatalog(HAPI_HOME);
+        
         CatalogData cc= catalogCache.get( HAPI_HOME );
         long latestTimeStamp= infoFile.exists() ? infoFile.lastModified() : 0;
         
@@ -973,6 +975,7 @@ public class HapiServerSupport {
                     String groupId= thisId.getString("x_group_id");
                     JSONObject groups= cc.catalog.getJSONObject("x_groups");
                     config= groups.getJSONObject(groupId);
+                    infoConfigFile= new File( configFile, "catalog.json" );
                 } else {
                     
                 }
