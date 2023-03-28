@@ -141,7 +141,6 @@ public class CsvDataFormatter implements DataFormatter {
                 }
             }
             for ( int i=0; i<record.length(); i++ ) {
-                JSONObject parameter= parameters.getJSONObject(i);
                 switch ( types[i] ) {
                     case TYPE_ISOTIME:
                     case TYPE_DOUBLE:
@@ -165,7 +164,7 @@ public class CsvDataFormatter implements DataFormatter {
                             throw new IllegalStateException("things have gone wrong");
                         }
                     } else {
-                        parameter= parameters.getJSONObject(iparam);
+                        JSONObject parameter= parameters.getJSONObject(iparam);
                     }
                 }
             }
@@ -181,7 +180,7 @@ public class CsvDataFormatter implements DataFormatter {
     public void sendRecord(OutputStream out, HapiRecord record) throws IOException {
         int n= record.length();
         StringBuilder build= new StringBuilder();
-        for ( int i=0; i<record.length(); i++ ) {
+        for ( int i=0; i<n; i++ ) {
             String s;
             if ( i>0 ) build.append(",");
             switch ( types[i] ) {
