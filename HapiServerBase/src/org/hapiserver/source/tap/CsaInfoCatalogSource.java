@@ -163,6 +163,11 @@ public class CsaInfoCatalogSource {
     }
             
     /**
+     * remove the redundant dataset id from parameter ids.
+     */
+    private static final boolean popLabel= true;
+    
+    /**
      * produce the info response for a given ID. This assumes the response will be cached and performance is not an issue.
      *
      * @param id the dataset id.
@@ -317,6 +322,9 @@ public class CsaInfoCatalogSource {
                     String nodeValue= c.getTextContent();
                     switch (c.getNodeName()) {
                         case "PARAMETER_ID":
+                            if ( popLabel ) {
+                                nodeValue= nodeValue.substring(0,nodeValue.length()-2-id.length());
+                            }
                             parameter.put("name", nodeValue);
                             break;
                         case "UNITS":
