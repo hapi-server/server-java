@@ -519,16 +519,19 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         
         fields= ffields.toArray( new String[ffields.size()] );
 
+        // columnIndices maps from parameter number to CEF file column(s).  If it is
+        // -1, it means the data is constant, and idx will refer to the column in the CEF file.
         return new AbstractHapiRecord() {
             @Override
             public int length() {
-                return fields.length;
+                return columnIndices.size();
             }
 
             @Override
             public String getIsoTime(int i) {
-                String field = fields[i];
-                if (fields[i].length() > 45) { //TODO: kludge for time ranges.
+                int idx= columnIndices.get(i).get(0);
+                String field = fields[idx].trim();
+                if (field.length() > 45) { //TODO: kludge for time ranges.
                     int is1 = field.indexOf("/");
                     if (is1 > 0) {
                         field = field.substring(0, 24) + "Z";
@@ -572,7 +575,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             public String[] getStringArray(int i) {
                 List<Integer> indices = columnIndices.get(i);
                 String[] vector = new String[indices.size()];
-                int firstIndex= i;
+                int firstIndex= indices.get(0);
                 int lastIndex= i+indices.size();
                 for (int iField = firstIndex; iField < lastIndex; iField++) {
                     vector[iField-firstIndex] = fields[iField].trim();
@@ -591,8 +594,8 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                 if (columnIndices.get(i).size() != 1) {
                     throw new IllegalArgumentException("Parameter " + i + " is an array type.");
                 }
-                int fieldIndex = i;
-                return fields[fieldIndex].trim();
+                int idx= columnIndices.get(i).get(0);
+                return fields[idx].trim();
             }
 
             @Override
