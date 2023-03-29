@@ -388,8 +388,8 @@ public class CsaInfoCatalogSource {
                             array.put(ia, Integer.parseInt(sizes.get(ia)));
                             if ( depends.size()==sizes.size() ) {
                                 JSONObject bin= new JSONObject();
-                                bin.setEscapeForwardSlashAlways(false);
                                 if ( definitions.has( depends.get(ia) ) ) {
+                                    //TODO: I can't figure out why it always escapes the backslashes here
                                     bin.put( "$ref", "#/definitions/"+ depends.get(ia) );
                                 } else {
                                     bin.put( "name", depends.get(ia)+"__ref" );
