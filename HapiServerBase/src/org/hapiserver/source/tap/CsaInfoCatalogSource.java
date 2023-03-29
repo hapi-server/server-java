@@ -361,6 +361,9 @@ public class CsaInfoCatalogSource {
                             break;
                         case "SIZES":
                             sizes.add(c.getTextContent());
+                            if ( parameter.get("type").equals("string") ) {
+                                parameter.put("length", Integer.parseInt(c.getTextContent()) );
+                            }
                             break;
                         case "CATDESC":
                             parameter.put("description", nodeValue);
