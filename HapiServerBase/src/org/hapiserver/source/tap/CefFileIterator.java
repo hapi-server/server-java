@@ -503,7 +503,6 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                 if ( nonRecordVaryingValues.length==1 ) {
                     vfields.put( i, nonRecordVaryingValues[0] );
                 }
-                continue;
             } else {
                 int vectorLength;
                 vectorLength = p.sizes[0];
