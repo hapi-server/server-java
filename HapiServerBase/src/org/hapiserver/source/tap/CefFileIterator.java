@@ -489,7 +489,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         
         final List<List<Integer>> columnIndices = new ArrayList<>();
         final List<String> ffields= new ArrayList<>();
-        final Map<Integer,String> vfields= new HashMap<>();
+        final Map<Integer,String[]> vfields= new HashMap<>();
         
         Iterator<String> params = cef.parameters.keySet().iterator();
         int if1s = 0; // index into string array which contains physical records split up.
@@ -500,9 +500,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             if (index==-1 ) { // Non-record-varying
                 columnIndices.add(Collections.singletonList(-i));
                 String[] nonRecordVaryingValues= (String[])p.entries.get("DATA");
-                if ( nonRecordVaryingValues.length==1 ) {
-                    vfields.put( i, nonRecordVaryingValues[0] );
-                }
+                vfields.put( -i, nonRecordVaryingValues );
             } else {
                 int vectorLength;
                 vectorLength = p.sizes[0];
@@ -576,14 +574,17 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             @Override
             public String[] getStringArray(int i) {
                 List<Integer> indices = columnIndices.get(i);
-                String[] vector = new String[indices.size()];
                 int firstIndex= indices.get(0);
-                int lastIndex= firstIndex+indices.size();
-                for (int iField = firstIndex; iField < lastIndex; iField++) {
-                    vector[iField-firstIndex] = fields[iField].trim();
+                if ( firstIndex<0 ) {
+                    return vfields.get(firstIndex);
+                } else {
+                    String[] vector = new String[indices.size()];
+                    int lastIndex= firstIndex+indices.size();
+                    for (int iField = firstIndex; iField < lastIndex; iField++) {
+                        vector[iField-firstIndex] = fields[iField].trim();
+                    }
+                    return vector;
                 }
-                return vector;
-
             }
 
             @Override
@@ -595,7 +596,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             public String getAsString(int i) {
                 int idx= columnIndices.get(i).get(0);
                 if ( idx<0 ) {
-                    return vfields.get(i);
+                    return vfields.get(i)[0];
                 } else {
                     return fields[idx].trim();
                 }
