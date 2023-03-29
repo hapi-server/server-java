@@ -211,6 +211,45 @@ public class SourceUtil {
     public static final String PATTERN_SPLIT_QUOTED_FIELDS_COMMA= ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
     
     /**
+     * only split on the delimiter when we are not within the exclude delimiters.  For example,
+     * <code>
+     * 2022-02-02T02:02:02,"thruster,mode2,on",2
+     * </code>
+     * @param s the string to split.
+     * @param delim the delimiter to split on, for example the ampersand (&).
+     * @param exclude1 for example the single quote (")
+     * @return the split.
+     * 
+     * This is a copy of another code.  See org.autoplot.jythonsupport.Util.java
+     * TODO: this makes an unnecessary copy of the string.  This should be re-implemented.
+     */
+    public static String[] guardedSplit( String s, char delim, char exclude1 ) {    
+        if ( delim=='_') throw new IllegalArgumentException("_ not allowed for delim");
+        StringBuilder scopyb= new StringBuilder(s.length());
+        char inExclude= (char)0;
+        
+        for ( int i=0; i<s.length(); i++ ) {
+            char c= s.charAt(i);
+            if ( inExclude==0 ) {
+                if ( c==exclude1 ) inExclude= c;
+            } else {
+                if ( c==inExclude ) inExclude= 0;
+            }
+            if ( inExclude>(char)0 ) c='_';
+            scopyb.append(c);            
+        }
+        String[] ss= scopyb.toString().split(String.valueOf(delim),-2);
+        
+        int i1= 0;
+        for ( int i=0; i<ss.length; i++ ) {
+            int i2= i1+ss[i].length();
+            ss[i]= s.substring(i1,i2);
+            i1= i2+1;
+        } 
+        return ss;
+    }
+    
+    /**
      * Split the CSV string into fields, minding commas within quotes should not be used to
      * split the string.  Finally, quotes around fields are removed.
      * @param s string like "C3_PP_CIS,\"Proton and ion densities, bulk velocities and temperatures, spin resolution\""
@@ -219,7 +258,7 @@ public class SourceUtil {
     public static String[] stringSplit( String s ) {
         String[] ss;
         if ( s.contains("\"") ) {
-            ss= s.split(PATTERN_SPLIT_QUOTED_FIELDS_COMMA,-2);
+            ss= guardedSplit( s, ',', '"' );
             for ( int i=0; i<ss.length; i++ ) {
                 int l= ss[i].length();
                 if ( ss[i].charAt(0)=='"' && ss[i].charAt(l-1)=='"' ) {
