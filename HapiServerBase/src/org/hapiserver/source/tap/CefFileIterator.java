@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -488,6 +489,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         
         final List<List<Integer>> columnIndices = new ArrayList<>();
         final List<String> ffields= new ArrayList<>();
+        final Map<Integer,String> vfields= new HashMap<>();
         
         Iterator<String> params = cef.parameters.keySet().iterator();
         int if1s = 0; // index into string array which contains physical records split up.
@@ -496,25 +498,26 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             ParamStruct p = cef.parameters.get(key);
             int index= p.cefFieldPos[0];
             if (index==-1 ) { // Non-record-varying
-                columnIndices.add(Collections.singletonList(-1));
+                columnIndices.add(Collections.singletonList(-i));
                 String[] nonRecordVaryingValues= (String[])p.entries.get("DATA");
                 if ( nonRecordVaryingValues.length==1 ) {
-                    ffields.addAll( Arrays.asList(nonRecordVaryingValues) );
+                    vfields.put( i, nonRecordVaryingValues[0] );
                 }
                 continue;
-            }
-            int vectorLength;
-            vectorLength = p.sizes[0];
-            for ( int j=1; j<p.sizes.length; j++ ) {
-                vectorLength*= p.sizes[j];
-            }
+            } else {
+                int vectorLength;
+                vectorLength = p.sizes[0];
+                for ( int j=1; j<p.sizes.length; j++ ) {
+                    vectorLength*= p.sizes[j];
+                }
             
-            List<Integer> componentIndices = new ArrayList<>();
-            for (int iComponent = 0; iComponent < vectorLength; iComponent++) {
-                componentIndices.add(index+iComponent);
-                ffields.add(f1s[if1s++]);
+                List<Integer> componentIndices = new ArrayList<>();
+                for (int iComponent = 0; iComponent < vectorLength; iComponent++) {
+                    componentIndices.add(index+iComponent);
+                    ffields.add(f1s[if1s++]);
+                }
+                columnIndices.add(componentIndices);
             }
-            columnIndices.add(componentIndices);
         }
         
         fields= ffields.toArray( new String[ffields.size()] );
@@ -576,7 +579,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                 List<Integer> indices = columnIndices.get(i);
                 String[] vector = new String[indices.size()];
                 int firstIndex= indices.get(0);
-                int lastIndex= i+indices.size();
+                int lastIndex= firstIndex+indices.size();
                 for (int iField = firstIndex; iField < lastIndex; iField++) {
                     vector[iField-firstIndex] = fields[iField].trim();
                 }
@@ -591,11 +594,12 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
             @Override
             public String getAsString(int i) {
-                if (columnIndices.get(i).size() != 1) {
-                    throw new IllegalArgumentException("Parameter " + i + " is an array type.");
-                }
                 int idx= columnIndices.get(i).get(0);
-                return fields[idx].trim();
+                if ( idx<0 ) {
+                    return vfields.get(i);
+                } else {
+                    return fields[idx].trim();
+                }
             }
 
             @Override
