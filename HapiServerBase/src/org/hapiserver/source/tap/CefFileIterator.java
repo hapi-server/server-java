@@ -531,10 +531,11 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             public String getIsoTime(int i) {
                 int idx= columnIndices.get(i).get(0);
                 String field = fields[idx].trim();
-                if (field.length() > 45) { //TODO: kludge for time ranges.
+                if (field.length() > 45) { //TODO: kludge for time ranges.  See https://github.com/hapi-server/server-java/issues/22
                     int is1 = field.indexOf("/");
                     if (is1 > 0) {
-                        field = field.substring(0, 24) + "Z";
+                        field = field.substring(0, 24);
+                        if ( !field.endsWith("Z") ) field=field+"Z";
                     }
                 }
                 return field;
