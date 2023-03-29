@@ -124,7 +124,9 @@ public class BinaryDataFormatter implements DataFormatter {
                         }
                     case "string":
                         {
-                            if ( !parameter.has("length") ) throw new RuntimeException("required tag length is missing"); 
+                            if ( !parameter.has("length") ) {
+                                throw new RuntimeException("required tag length is missing");
+                            } 
                             final int len= parameter.getInt("length");
                             final byte[] zeros= new byte[len];
                             for ( int i2=0; i2<zeros.length; i2++ ) zeros[i2]= 0;
