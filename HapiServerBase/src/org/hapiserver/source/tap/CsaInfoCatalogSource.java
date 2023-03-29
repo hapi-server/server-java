@@ -470,10 +470,12 @@ public class CsaInfoCatalogSource {
                 }
                 String zz= "0000-00-00T00:00:00.000Z";
                 if ( sampleStopDate.length()<zz.length() ) {
-                    sampleStopDate= sampleStopDate+zz.substring(sampleStopDate.length());
+                    int n= sampleStopDate.length()-1; // remove Z
+                    sampleStopDate= sampleStopDate.substring(0,n)+zz.substring(n);
                 }
                 if ( sampleStartDate.length()<zz.length() ) {
-                    sampleStartDate= sampleStartDate+zz.substring(sampleStartDate.length());
+                    int n= sampleStartDate.length()-1; // remove Z
+                    sampleStartDate= sampleStartDate.substring(0,n)+zz.substring(n);
                 }
                 // this is just to aid in debugging.
                 String queryString = "https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=" + id
