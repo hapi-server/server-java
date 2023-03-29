@@ -247,7 +247,11 @@ public class CsaInfoCatalogSource {
                                 ja.put( z, Double.parseDouble(ss[z]) );
                             }
                             data.put( "centers", ja );
-                            if ( units!=null ) data.put( "units", units );
+                            if ( units!=null ) {
+                                data.put( "units", units );
+                            } else {
+                                data.put( "units", JSONObject.NULL  );
+                            }
                             definitions.put( name, data );
                             hasDefinitions= true;                        
                         }
@@ -388,6 +392,7 @@ public class CsaInfoCatalogSource {
                             array.put(ia, Integer.parseInt(sizes.get(ia)));
                             if ( depends.size()==sizes.size() ) {
                                 JSONObject bin= new JSONObject();
+                                bin.setEscapeForwardSlashAlways(false);
                                 if ( definitions.has( depends.get(ia) ) ) {
                                     //TODO: I can't figure out why it always escapes the backslashes here
                                     bin.put( "$ref", "#/definitions/"+ depends.get(ia) );
