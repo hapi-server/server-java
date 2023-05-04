@@ -36,13 +36,6 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
 
     HapiRecord nextRecord;
     Adapter[] adapters;
-    Object[] oparams;
-    double[][] dparams;
-    double[][][] ddparams;
-    int[][] iparams;
-    int[][][] iiparams;
-    String[][] sparams;
-    String[][][] ssparams;
     
     int index;
     int nindex;
@@ -110,6 +103,19 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
             return formatTime( array[index] );
         }
         
+    }
+    
+    private static class DoubleDoubleAdapter extends Adapter {
+        double[] array;
+        
+        private DoubleDoubleAdapter( double[] array ) {
+            this.array= array;
+        }
+        
+        @Override
+        public double adaptDouble(int index) {
+            return this.array[index];
+        }
     }
     
     private static class IsotimeTT2000Adapter extends Adapter {
@@ -188,12 +194,6 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
             File tmpFile= File.createTempFile( name, ".cdf" );
             tmpFile= SourceUtil.downloadFile( cdfUrl, tmpFile );
             
-            oparams= new Object[params.length];
-            sparams= new String[params.length][];
-            dparams= new double[params.length][];
-            ddparams= new double[params.length][][];
-            iparams= new int[params.length][];
-            iiparams= new int[params.length][][];
             adapters= new Adapter[params.length];
             
             CDFReader reader= new CDFReader(tmpFile.toString());
@@ -203,24 +203,31 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
                     String dep0= deps[0];
                     int type= reader.getType(dep0); // 31=Epoch
                     Object o= reader.get(dep0);
-                    oparams[i]= o;
                     if ( Array.getLength(o)>0 ) {
-                        if ( type==31 ) {
-                            adapters[i]= new IsotimeEpochAdapter( (double[])o );
-
-                        } else if ( type==33 ) {
-                            adapters[i]= new IsotimeTT2000Adapter( (long[])o );
-                     
-                        } else {
-                            throw new IllegalArgumentException("type not supported for column 0 time");
+                        switch (type) {
+                            case 31:
+                                adapters[i]= new IsotimeEpochAdapter( (double[])o );
+                                break;
+                            case 33:
+                                adapters[i]= new IsotimeTT2000Adapter( (long[])o );
+                                break;
+                            default:
+                                throw new IllegalArgumentException("type not supported for column 0 time (cdf_epoch16");
                         }
+                        nindex= Array.getLength(o);
+                    } else {
+                        nindex=0;
                     }
                     
                 } else {
-                    oparams[i]= reader.get(params[i]);
-                }
-                if ( i==0 ) {
-                    nindex= Array.getLength(oparams[i]);
+                    String param= params[i];
+                    int type= reader.getType(param);
+                    Object o= reader.get(param);
+                    if ( type==44 ) {
+                        adapters[i]= new DoubleDoubleAdapter( (double[])o );
+                    } else {
+                        throw new IllegalArgumentException("unsupported type");
+                    }
                 }
             }
             index= 0;
@@ -253,12 +260,12 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
 
             @Override
             public String getString(int i) {
-                return ((String[])oparams[i])[j];
+                return null;
             }
 
             @Override
             public String[] getStringArray(int i) {
-                return ssparams[i][j];
+                return null;
             }
 
             @Override
@@ -268,27 +275,27 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
 
             @Override
             public double[] getDoubleArray(int i) {
-                return ddparams[i][j];
+                return null;
             }
 
             @Override
             public int getInteger(int i) {
-                return iparams[i][j];
+                return Integer.MAX_VALUE;
             }
 
             @Override
             public int[] getIntegerArray(int i) {
-                return iiparams[i][j];
+                return null;
             }
 
             @Override
             public String getAsString(int i) {
-                return String.valueOf(Array.get(oparams[i],j));
+                return null;
             }
 
             @Override
             public int length() {
-                return oparams.length;
+                return adapters.length;
             }
         };
     }
@@ -307,7 +314,7 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
                 new String[] { "Time", "fce" } );
         while ( dd.hasNext() ) {
             HapiRecord rec= dd.next();
-            System.err.println( rec.getIsoTime(0) );
+            System.err.println( String.format( "%s %.2f", rec.getIsoTime(0), rec.getDouble(1) ) );
         }
     }
     
