@@ -131,6 +131,19 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
         }
     }
     
+    private static class DoubleArrayDoubleAdapter extends Adapter {
+        double[][] array;
+        
+        private DoubleArrayDoubleAdapter( double[][] array ) {
+            this.array= array;
+        }
+        
+        @Override
+        public double[] adaptDoubleArray(int index) {
+            return this.array[index];
+        }
+    }
+    
     private static class DoubleFloatAdapter extends Adapter {
         float[] array;
         
@@ -351,24 +364,33 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
                     Object o= reader.get(param);
                     String stype= nameForType(type);
                     Class c= o.getClass().getComponentType();
-                    if ( c==double.class ) {
-                        adapters[i]= new DoubleDoubleAdapter( (double[])o );
-                    } else if ( c==float.class ) {
-                        adapters[i]= new DoubleFloatAdapter( (float[])o );
-                    } else if ( c==int.class ) {
-                        adapters[i]= new IntegerIntegerAdapter( (int[])o );
-                    } else if ( c==short.class ) {
-                        adapters[i]= new IntegerShortAdapter( (short[])o );
-                    } else if ( c==byte.class ) {
-                        adapters[i]= new IntegerByteAdapter( (byte[])o );
-                    } else if ( c==long.class ) {
-                        adapters[i]= new IntegerLongAdapter( (long[])o );
-                    } else if ( stype.equals("CDF_UINT2") ) {
-                        adapters[i]= new IntegerIntegerAdapter( (int[])o );
-                    } else if ( stype.equals("CDF_UINT1") ) {
-                        adapters[i]= new IntegerShortAdapter( (short[])o );                        
+                    if ( !c.isArray() ) {
+                        if ( c==double.class ) {
+                            adapters[i]= new DoubleDoubleAdapter( (double[])o );
+                        } else if ( c==float.class ) {
+                            adapters[i]= new DoubleFloatAdapter( (float[])o );
+                        } else if ( c==int.class ) {
+                            adapters[i]= new IntegerIntegerAdapter( (int[])o );
+                        } else if ( c==short.class ) {
+                            adapters[i]= new IntegerShortAdapter( (short[])o );
+                        } else if ( c==byte.class ) {
+                            adapters[i]= new IntegerByteAdapter( (byte[])o );
+                        } else if ( c==long.class ) {
+                            adapters[i]= new IntegerLongAdapter( (long[])o );
+                        } else if ( stype.equals("CDF_UINT2") ) {
+                            adapters[i]= new IntegerIntegerAdapter( (int[])o );
+                        } else if ( stype.equals("CDF_UINT1") ) {
+                            adapters[i]= new IntegerShortAdapter( (short[])o );                        
+                        } else {
+                            throw new IllegalArgumentException("unsupported type");
+                        }
                     } else {
-                        throw new IllegalArgumentException("unsupported type");
+                        c= c.getComponentType();
+                        if ( c==double.class ) {
+                            adapters[i]= new DoubleArrayDoubleAdapter( (double[][])o );
+                        } else {
+                            throw new IllegalArgumentException("unsupported type");
+                        }
                     }
                 }
             }
@@ -417,7 +439,7 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
 
             @Override
             public double[] getDoubleArray(int i) {
-                return null;
+                return adapters[i].adaptDoubleArray(j);
             }
 
             @Override
@@ -460,6 +482,20 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
         }
     }
     
+    // first attempt at double array handling
+    public static void mainCase3( ) {
+        CdawebServicesHapiRecordSource dd= new CdawebServicesHapiRecordSource( 
+                "AC_K0_MFI", 
+                new int[] { 2023, 4, 26, 0, 0, 0, 0 },
+                new int[] { 2023, 4, 27, 0, 0, 0, 0 }, 
+                new String[] { "Time", "BGSEc" } );
+        while ( dd.hasNext() ) {
+            HapiRecord rec= dd.next();
+            double[] ds= rec.getDoubleArray(1);
+            System.err.println(  String.format( "%s: %.1f %.1f %.1f", rec.getIsoTime(0), ds[0], ds[1], ds[2] ) );
+        }
+    }
+    
     public static void mainCase1( ) {
 //        CdawebServicesHapiRecordSource dd= new CdawebServicesHapiRecordSource( 
 //                "AC_H2_SWE", 
@@ -479,7 +515,8 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
     
     public static void main( String[] args ) {
         //mainCase1();
-        mainCase2();
+        //mainCase2();
+        mainCase3();
     }
     
 }
