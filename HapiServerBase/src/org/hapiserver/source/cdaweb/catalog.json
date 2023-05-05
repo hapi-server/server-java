@@ -19,7 +19,7 @@
                  },
                  "data": {
                      "source": "classpath",
-                     "class":"org.hapiserver.source.cdaweb.CdawebServicesHRS"
+                     "class":"org.hapiserver.source.cdaweb.CdawebServicesHapiRecordSource"
                  }
              }
          }
