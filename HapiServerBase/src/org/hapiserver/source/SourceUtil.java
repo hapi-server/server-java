@@ -4,17 +4,24 @@ package org.hapiserver.source;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  *
@@ -270,5 +277,45 @@ public class SourceUtil {
         }
         return ss;
     }
+    
+    /**
+     * read the XML document from a remote site.
+     * @param url
+     * @return 
+     * @throws org.xml.sax.SAXException 
+     * @throws java.io.IOException 
+     * @throws javax.xml.parsers.ParserConfigurationException 
+     */
+    public static Document readDocument( URL url )  throws SAXException, IOException, ParserConfigurationException {
+        try ( InputStream is= url.openStream() ) {
+            DocumentBuilder builder;
+            builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            InputSource source = new InputSource(new InputStreamReader(is));
+            Document document = builder.parse(source);
+            return document;
+        }
+    }
 
+    /**
+     * download the resource to the given file
+     * @param url
+     * @param file
+     * @return the name of the file
+     * @throws IOException 
+     */
+    public static File downloadFile( URL url, File file ) throws IOException {
+        // Get the URL of the file to download.
+
+        // Open a connection to the URL.
+        try ( InputStream inputStream = url.openStream(); OutputStream outputStream = new FileOutputStream(file) ) {
+            // Copy the contents of the input stream to the output stream.
+            byte[] buffer = new byte[10240];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+        }
+        return file;
+       
+    }
 }
