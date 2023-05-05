@@ -44,7 +44,7 @@ public class CdawebServicesHRS extends AbstractHapiRecordSource {
 
     @Override
     public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
-        return new CdawebServicesHapiRecordSource(id, info, start, stop, params);
+        return new CdawebServicesHapiRecordIterator(id, info, start, stop, params);
     }    
  
 }
