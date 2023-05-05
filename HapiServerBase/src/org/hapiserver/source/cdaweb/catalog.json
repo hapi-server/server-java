@@ -1,0 +1,31 @@
+ {
+     "HAPI": "3.0",
+     "catalog": [
+         {
+             "x_source": "spawn",
+             "x_command": "wget -O - https://cdaweb.gsfc.nasa.gov/hapi/catalog",
+             "_x_class": "org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
+             "_x_method": "getCatalog",
+             "x_config": {
+                 "_info": {
+                     "x_source":"classpath",
+                     "x_class":"org.hapiserver.source.cdaweb.CsaInfoCatalogSource",
+                     "x_method": "getInfo",
+                     "x_args": [ "${id}" ]
+                 },
+                 "info": {
+                    "source":"spawn",
+                    "command":"wget -O - https://cdaweb.gsfc.nasa.gov/hapi/info?id=${id}"
+                 },
+                 "data": {
+                     "source": "classpath",
+                     "class":"org.hapiserver.source.cdaweb.CdawebServicesHRS"
+                 }
+             }
+         }
+     ],
+     "status": {
+         "code": 1200,
+         "message": "OK request successful"
+     }
+ }

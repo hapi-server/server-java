@@ -1,11 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+        
 package org.hapiserver.source.cdaweb;
 
-import gov.nasa.gsfc.spdf.cdfj.CDFDataType;
 import gov.nasa.gsfc.spdf.cdfj.CDFException;
 import gov.nasa.gsfc.spdf.cdfj.CDFReader;
 import java.io.File;
@@ -17,12 +12,14 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
@@ -40,7 +37,7 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
     
     int index;
     int nindex;
-        
+
     /**
      * one of these methods will be implemented by the adapter.
      */
@@ -82,7 +79,10 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
         
         double[] array;
         
-        private IsotimeEpochAdapter( double[] array ) {
+        String format= ":%02d:%02d.%09d";
+        int formatFactor= 1; // number by which to round
+        
+        private IsotimeEpochAdapter( double[] array, int length ) {
             this.array= array;
             double d= array[0];
             double us2000= ( d - 6.3113904E13 ) * 1000; // ms -> microseconds
@@ -92,6 +92,21 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
             String baseDay= TimeUtil.fromMillisecondsSince1970((long)ms1970);
             baseYYYYmmddTHH= baseDay.substring(0,10)+"T00";
             baseTime= (long)(d-usDay/1000);
+            switch ( length ) { // YYYY4hh7mm0HH3MM6SS9NNNNNNNNNZ
+                case 24:
+                    format=":%02d:%02d.%03dZ";
+                    formatFactor= 1000000;
+                    break;
+                case 27:
+                    format=":%02d:%02d.%06dZ";
+                    formatFactor= 1000000;
+                    break;
+                case 30:
+                    format=":%02d:%02d.%09dZ";
+                    break;
+                default:
+                    throw new IllegalArgumentException("not supported");
+            }
         }
         
         private String formatTime( double t ) {
@@ -108,7 +123,7 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
             offset= (int)( offset / 1000 ); // now it's in seconds.  Note offset must be positive for this to work.
             int seconds= (int)(offset % 60);
             int minutes= (int)(offset / 60); // now it's in minutes
-            return baseYYYYmmddTHH + String.format( ":%02d:%02d.%09d", minutes, seconds, nanos );        
+            return baseYYYYmmddTHH + String.format( format, minutes, seconds, nanos/formatFactor );
         }        
         
         @Override
@@ -223,7 +238,7 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
         
         long[] array;
         
-        private IsotimeTT2000Adapter( long[] array ) {
+        private IsotimeTT2000Adapter( long[] array, int width ) {
             this.array= array;
             double d= Array.getDouble(array,0);
             double us2000= new LeapSecondsConverter(false).convert(d);
@@ -306,8 +321,8 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
         }
     }
     
-            
-    public CdawebServicesHapiRecordSource(String id, int[] start, int[] stop, String[] params) {
+           
+    public CdawebServicesHapiRecordSource(String id, JSONObject info, int[] start, int[] stop, String[] params) {
         try {
             String sstart= String.format( "%04d%02d%02dT%02d%02d%02dZ", start[0], start[1], start[2], start[3], start[4], start[5] );
             String sstop= String.format( "%04d%02d%02dT%02d%02d%02dZ", stop[0], stop[1], stop[2], stop[3], stop[4], stop[5] );
@@ -338,6 +353,13 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
             CDFReader reader= new CDFReader(tmpFile.toString());
             for ( int i=0; i<params.length; i++ ) {
                 if ( i==0 ) {
+                    int length= 25;
+                    try {
+                        JSONArray pp = info.getJSONArray("parameters");
+                        length= pp.getJSONObject(0).getInt("length");
+                    } catch ( JSONException ex ) {
+                        System.err.println("WARNING: width 343");
+                    }
                     String[] deps= reader.getDependent(params[1]);
                     String dep0= deps[0];
                     int type= reader.getType(dep0); // 31=Epoch
@@ -345,10 +367,10 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
                     if ( Array.getLength(o)>0 ) {
                         switch (type) {
                             case 31:
-                                adapters[i]= new IsotimeEpochAdapter( (double[])o );
+                                adapters[i]= new IsotimeEpochAdapter( (double[])o, length );
                                 break;
                             case 33:
-                                adapters[i]= new IsotimeTT2000Adapter( (long[])o );
+                                adapters[i]= new IsotimeTT2000Adapter( (long[])o, length );
                                 break;
                             default:
                                 throw new IllegalArgumentException("type not supported for column 0 time (cdf_epoch16");
@@ -402,12 +424,10 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
 
     }
 
-    @Override
     public boolean hasNext() {
         return index<nindex;
     }
 
-    @Override
     public HapiRecord next() {
         final int j= index;
         index++;
@@ -473,6 +493,7 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
 //                new String[] { "Time", "Np", "Vp" } );
         CdawebServicesHapiRecordSource dd= new CdawebServicesHapiRecordSource( 
                 "RBSP-B_DENSITY_EMFISIS-L4", 
+                null,
                 new int[] { 2019, 7, 15, 0, 0, 0, 0 },
                 new int[] { 2019, 7, 16, 0, 0, 0, 0 }, 
                 new String[] { "Time", "fce", "bmag" } );
@@ -482,10 +503,11 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
         }
     }
     
-    // first attempt at double array handling
+    // array-of-array handling
     public static void mainCase3( ) {
         CdawebServicesHapiRecordSource dd= new CdawebServicesHapiRecordSource( 
                 "AC_K0_MFI", 
+                null,
                 new int[] { 2023, 4, 26, 0, 0, 0, 0 },
                 new int[] { 2023, 4, 27, 0, 0, 0, 0 }, 
                 new String[] { "Time", "BGSEc" } );
@@ -493,6 +515,37 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
             HapiRecord rec= dd.next();
             double[] ds= rec.getDoubleArray(1);
             System.err.println(  String.format( "%s: %.1f %.1f %.1f", rec.getIsoTime(0), ds[0], ds[1], ds[2] ) );
+        }
+    }
+    
+    // array-of-array handling
+    public static void mainCase4( ) {
+        CdawebServicesHapiRecordSource dd= new CdawebServicesHapiRecordSource( 
+                "VG1_PWS_WF", 
+                null,
+                new int[] { 1979, 3, 5, 6, 0, 0, 0 },
+                new int[] { 1979, 3, 5, 7, 0, 0, 0 }, 
+                new String[] { "Time", "Waveform" } );
+        while ( dd.hasNext() ) {
+            HapiRecord rec= dd.next();
+            double[] ds= rec.getDoubleArray(1);
+            System.err.println(  String.format( "%s: %.1f %.1f %.1f", rec.getIsoTime(0), ds[0], ds[1], ds[2] ) );
+        }
+    }
+    
+    // array-of-array handling
+    public static void mainCase5( ) {
+        CdawebServicesHapiRecordSource dd= new CdawebServicesHapiRecordSource( 
+                "AC_H1_SIS", 
+                null,
+                new int[] { 2023, 4, 6, 0, 0, 0, 0 },
+                new int[] { 2023, 4, 7, 0, 0, 0, 0 }, 
+                new String[] { "Time", "cnt_Si", "cnt_S" } );
+        while ( dd.hasNext() ) {
+            HapiRecord rec= dd.next();
+            double[] ds1= rec.getDoubleArray(1);
+            double[] ds2= rec.getDoubleArray(2);
+            System.err.println(  String.format( "%s: %.1f %.1f %.1f ; %.1f %.1f %.1f", rec.getIsoTime(0), ds1[0], ds1[1], ds1[2], ds2[0], ds2[1], ds2[2] ) );
         }
     }
     
@@ -504,6 +557,7 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
 //                new String[] { "Time", "Np", "Vp" } );
         CdawebServicesHapiRecordSource dd= new CdawebServicesHapiRecordSource( 
                 "AC_K0_MFI", 
+                null,
                 new int[] { 2023, 4, 26, 0, 0, 0, 0 },
                 new int[] { 2023, 4, 27, 0, 0, 0, 0 }, 
                 new String[] { "Time", "Magnitude" } );
@@ -516,7 +570,9 @@ public class CdawebServicesHapiRecordSource implements Iterator<HapiRecord> {
     public static void main( String[] args ) {
         //mainCase1();
         //mainCase2();
-        mainCase3();
+        //mainCase3();
+        //mainCase4();
+        mainCase5();
     }
     
 }
