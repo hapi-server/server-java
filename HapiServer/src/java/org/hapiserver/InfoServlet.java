@@ -68,6 +68,10 @@ public class InfoServlet extends HttpServlet {
             return;
         } catch ( HapiException | JSONException ex ) {
             throw new RuntimeException(ex);
+        } catch (java.nio.file.NoSuchFileException ex ) {
+            // don't show server-side information.
+            Util.raiseError( 1406, "HAPI error 1406: unknown dataset id", response, response.getOutputStream() );
+            return;
         }
         
         try ( OutputStream out = response.getOutputStream() ) {

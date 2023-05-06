@@ -387,13 +387,13 @@ public final class Util {
         if ( id.length()==0 ) {
             throw new IllegalArgumentException("dataset id length is zero");
         } else {
-            if ( Pattern.compile("[a-zA-Z0-9.,_.~/:\\+\\-]+").matcher(id).matches() ) {
+            if ( Pattern.compile("[a-zA-Z0-9.,_.~/:\\+\\-\\@]+").matcher(id).matches() ) {
                 if ( id.contains("..") ) {
                     throw new IllegalArgumentException("dataset id cannot contain ..");
                 }
                 return true;
             } else {
-                throw new IllegalArgumentException("id must match [a-zA-Z0-9.,_.~/:\\+\\-]+");
+                throw new IllegalArgumentException("id must match [a-zA-Z0-9.,_.~/:\\+\\-\\@]+");
             }
         }
     }
