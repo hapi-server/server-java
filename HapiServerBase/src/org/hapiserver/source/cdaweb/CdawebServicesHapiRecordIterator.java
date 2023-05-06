@@ -328,6 +328,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             String sstop= String.format( "%04d%02d%02dT%02d%02d%02dZ", stop[0], stop[1], stop[2], stop[3], stop[4], stop[5] );
             String ss= String.join(",", Arrays.copyOfRange( params, 1, params.length ) ); // CDAWeb WS will send time.
             
+            int iat= id.indexOf("@");  // multiple timetags cdf files will have @\d for 
+            if ( iat>0 ) {
+                id= id.substring(0,iat);
+            }
+            
             String name= String.format( "%s_%s_%s_%s", id, sstart, sstop, ss );
             String surl=
                     String.format( "https://cdaweb.gsfc.nasa.gov/WS/cdasr/1/dataviews/sp_phys/datasets/%s/data/%s,%s/%s?format=cdf",
