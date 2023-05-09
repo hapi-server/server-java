@@ -328,7 +328,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             String sstop= String.format( "%04d%02d%02dT%02d%02d%02dZ", stop[0], stop[1], stop[2], stop[3], stop[4], stop[5] );
             String ss= String.join(",", Arrays.copyOfRange( params, 1, params.length ) ); // CDAWeb WS will send time.
             
-            int iat= id.indexOf("@");  // multiple timetags cdf files will have @\d for 
+            int iat= id.indexOf("@");  // multiple timetags cdf files will have @\d for each set of timetags.
             if ( iat>0 ) {
                 id= id.substring(0,iat);
             }
