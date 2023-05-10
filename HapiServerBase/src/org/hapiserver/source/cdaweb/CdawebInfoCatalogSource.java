@@ -124,20 +124,9 @@ public class CdawebInfoCatalogSource {
         } else {
             throw new IllegalArgumentException("bad id: "+id);
         }
-        URL url = new URL( "http://mag.gmu.edu/git-data/cdaweb-hapi-metadata/cache/bw/"+g+"/"+id+"/"+id+"-info-full.json" );
+        URL url = new URL( "http://mag.gmu.edu/git-data/cdaweb-hapi-metadata/hapi/bw/CDAWeb/info/"+id+".json" );
         String src= SourceUtil.getAllFileLines( url );
-        try {
-            JSONObject jo= new JSONObject(src);
-            if ( jo.has("info") ) {
-                jo= jo.getJSONObject("info");
-                return jo.toString(4);
-            } else {
-                return src;
-            }
-        } catch (JSONException ex) {
-            logger.log(Level.SEVERE, null, ex);
-            throw new RuntimeException(ex);
-        }
+        return src;
         
     }
     
