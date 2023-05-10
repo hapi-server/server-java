@@ -10,13 +10,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
 import org.w3c.dom.Document;
@@ -81,6 +87,11 @@ public class SourceUtil {
             }
         }
         
+        /**
+         * read csv from the URL, advancing until the first timetag.
+         * @param url
+         * @throws IOException 
+         */
         public AsciiSourceIterator( URL url ) throws IOException {
             try {
                 this.reader= new BufferedReader( new InputStreamReader( url.openStream() ) );
@@ -126,8 +137,8 @@ public class SourceUtil {
     }
     
     /**
-     * return an iterator for each line of the ASCII file.
-     * @param f a file
+     * return an iterator for each line of the ASCII data file.
+     * @param f a file containing timetags.
      * @return an iterator for the lines.
      * @throws FileNotFoundException
      * @throws IOException 
@@ -137,8 +148,8 @@ public class SourceUtil {
     }
     
     /**
-     * return an iterator for each line of the URL file.
-     * @param url a URL pointing to an ASCII file.
+     * return an iterator for each line of the ASCII data URL.
+     * @param url a URL pointing to an ASCII file containing timetags.
      * @return an iterator for the lines.
      * @throws FileNotFoundException
      * @throws IOException 
@@ -155,9 +166,10 @@ public class SourceUtil {
      */
     public static String getAllFileLines( URL url ) throws IOException {
         StringBuilder sb= new StringBuilder();
-        Iterator<String> s= getFileLines(url);
-        while ( s.hasNext() ) {
-            sb.append(s.next()).append("\n");
+        try ( BufferedReader r= new BufferedReader( new InputStreamReader( url.openStream() ) ) ) {
+            for ( String line= r.readLine(); line!=null; line=r.readLine() ) {
+                sb.append(line).append("\n");
+            }
         }
         return sb.toString();
     }
@@ -295,11 +307,22 @@ public class SourceUtil {
             return document;
         }
     }
+    
+    public static JSONObject readJSONObject( URL url ) throws IOException {
+        try {
+            byte[] bb= Files.readAllBytes( Paths.get( url.toURI() ) );
+            String s= new String( bb, Charset.forName("UTF-8") );
+            JSONObject jo= new JSONObject(s);
+            return jo;
+        } catch (URISyntaxException | JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 
     /**
      * download the resource to the given file
-     * @param url
-     * @param file
+     * @param url the URL to load
+     * @param file name of the file where data should be written.
      * @return the name of the file
      * @throws IOException 
      */
