@@ -4,7 +4,6 @@
          {
              "_x_source": "spawn",
              "_x_command": "wget -O - https://cdaweb.gsfc.nasa.gov/hapi/catalog",
-             "x_command": "wget -O - https://cdaweb.gsfc.nasa.gov/hapi/catalog",
              "x_source": "classpath",
              "x_class": "org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
              "x_method": "getCatalog",
