@@ -597,6 +597,33 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             }
         }
     }    
+
+    // AC_H2_CRIS gets three months for the sample range.  My measurements and calculations have the extra startup per day as
+    // about three seconds, so this means the request will take an extra 270 seconds.
+    public static void mainCase7( ) {
+        long t0= System.currentTimeMillis();
+        //http://localhost:8080/HapiServer/hapi/data?id=AC_H2_CRIS&parameters=flux_C&start=2022-12-14T22:00Z&stop=2023-02-12T23:00Z
+        int[] start= new int[] { 2022, 12, 14, 0, 0, 0, 0 };
+        int[] stop= new int[] { 2023, 02, 13, 0, 0, 0, 0 };
+        while ( TimeUtil.gt( stop, start ) ) {
+            int[] next= TimeUtil.add( start, new int[] { 0, 0, 1, 0, 0, 0, 0 } );
+            System.err.println( "t: "+ TimeUtil.formatIso8601Time(start) );
+            CdawebServicesHapiRecordIterator dd= new CdawebServicesHapiRecordIterator( 
+                    "AC_H2_CRIS", 
+                    null,
+                    start,
+                    next,
+                    "Time,flux_B".split(",",-2) );
+            while ( dd.hasNext() ) {
+                HapiRecord rec= dd.next();
+                //double[] ds1= rec.getDoubleArray(1);
+                //System.err.println(  String.format( "%s: %.1e %.1e %.1e %.1e %.1e %.1e %.1e", 
+                //        rec.getIsoTime(0), ds1[0], ds1[1], ds1[2], ds1[3], ds1[4], ds1[5], ds1[6] ) );
+            }
+            start= next;
+        }
+        System.err.println("time (sec): "+(System.currentTimeMillis()-t0)/1000. );
+    }
     
     public static void mainCase1( ) {
 //        CdawebServicesHapiRecordIterator dd= new CdawebServicesHapiRecordIterator( 
@@ -622,7 +649,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         //mainCase3();
         //mainCase4();
         //mainCase5();
-        mainCase6();
+        //mainCase6();
+        mainCase7();
     }
     
 }
