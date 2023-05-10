@@ -10,8 +10,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -32,6 +34,16 @@ import org.xml.sax.SAXException;
  */
 public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
+    private static final Logger logger= Logger.getLogger("hapi.cdaweb");
+    
+    static {
+        logger.setLevel(Level.FINER);
+        ConsoleHandler h= new ConsoleHandler();
+        h.setFormatter( new SimpleFormatter() );
+        h.setLevel(Level.ALL);
+        logger.addHandler(h);
+    }
+    
     HapiRecord nextRecord;
     Adapter[] adapters;
     
@@ -324,6 +336,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
            
     public CdawebServicesHapiRecordIterator(String id, JSONObject info, int[] start, int[] stop, String[] params) {
         try {
+            logger.entering( CdawebServicesHapiRecordIterator.class.getCanonicalName(), "constructor" );
             String sstart= String.format( "%04d%02d%02dT%02d%02d%02dZ", start[0], start[1], start[2], start[3], start[4], start[5] );
             String sstop= String.format( "%04d%02d%02dT%02d%02d%02dZ", stop[0], stop[1], stop[2], stop[3], stop[4], stop[5] );
             String ss= String.join(",", Arrays.copyOfRange( params, 1, params.length ) ); // CDAWeb WS will send time.
@@ -343,27 +356,35 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             } catch (MalformedURLException ex) {
                 throw new RuntimeException(ex);
             }
+            
+            logger.log(Level.FINER, "request {0}", url);
+                    
             Document doc= SourceUtil.readDocument(url);
             XPathFactory factory = XPathFactory.newInstance();
             XPath xpath = (XPath) factory.newXPath();
             String sval = (String) xpath.evaluate("/DataResult/FileDescription/Name/text()", doc, XPathConstants.STRING);
 
             URL cdfUrl= new URL(sval);
+            logger.log(Level.FINER, "request {0}", cdfUrl);
             
             File tmpFile= File.createTempFile( name, ".cdf" );
             tmpFile= SourceUtil.downloadFile( cdfUrl, tmpFile );
+            
+            logger.log(Level.FINER, "downloaded {0}", cdfUrl);
             
             adapters= new Adapter[params.length];
             
             CDFReader reader= new CDFReader(tmpFile.toString());
             for ( int i=0; i<params.length; i++ ) {
                 if ( i==0 ) {
-                    int length= 25;
+                    int length= 24;
                     try {
-                        JSONArray pp = info.getJSONArray("parameters");
-                        length= pp.getJSONObject(0).getInt("length");
+                        if ( info!=null ) {
+                            JSONArray pp = info.getJSONArray("parameters");
+                            length= pp.getJSONObject(0).getInt("length");
+                        }
                     } catch ( JSONException ex ) {
-                        System.err.println("WARNING: width 343");
+                        logger.warning("There should always be a length on parameters[0]");
                     }
                     String[] deps= reader.getDependent(params[1]);
                     String dep0= deps[0];
@@ -421,7 +442,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     }
                 }
             }
+            
+            logger.log(Level.FINER, "calculated adapters" );
+            
             index= 0;
+            logger.exiting( CdawebServicesHapiRecordIterator.class.getCanonicalName(), "constructor" );
             
         } catch (XPathExpressionException | CDFException.ReaderError | SAXException | IOException | ParserConfigurationException ex) {
             Logger.getLogger(CdawebServicesHapiRecordIterator.class.getName()).log(Level.SEVERE, null, ex);
@@ -554,6 +579,25 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
     }
     
+    // large request handling
+    public static void mainCase6( ) {
+        //vap+hapi:http://localhost:8080/HapiServer/hapi?id=AC_H2_CRIS&parameters=Time,flux_B&timerange=2022-12-16+through+2022-12-20
+        for ( int iday=16; iday<21; iday++ ) {
+            CdawebServicesHapiRecordIterator dd= new CdawebServicesHapiRecordIterator( 
+                    "AC_H2_CRIS", 
+                    null,
+                    new int[] { 2022, 12, iday, 0, 0, 0, 0 },
+                    new int[] { 2022, 12, iday+1, 0, 0, 0, 0 }, 
+                    "Time,flux_B".split(",",-2) );
+            while ( dd.hasNext() ) {
+                HapiRecord rec= dd.next();
+                //double[] ds1= rec.getDoubleArray(1);
+                //System.err.println(  String.format( "%s: %.1e %.1e %.1e %.1e %.1e %.1e %.1e", 
+                //        rec.getIsoTime(0), ds1[0], ds1[1], ds1[2], ds1[3], ds1[4], ds1[5], ds1[6] ) );
+            }
+        }
+    }    
+    
     public static void mainCase1( ) {
 //        CdawebServicesHapiRecordIterator dd= new CdawebServicesHapiRecordIterator( 
 //                "AC_H2_SWE", 
@@ -577,7 +621,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         //mainCase2();
         //mainCase3();
         //mainCase4();
-        mainCase5();
+        //mainCase5();
+        mainCase6();
     }
     
 }
