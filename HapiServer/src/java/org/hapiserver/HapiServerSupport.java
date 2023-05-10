@@ -1086,6 +1086,8 @@ public class HapiServerSupport {
                 
         jo.put( "status", status );
         
+        jo.put( "HAPI", "3.1" );
+        
         cc= catalogCache.get( HAPI_HOME );
         if ( cc==null ) {
             getCatalog(HAPI_HOME); // create a cache entry
