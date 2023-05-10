@@ -2,18 +2,20 @@
      "HAPI": "3.0",
      "catalog": [
          {
-             "x_source": "spawn",
+             "_x_source": "spawn",
+             "_x_command": "wget -O - https://cdaweb.gsfc.nasa.gov/hapi/catalog",
              "x_command": "wget -O - https://cdaweb.gsfc.nasa.gov/hapi/catalog",
-             "_x_class": "org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
-             "_x_method": "getCatalog",
+             "x_source": "classpath",
+             "x_class": "org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
+             "x_method": "getCatalog",
              "x_config": {
-                 "_info": {
+                 "info": {
                      "x_source":"classpath",
-                     "x_class":"org.hapiserver.source.cdaweb.CsaInfoCatalogSource",
+                     "x_class":"org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
                      "x_method": "getInfo",
                      "x_args": [ "${id}" ]
                  },
-                 "info": {
+                 "_info": {
                     "source":"spawn",
                     "command":"wget -O - https://cdaweb.gsfc.nasa.gov/hapi/info?id=${id}"
                  },
