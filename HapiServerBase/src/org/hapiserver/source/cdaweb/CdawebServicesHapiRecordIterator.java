@@ -8,10 +8,13 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import javax.xml.parsers.ParserConfigurationException;
@@ -36,12 +39,26 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
     private static final Logger logger= Logger.getLogger("hapi.cdaweb");
     
+    static class TimerFormatter extends Formatter {
+        long t0= System.currentTimeMillis();
+        String resetMessage= "ENTRY";
+        
+        @Override
+        public String format(LogRecord record) {
+            if ( record.getMessage().equals(resetMessage) ) {
+                t0= record.getMillis();
+            }
+            String message= MessageFormat.format( record.getMessage(), record.getParameters() );
+            return String.format( "%06d: %s\n", record.getMillis()-t0, message );
+        }
+        
+    }
     static {
-        logger.setLevel(Level.FINER);
-        ConsoleHandler h= new ConsoleHandler();
-        h.setFormatter( new SimpleFormatter() );
-        h.setLevel(Level.ALL);
-        logger.addHandler(h);
+        //logger.setLevel(Level.FINER);
+        //ConsoleHandler h= new ConsoleHandler();
+        //h.setFormatter( new TimerFormatter() );
+        //h.setLevel(Level.ALL);
+        //logger.addHandler(h);
     }
     
     HapiRecord nextRecord;
