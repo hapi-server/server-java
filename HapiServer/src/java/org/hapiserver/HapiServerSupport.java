@@ -503,6 +503,13 @@ public class HapiServerSupport {
         logger.info("getAbout");
         
         JSONObject result= loadAndCheckConfig( HAPI_HOME, "about.json" );
+
+        JSONObject status= Util.newJSONObject();
+        status.put( "code", 1200 );
+        status.put( "message", "OK request successful");
+                
+        result.put( "status", status );
+        result.put( "HAPI", "3.1" );        
                 
         return result;
     }
@@ -684,6 +691,15 @@ public class HapiServerSupport {
         byte[] bb= Files.readAllBytes( Paths.get( catalogFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         JSONObject jo= Util.newJSONObject(s);
+        
+        JSONObject status= Util.newJSONObject();
+        status.put( "code", 1200 );
+        status.put( "message", "OK request successful");
+                
+        jo.put( "status", status );
+        
+        jo.put( "HAPI", "3.1" );
+        
         cc= new CatalogData(jo,latestTimeStamp);
         catalogCache.put( HAPI_HOME, cc );
         return jo;
