@@ -502,14 +502,7 @@ public class HapiServerSupport {
         
         logger.info("getAbout");
         
-        JSONObject result= loadAndCheckConfig( HAPI_HOME, "about.json" );
-
-        JSONObject status= Util.newJSONObject();
-        status.put( "code", 1200 );
-        status.put( "message", "OK request successful");
-                
-        result.put( "status", status );
-        result.put( "HAPI", "3.1" );        
+        JSONObject result= loadAndCheckConfig( HAPI_HOME, "about.json" );    
                 
         return result;
     }
@@ -548,7 +541,7 @@ public class HapiServerSupport {
         String ff= "relations.json";
         
         JSONObject jo= loadAndCheckConfig(HAPI_HOME, ff);
-        
+
         return jo;
     }
     
@@ -566,7 +559,7 @@ public class HapiServerSupport {
         String ff= "capabilities.json";
         
         JSONObject jo= loadAndCheckConfig(HAPI_HOME, ff);
-        
+      
         return jo;
     }
     
@@ -633,6 +626,14 @@ public class HapiServerSupport {
         byte[] bb= Files.readAllBytes( Paths.get( releaseFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         JSONObject jo= Util.newJSONObject(s);
+        
+        JSONObject status= Util.newJSONObject();
+        status.put( "code", 1200 );
+        status.put( "message", "OK request successful");
+                
+        jo.put( "status", status );
+        jo.put( "HAPI", "3.1" );    
+        
         return jo;
     }
     
