@@ -2,6 +2,7 @@
      "HAPI": "3.0",
      "catalog": [
          {
+            "x_group_id": "cdaweb",
              "_x_source": "spawn",
              "_x_command": "wget -O - https://cdaweb.gsfc.nasa.gov/hapi/catalog",
              "x_source": "classpath",
@@ -23,7 +24,27 @@
                      "class":"org.hapiserver.source.cdaweb.CdawebServicesHapiRecordSource"
                  }
              }
+         },
+         {
+             "x_group_id": "cdaweb_availability", 
+             "x_source": "classpath",
+             "x_class": "org.hapiserver.source.cdaweb.CdawebAvailabilitySource",
+             "x_method": "getCatalog",
+             "x_config": {
+                 "info": {
+                     "x_source":"classpath",
+                     "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilitySource",
+                     "x_method": "getInfo",
+                     "x_args": [ "${id}" ]
+                 },
+                 "data": {
+                     "x_source": "classpath",
+                     "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilitySource",
+                     "x_args":["${id}"]
+                 }
+             }
          }
+         
      ],
      "status": {
          "code": 1200,

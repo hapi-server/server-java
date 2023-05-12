@@ -30,7 +30,7 @@ import org.xml.sax.SAXException;
 /**
  * return availability, showing when file granules are found.
  * @author jbf
- */
+ */ 
 public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
 
     private static final Logger logger= Logger.getLogger("hapi.cdaweb");
