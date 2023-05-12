@@ -247,7 +247,7 @@ public final class Util {
     public static JSONObject createHapiResponse( int statusCode, String message ) {
         try {
             JSONObject jo= newJSONObject();
-            jo.put("HAPI","3.0");
+            jo.put("HAPI",Util.hapiVersion());
             jo.put("createdAt",String.format("%tFT%<tRZ",Calendar.getInstance(TimeZone.getTimeZone("Z"))));
             JSONObject status= newJSONObject();
             status.put( "code", statusCode );
@@ -297,7 +297,7 @@ public final class Util {
         
     /**
      * send an error response to the client. The document 
-     * <a href="https://github.com/hapi-server/data-specification/blob/master/hapi-3.0.1/HAPI-data-access-spec-3.0.1.md#42-status-codes">status codes</a>
+     * <a href="https://github.com/hapi-server/data-specification/blob/master/hapi-3.1.0/HAPI-data-access-spec-3.1.0.md#42-status-codes">status codes</a>
      * talks about the status codes.  The error will be logged in the web logs,
      * but not otherwise.  (This is for errors which don't need resolution on the 
      * server side.)  Note the OutputStream is not closed here and must
@@ -444,5 +444,14 @@ public final class Util {
     public static String buildTime() {
         String time= "last_modified_at: 2023-05-11T13:54:00";
         return time.substring(18);
+    }
+    
+    /**
+     * return the HAPI version of the server.
+     * @return the HAPI version
+     * @see https://github.com/hapi-server/data-specification for a spec for each version.
+     */
+    public static String hapiVersion() {
+        return "3.1";
     }
 }

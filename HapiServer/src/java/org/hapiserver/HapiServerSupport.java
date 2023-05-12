@@ -920,14 +920,15 @@ public class HapiServerSupport {
     }
     
     /**
-     * verifies that the info object contains required tags.
+     * verifies that the info object contains required tags.  Note the config directory can contain infos from an earlier version
+     * of HAPI, and they will be converted to a newer version if possible.
      * @param jo a JSONObject
      * @return true if valid
      * @throws IllegalArgumentException when not valid
      */
     public static boolean validInfoObject( JSONObject jo ) throws IllegalArgumentException {
         String hapiVersion= jo.optString("HAPI","" );
-        if ( !hapiVersion.equals("3.0") ) throw new IllegalArgumentException("HAPI version must be 3.0");
+        if ( !hapiVersion.equals(Util.hapiVersion()) ) throw new IllegalArgumentException("HAPI version must be "+Util.hapiVersion());
         if ( !jo.has("parameters") ) throw new IllegalArgumentException("Info must contain parameters");
         if ( !jo.has("startDate") )  throw new IllegalArgumentException("Info must have startDate");
         if ( !jo.has("stopDate") )  throw new IllegalArgumentException("Info must have stopDate");
