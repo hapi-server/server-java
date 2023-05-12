@@ -1,17 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package org.hapiserver.source.cdaweb;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -21,7 +15,6 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.source.SourceUtil;
-import org.hapiserver.source.tap.CsaInfoCatalogSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -29,8 +22,11 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
         
 /**
- *
+ * Returns catalog response based on all.xml, and info responses from
+ * either Bob's process, Nand's existing server, or a future implementation (and this
+ * documentation needs to be updated).
  * @author jbf
+ * @see https://cdaweb.gsfc.nasa.gov/pub/catalogs/all.xml
  */
 public class CdawebInfoCatalogSource {
     
