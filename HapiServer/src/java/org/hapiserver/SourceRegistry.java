@@ -98,7 +98,10 @@ public class SourceRegistry {
                         c= Class.forName(clas);
                     }
                     Object o;
-                    JSONArray args= data.optJSONArray("args"); //TODO: x_args
+                    JSONArray args= data.optJSONArray("args"); 
+                    if ( args==null ) {
+                        args= data.optJSONArray("x_args");
+                    }
                     if ( args==null ) { // must have constructor that takes hapiHome, id, info, and data.
                         Constructor constructor= c.getConstructor( String.class, String.class, JSONObject.class, JSONObject.class );
                         o= constructor.newInstance( hapiHome, id, info, data );
