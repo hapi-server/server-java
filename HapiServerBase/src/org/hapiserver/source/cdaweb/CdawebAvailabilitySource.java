@@ -13,6 +13,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.AbstractHapiRecord;
@@ -22,10 +23,7 @@ import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.AggregationGranuleIterator;
 import org.hapiserver.source.SourceUtil;
-import static org.hapiserver.source.tap.TapAvailabilitySource.getCatalog;
-import static org.hapiserver.source.tap.TapAvailabilitySource.getInfo;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -43,6 +41,112 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         int i= idavail.indexOf("/");
         spid= idavail.substring(i+1);
     }
+    
+    /**
+     * get the catalog
+     * @return
+     * @throws IOException 
+     */
+    public static String getCatalog() throws IOException {
+        try {
+            String catalogString= CdawebInfoCatalogSource.getCatalog();
+            JSONObject catalogContainer= new JSONObject(catalogString);
+            JSONArray catalog= catalogContainer.getJSONArray("catalog");
+            int n= catalog.length();
+            for ( int i=0; i<n; i++ ) {
+                JSONObject jo= catalog.getJSONObject(i);
+                jo.put( "id", "availability/" + jo.getString("id") );
+                if ( jo.has("title") ) {
+                    jo.put("title","Availability of "+jo.getString("title") );
+                }
+                catalog.put( i, jo );
+            }
+            catalogContainer.put("catalog", catalog);
+            return catalogContainer.toString(4);
+            
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    /**
+     * return a sample time for the id.
+     * @param id
+     * @return 
+     */
+    public static String getSampleTime(String id) {
+        if ( id.startsWith("AC_") ) {
+            return "2022-01-16/2022-01-17";
+        } else {
+            return null;
+        }
+    }
+    
+    /**
+     * get the info for the id.
+     * @param idavail the dataset id, ending in "/availability"
+     * @return 
+     */
+    public static String getInfo( String idavail ) {
+        int i= idavail.indexOf("/");
+        String id= idavail.substring(i+1);
+        String sampleTime= getSampleTime(id);
+        String sampleStartDate, sampleStopDate;
+        sampleStartDate= "2019-04-01T00:00:00.000Z";
+        sampleStopDate="2019-05-01T00:00:00.000Z";
+        if ( sampleTime!=null ) {
+            String[] ss= sampleTime.split("/");
+            sampleStartDate= ss[0];
+            sampleStopDate= ss[1];
+            if ( sampleStartDate.charAt(7)=='-' ) { // allow for $Y-$j
+                try {
+                    int[] ssd= TimeUtil.parseISO8601Time( sampleStartDate );
+                    sampleStartDate= String.format("%04d-%02d-01T00:00Z", ssd[0],ssd[1] );
+                    sampleStopDate= TimeUtil.formatIso8601TimeBrief(
+                            TimeUtil.add( new int[] { ssd[0], ssd[1], 1, 0, 0, 0, 0 }, new int[] { 0, 1, 0, 0, 0, 0, 0 } ) );
+                } catch (ParseException ex) {
+                    // just use the default 2019-04.
+
+                }
+            } 
+            
+        }
+        
+        return "{\n" +
+"    \"HAPI\": \"3.1\",\n" +
+"    \"modificationDate\": \"2023-05-12T13:26:43.835Z\",\n" +
+"    \"parameters\": [\n" +
+"        {\n" +
+"            \"fill\": null,\n" +
+"            \"length\": 24,\n" +
+"            \"name\": \"StartTime\",\n" +
+"            \"type\": \"isotime\",\n" +
+"            \"units\": \"UTC\"\n" +
+"        },\n" +
+"        {\n" +
+"            \"fill\": null,\n" +
+"            \"length\": 24,\n" +
+"            \"name\": \"StopTime\",\n" +
+"            \"type\": \"isotime\",\n" +
+"            \"units\": \"UTC\"\n" +
+"        },\n" +
+"        {\n" +
+"            \"fill\": null,\n" +
+"            \"name\": \"length\",\n" +
+"            \"type\": \"integer\",\n" +
+"            \"units\": null\n" +
+"        }\n" +
+"    ],\n" +
+"    \"sampleStartDate\": \""+ sampleStartDate + "\",\n" +
+"    \"sampleStopDate\": \""+ sampleStopDate + "\",\n" +
+"    \"startDate\": \"2000-01-01T00:00:00.000Z\",\n" +
+"    \"status\": {\n" +
+"        \"code\": 1200,\n" +
+"        \"message\": \"OK request successful\"\n" +
+"    },\n" +
+"    \"stopDate\": \"lasthour\"\n" +
+"}";
+    }    
     
     @Override
     public boolean hasGranuleIterator() {
@@ -140,7 +244,9 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
     
     public static void main( String[] args ) throws IOException, ParseException {
         
-        args= new String[] { "availability/AC_K1_SWE", "2022-01-01T00:00Z", "2023-05-01T00:00Z" };
+        //args= new String[] { };
+        args= new String[] { "availability/AC_K1_SWE" };
+        //args= new String[] { "availability/AC_K1_SWE", "2022-01-01T00:00Z", "2023-05-01T00:00Z" };
     
         switch (args.length) {
             case 0:
