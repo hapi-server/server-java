@@ -1,5 +1,5 @@
 {
-    "HAPI": "3.0",
+    "HAPI": "3.1",
     "id":"Java-Demo-Server",
     "title":"Demo Server",
     "contact":"Jeremy Faden <faden@cottagesystems.com>",
