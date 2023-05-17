@@ -158,7 +158,8 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         int filenameLen=0;
         String filenaming= CdawebInfoCatalogSource.filenaming.get(id);
         int iroot= filenaming.indexOf("%");
-        root= filenaming.substring(0,iroot);
+        iroot= filenaming.lastIndexOf("/");
+        root= filenaming.substring(0,iroot+1);
         for ( int ii=iroot; ii<filenaming.length(); ii++ ) {
             if ( filenaming.charAt(ii)=='%' ) {
                 filenameLen+=1;
@@ -181,6 +182,16 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         }
         
         String stringType= "{ \"uri\": { \"base\": \"" + root + "\" } }";
+        
+        String startDate="2000-01-01";
+        String stopDate="lastmonth";
+        
+        String coverage= CdawebInfoCatalogSource.coverage.get(id);
+        if ( coverage!=null ) {
+            String[] ss= coverage.split("/");
+            startDate= ss[0];
+            stopDate= ss[1];
+        } 
         
         return "{\n" +
 "    \"HAPI\": \"3.1\",\n" +
@@ -211,12 +222,12 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
 "    ],\n" +
 "    \"sampleStartDate\": \""+ sampleStartDate + "\",\n" +
 "    \"sampleStopDate\": \""+ sampleStopDate + "\",\n" +
-"    \"startDate\": \"2000-01-01T00:00:00.000Z\",\n" +
+"    \"startDate\": \""+startDate+"\",\n" +
 "    \"status\": {\n" +
 "        \"code\": 1200,\n" +
 "        \"message\": \"OK request successful\"\n" +
 "    },\n" +
-"    \"stopDate\": \"lasthour\"\n" +
+"    \"stopDate\": \""+stopDate+"\"\n" +
 "}";
     }    
     
