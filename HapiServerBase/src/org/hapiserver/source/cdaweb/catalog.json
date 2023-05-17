@@ -39,8 +39,7 @@
                  },
                  "data": {
                      "x_source": "classpath",
-                     "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilitySource",
-                     "x_args":["${id}"]
+                     "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilitySource"
                  }
              }
          }

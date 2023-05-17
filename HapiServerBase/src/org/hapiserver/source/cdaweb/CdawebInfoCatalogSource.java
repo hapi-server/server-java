@@ -4,6 +4,9 @@ package org.hapiserver.source.cdaweb;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
@@ -14,6 +17,7 @@ import javax.xml.xpath.XPathFactory;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -34,6 +38,9 @@ public class CdawebInfoCatalogSource {
     
     public static final String CDAWeb = "https://cdaweb.gsfc.nasa.gov/";
     
+    protected static Map<String,String> coverage= new HashMap<>();
+    protected static Map<String,String> filenaming= new HashMap<>();
+
     private static String getURL( String id, Node dataset ) {
         NodeList kids= dataset.getChildNodes();
         String lookfor= "ftp://cdaweb.gsfc.nasa.gov/pub/istp/";
@@ -48,6 +55,7 @@ public class CdawebInfoCatalogSource {
                             logger.log(Level.FINE, "URL is missing for {0}, data cannot be accessed.", id);
                             return null;
                         }
+                        
                         String url= kids2.item(k).getFirstChild().getTextContent().trim();
                         if ( url.startsWith( lookfor ) ) {
                             // "ftp://cdaweb.gsfc.nasa.gov/pub/istp/ace/mfi_h2"
@@ -57,6 +65,15 @@ public class CdawebInfoCatalogSource {
                         if ( url.startsWith(lookfor2) ) {
                             url= CDAWeb + "sp_phys/data/" + url.substring(lookfor2.length());
                         }
+                        String templ= url + "/";
+                        String subdividedby= childNode.getAttributes().getNamedItem("subdividedby").getTextContent();
+                        String filenaming= childNode.getAttributes().getNamedItem("filenaming").getTextContent();
+                        
+                        if ( !subdividedby.equals("None") ) {
+                            templ= templ + subdividedby + "/";
+                        }
+                        templ= templ + filenaming;
+                        CdawebInfoCatalogSource.filenaming.put(id,templ);
                         return url;
                     }
                 }
@@ -97,6 +114,16 @@ public class CdawebInfoCatalogSource {
                             sourceurl.startsWith("ftp://cdaweb.gsfc.nasa.gov" ) ) && !sourceurl.startsWith("/tower3/private" ) ) {
                         JSONObject jo= new JSONObject();
                         jo.put( "id", name );
+                        try {
+                            st = TimeUtil.formatIso8601TimeBrief( TimeUtil.parseISO8601Time(st) );
+                            en = TimeUtil.formatIso8601TimeBrief( TimeUtil.parseISO8601Time(en) );
+                            String range= st+"/"+en;
+                            jo.put( "x_range", range );
+                            CdawebInfoCatalogSource.coverage.put( name, range );
+                        } catch (ParseException ex) {
+                            logger.log(Level.SEVERE, null, ex);
+                        }
+                        
                         catalog.put( ic++, jo );
                     }
                 }
@@ -135,7 +162,9 @@ public class CdawebInfoCatalogSource {
     }
     
     public static void main( String[] args ) throws IOException {
-        args= new String[] { "AC_AT_DEF" };
+        //args= new String[] { "AC_AT_DEF" };
+        args= new String[0];
+        
         if ( args.length==0 ) {
             System.out.println( CdawebInfoCatalogSource.getCatalog() );
         } else if ( args.length==1 ) {
