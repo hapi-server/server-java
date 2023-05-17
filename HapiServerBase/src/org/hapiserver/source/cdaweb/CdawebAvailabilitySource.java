@@ -158,7 +158,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         int filenameLen=0;
         String filenaming= CdawebInfoCatalogSource.filenaming.get(id);
         int iroot= filenaming.indexOf("%");
-        iroot= filenaming.lastIndexOf("/");
+        iroot= filenaming.lastIndexOf("/",iroot);
         root= filenaming.substring(0,iroot+1);
         for ( int ii=iroot; ii<filenaming.length(); ii++ ) {
             if ( filenaming.charAt(ii)=='%' ) {
@@ -213,7 +213,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
 "        },\n" +
 "        {\n" +
 "            \"fill\": null,\n" +
-"            \"name\": \"length\",\n" +
+"            \"name\": \"filename\",\n" +
 "            \"type\": \"string\",\n" +
 "            \"x_stringType\":" + stringType + ",\n" +
 "            \"length\": "+filenameLen + ",\n" +
