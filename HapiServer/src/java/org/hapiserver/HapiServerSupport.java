@@ -279,10 +279,11 @@ public class HapiServerSupport {
      * @throws IOException 
      */
     public static JSONObject getInfoFromSpawnCommand( JSONObject jo, String HAPI_HOME, String id ) throws IOException {
+        logger.log(Level.INFO, "getInfoFromSpawnCommand {0}", id);        
         try {
             String command = SpawnRecordSource.doMacros( HAPI_HOME, id, jo.getString("command") );
             
-            logger.log(Level.INFO, "spawn command {0}", command);
+            logger.log(Level.FINE, "spawn command {0}", command);
             String[] ss= command.split("\\s+");
 
             ProcessBuilder pb= new ProcessBuilder( ss );
@@ -308,13 +309,16 @@ public class HapiServerSupport {
      * @throws java.io.IOException
      */
     public static JSONObject getCatalogFromClasspath( JSONObject jo, String HAPI_HOME ) throws IOException {
-        logger.log(Level.INFO, "classpath command {0}", jo.optString("x_class", ""));
+        logger.log(Level.INFO, "getCatalogFromClasspath" );
                     
         ClassLoader cl=null;
         String s= jo.optString( "classpath", jo.optString("x_classpath","") );
         String methodString= jo.optString("method",jo.optString("x_method","") );
         String clas= jo.optString( "class", jo.optString("x_class","") );
 
+        logger.log(Level.FINE, "class {0}", clas );
+        logger.log(Level.FINE, "method {0}", methodString );
+        
         if ( s.length()>0 ) {
             try {
                 s= SpawnRecordSource.doMacros( HAPI_HOME, "", s );
@@ -399,6 +403,7 @@ public class HapiServerSupport {
      * @throws IOException 
      */
     public static JSONObject getInfoFromClasspath( JSONObject jo, String HAPI_HOME, String id ) throws IOException {
+        logger.log(Level.FINE, "getInfoFromClasspath {0}", id);
         String clas= jo.optString( "class", jo.optString("x_class",""));
 
         String methodString = jo.optString("method", jo.optString("x_method",""));
@@ -1028,7 +1033,13 @@ public class HapiServerSupport {
             }
             
             try {
-                jo= jo.getJSONObject("info");
+                if ( !jo.has("info") ) throw new IllegalArgumentException("info node not found in config");
+                Object t= jo.get("info");
+                if ( t instanceof JSONObject ) {
+                    jo= (JSONObject)t;
+                } else {
+                    throw new IllegalArgumentException("info node is not JSONObject it is "+t.getClass());
+                }
                 String source= jo.optString("source",jo.optString("x_source","") );
                 if ( source.length()>0 ) {
                     if ( source.equals("spawn") ) {
