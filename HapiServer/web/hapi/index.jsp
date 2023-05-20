@@ -192,6 +192,7 @@
                     }
 
                     try {
+                        
                         JSONObject info= HapiServerSupport.getInfo( HAPI_HOME, id );
 
                         int[] availableRange= HapiServerSupport.getRange(info);
@@ -264,7 +265,7 @@
                         if ( parameters.length()>MAX_PARAMETERS ) {
                             out.print("...");
                         }
-                    } catch ( JSONException | IOException | RuntimeException ex ) {
+                    } catch ( Exception ex ) {
                         out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
                         out.println( "<p>Unable to load info for dataset: <a href=\"hapi/info?id="+id+"\">"+id+"</a>, log files should notify the server host.<br></p>" ) ;
                         Util.logError(ex);
