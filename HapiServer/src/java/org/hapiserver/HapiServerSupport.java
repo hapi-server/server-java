@@ -157,7 +157,6 @@ public class HapiServerSupport {
                         JSONObject catalogItem= items.getJSONObject(j);
                         String theId= catalogItem.getString("id");
                         logger.log(Level.INFO, "mapping in {0}", theId);
-                        catalogItem.put( "x_group_id", groupId );
                         datasetToGroupId.put( theId, groupId );
                         resolvedCatalog.put( resolvedCatalogLength, catalogItem );
                         resolvedCatalogLength++;
@@ -181,7 +180,6 @@ public class HapiServerSupport {
                         JSONObject catalogItem= items.getJSONObject(j);
                         String theId= catalogItem.getString("id");
                         logger.log(Level.INFO, "mapping in {0}", theId);
-                        catalogItem.put( "x_group_id", groupId );
                         datasetToGroupId.put( theId, groupId );
                         resolvedCatalog.put( resolvedCatalogLength, catalogItem );
                         resolvedCatalogLength++;
