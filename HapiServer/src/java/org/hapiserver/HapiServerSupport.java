@@ -502,7 +502,8 @@ public class HapiServerSupport {
         
         logger.info("getAbout");
         
-        JSONObject result= loadAndCheckConfig( HAPI_HOME, "about.json" );    
+        JSONObject result= loadAndCheckConfig( HAPI_HOME, "about.json" );
+        result.put( "x_buildTime", Util.buildTime() );
                 
         return result;
     }

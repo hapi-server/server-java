@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -12,6 +13,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 /**
  * Capabilities servlet indicates what formats are supported.
@@ -76,30 +79,18 @@ public class CapabilitiesServlet extends HttpServlet {
         response.setHeader("Access-Control-Allow-Methods","GET" );
         response.setHeader("Access-Control-Allow-Headers","Content-Type" );
         
-        File capabilitiesFile= new File( HAPI_HOME, "capabilities.json" );
-        if ( capabilitiesFile.exists() ) {
-            logger.log(Level.FINE, "using cached about file {0}", capabilitiesFile);
-            Util.sendFile(capabilitiesFile, request, response );
-            
-        } else {
-            synchronized ( this ) { // double-check within synchronized block
-                if ( !capabilitiesFile.exists() ) { 
-                    logger.log(Level.INFO, "copy capabilities.json from internal templates to {0}", capabilitiesFile);
-                    InputStream in= Util.getTemplateAsStream("capabilities.json");
-                    File tmpFile= new File( HAPI_HOME, "_capabilities.json" );
-                    Util.transfer( in, new FileOutputStream(tmpFile), true );
-                    if ( !tmpFile.renameTo(capabilitiesFile) ) {
-                        logger.log(Level.SEVERE, "Unable to write to {0}", capabilitiesFile);
-                        throw new IllegalArgumentException("unable to write capabilities file");
-                    } else {
-                        logger.log(Level.FINE, "wrote cached capabilities file {0}", capabilitiesFile);
-                    }
-                }
-                logger.log(Level.FINE, "using cached capabilities file {0}", capabilitiesFile);
+        try {
+            JSONObject about= HapiServerSupport.getCapabilities(HAPI_HOME);
+            try (PrintWriter out = response.getWriter()) {
+                String s= about.toString(4);
+                out.write(s);
+            } catch ( JSONException ex ) {
+                throw new ServletException(ex);
             }
-            Util.sendFile( capabilitiesFile, request, response );
+        } catch ( JSONException ex ) {
+            throw new RuntimeException(ex);
         }
-        
+                
     }
 
 }
