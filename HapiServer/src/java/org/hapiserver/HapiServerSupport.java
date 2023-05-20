@@ -994,7 +994,13 @@ public class HapiServerSupport {
                     config= groups.getJSONObject(groupId);
                     infoConfigFile= new File( configFile, "catalog.json" );
                 } else {
-                    
+                    if ( cc.catalog.has("x_dataset_to_group") ) {
+                        JSONObject map= cc.catalog.getJSONObject("x_dataset_to_group");
+                        String groupId= map.getString(id);
+                        JSONObject groups= cc.catalog.getJSONObject("x_groups");
+                        config= groups.getJSONObject(groupId);
+                        infoConfigFile= new File( configFile, "catalog.json" );
+                    }
                 }
 
             }
