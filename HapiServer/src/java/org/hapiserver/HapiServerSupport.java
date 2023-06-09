@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -220,12 +219,14 @@ public class HapiServerSupport {
     }
 
     private static class InfoData {
-        public InfoData( JSONObject info, long infoTimeStamp ) {
+        public InfoData( JSONObject info, long infoTimeStamp, long expiresTimeStamp ) {
             this.info= info;
             this.infoTimeStamp= infoTimeStamp;
+            this.expiresTimeStamp= expiresTimeStamp;
         }
         JSONObject info;
         long infoTimeStamp;
+        long expiresTimeStamp;
     }
     
     private static class DataConfigData {
@@ -771,12 +772,13 @@ public class HapiServerSupport {
             if ( cc==null ) {
                 throw new IllegalArgumentException("This should not happen");
             }
-            InfoData infoData= new InfoData(jo,latestTimeStamp);
+            long expiresTimeStamp= System.currentTimeMillis()+CONFIG_CACHE_FILE_MAX_LIFE_MILLIS;
+            InfoData infoData= new InfoData(jo,latestTimeStamp,expiresTimeStamp );
             cc.infoCache.put( id, infoData );
         }
         return jo;
     }
-    
+        
     /**
      * replace macros like "stopDate":"now-P1D" with the computed value, and reformat into 
      * compliant isotime.
@@ -946,6 +948,11 @@ public class HapiServerSupport {
         }
         return true;
     }
+    
+    /**
+     * number of millis to allow a cached info to be used.
+     */
+    private static long CONFIG_CACHE_FILE_MAX_LIFE_MILLIS=10000;
     
     /**
      * keep and monitor a cached version of the info in memory.  If not in memory,
@@ -1131,7 +1138,8 @@ public class HapiServerSupport {
             if ( cc==null ) {
                 throw new IllegalArgumentException("This should not happen");
             }
-            InfoData infoData= new InfoData(jo,latestTimeStamp);
+            long expiresTimeStamp= System.currentTimeMillis()+CONFIG_CACHE_FILE_MAX_LIFE_MILLIS;
+            InfoData infoData= new InfoData(jo,latestTimeStamp,expiresTimeStamp);
             cc.infoCache.put( safeId, infoData );
         }
         return jo;
