@@ -384,14 +384,14 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             URL cdfUrl= new URL(sval);
             logger.log(Level.FINER, "request {0}", cdfUrl);
             
-            File p= new File( "/tmp/hapi-server/tmp/" );
+            File p= new File( "/home/tomcat/tmp/" );
             if ( !p.exists() ) {
                 if ( !p.mkdirs() ) {
                     logger.warning("fail to make download area");
                 }
             }
             
-            File tmpFile= new File( "/tmp/hapi-server/tmp/" + name + ".cdf" );
+            File tmpFile= new File( "/home/tomcat/tmp/" + name + ".cdf" ); // madness...  apparently tomcat can't write to /tmp
             tmpFile= SourceUtil.downloadFile( cdfUrl, tmpFile );
             
             logger.log(Level.FINER, "downloaded {0}", cdfUrl);
