@@ -642,6 +642,36 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         System.err.println("time (sec): "+(System.currentTimeMillis()-t0)/1000. );
     }
     
+    // AC_OR_SSC isn't sending anything over for Bob's sample range.
+    public static void mainCase8( ) {
+        long t0= System.currentTimeMillis();
+        //http://localhost:8080/HapiServer/hapi/data?id=AC_H2_CRIS&parameters=flux_C&start=2022-12-14T22:00Z&stop=2023-02-12T23:00Z
+        int[] start= new int[] { 2023, 1, 1, 0, 0, 0, 0 };
+        int[] stop= new int[] { 2023, 01, 11, 0, 0, 0, 0 };
+        while ( TimeUtil.gt( stop, start ) ) {
+            int[] next= TimeUtil.add( start, new int[] { 0, 0, 1, 0, 0, 0, 0 } );
+            System.err.println( "t: "+ TimeUtil.formatIso8601Time(start) );
+            CdawebServicesHapiRecordIterator dd= new CdawebServicesHapiRecordIterator( 
+                    "AC_OR_SSC", 
+                    null,
+                    start,
+                    next,
+                    "Time,XYZ_GSEO".split(",",-2) );
+            int nrec=0;
+            while ( dd.hasNext() ) {
+                HapiRecord rec= dd.next();
+                nrec++;
+                //double[] ds1= rec.getDoubleArray(1);
+                //System.err.println(  String.format( "%s: %.1e %.1e %.1e %.1e %.1e %.1e %.1e", 
+                //        rec.getIsoTime(0), ds1[0], ds1[1], ds1[2], ds1[3], ds1[4], ds1[5], ds1[6] ) );
+            }
+            System.err.println("  nrec..."+nrec);
+            start= next;
+        }
+        System.err.println("time (sec): "+(System.currentTimeMillis()-t0)/1000. );
+    }
+        
+    
     public static void mainCase1( ) {
 //        CdawebServicesHapiRecordIterator dd= new CdawebServicesHapiRecordIterator( 
 //                "AC_H2_SWE", 
@@ -667,7 +697,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         //mainCase4();
         //mainCase5();
         //mainCase6();
-        mainCase7();
+        //mainCase7();
+        mainCase8();
     }
     
 }
