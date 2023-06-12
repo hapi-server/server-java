@@ -384,7 +384,14 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             URL cdfUrl= new URL(sval);
             logger.log(Level.FINER, "request {0}", cdfUrl);
             
-            File tmpFile= File.createTempFile( name, ".cdf" );
+            File p= new File( "/tmp/hapi-server/tmp/" );
+            if ( !p.exists() ) {
+                if ( !p.mkdirs() ) {
+                    logger.warning("fail to make download area");
+                }
+            }
+            
+            File tmpFile= new File( "/tmp/hapi-server/tmp/" + name + ".cdf" );
             tmpFile= SourceUtil.downloadFile( cdfUrl, tmpFile );
             
             logger.log(Level.FINER, "downloaded {0}", cdfUrl);
