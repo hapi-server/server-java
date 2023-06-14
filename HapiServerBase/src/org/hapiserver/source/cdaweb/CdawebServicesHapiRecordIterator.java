@@ -11,12 +11,10 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -32,7 +30,8 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 /**
- *
+ * This uses CDAWeb Web Services described at https://cdaweb.gsfc.nasa.gov/WebServices/REST/.
+ * 
  * @author jbf
  */
 public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
@@ -357,6 +356,9 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             String sstart= String.format( "%04d%02d%02dT%02d%02d%02dZ", start[0], start[1], start[2], start[3], start[4], start[5] );
             String sstop= String.format( "%04d%02d%02dT%02d%02d%02dZ", stop[0], stop[1], stop[2], stop[3], stop[4], stop[5] );
             String ss= String.join(",", Arrays.copyOfRange( params, 1, params.length ) ); // CDAWeb WS will send time.
+            if ( params.length>2 || ( params.length==2 && params[0].equals("Time") ) ) {
+                ss= "ALL-VARIABLES";
+            }
             
             int iat= id.indexOf("@");  // multiple timetags cdf files will have @\d for each set of timetags.
             if ( iat>0 ) {
