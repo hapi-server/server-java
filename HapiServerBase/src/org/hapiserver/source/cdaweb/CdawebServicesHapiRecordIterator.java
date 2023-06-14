@@ -480,10 +480,12 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
     }
 
+    @Override
     public boolean hasNext() {
         return index<nindex;
     }
 
+    @Override
     public HapiRecord next() {
         final int j= index;
         index++;
