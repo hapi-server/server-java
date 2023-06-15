@@ -36,6 +36,11 @@ import org.xml.sax.SAXException;
 public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
 
     private static final Logger logger= Logger.getLogger("hapi.cdaweb");
+    
+    /**
+     * the field containing the partial filename.
+     */
+    public static int FIELD_FILENAME= 2;
 
     String spid;
     int rootlen;
@@ -183,7 +188,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         
         String stringType= "{ \"uri\": { \"base\": \"" + root + "\" } }";
         
-        String startDate="2000-01-01";
+        String startDate="1980-01-01";
         String stopDate="lastmonth";
         
         String coverage= CdawebInfoCatalogSource.coverage.get(id);
