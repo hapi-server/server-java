@@ -22,6 +22,8 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
     private String id;
     JSONObject info;
     JSONObject data;
+    AvailabilityIterator availabilityIterator;
+    String root;
     
     public CdawebServicesHapiRecordSource( String hapiHome, String id, JSONObject info, JSONObject data ) {
         this.id= id;
@@ -43,9 +45,12 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
         }
-        CdawebAvailabilitySource source= new CdawebAvailabilitySource( "notUsed", "availability/"+id, jsonObject, null );
+        CdawebAvailabilitySource source= new CdawebAvailabilitySource( "notUsed", "availability/"+id, jsonObject, new JSONObject() );
         Iterator<HapiRecord> it = source.getIterator(start, stop);
-        return new AvailabilityIterator(it);
+        this.root= source.getRoot();
+        
+        availabilityIterator= new AvailabilityIterator(it);
+        return availabilityIterator;
     }
     
     @Override
@@ -55,7 +60,8 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
 
     @Override
     public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
-        return new CdawebServicesHapiRecordIterator(id, info, start, stop, params);
+        String f= this.root + availabilityIterator.getFile();
+        return new CdawebServicesHapiRecordIterator(id, info, start, stop, params, f );
     }    
  
 }

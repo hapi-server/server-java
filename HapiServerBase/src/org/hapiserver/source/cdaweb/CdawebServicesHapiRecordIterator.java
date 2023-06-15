@@ -358,7 +358,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
      * @param params
      * @return 
      */
-    private URL getCdfDownloadURL( String id, JSONObject info, int[] start, int[] stop, String[] params ) throws MalformedURLException {
+    private URL getCdfDownloadURL( String id, JSONObject info, int[] start, int[] stop, String[] params, String file ) throws MalformedURLException {
         
         String sstart= String.format( "%04d%02d%02dT%02d%02d%02dZ", start[0], start[1], start[2], start[3], start[4], start[5] );
         String sstop= String.format( "%04d%02d%02dT%02d%02d%02dZ", stop[0], stop[1], stop[2], stop[3], stop[4], stop[5] );
@@ -393,30 +393,16 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             }
             
         } else {
-            String availInfo= CdawebAvailabilitySource.getInfo( "availability/"+id );
-            JSONObject jsonObject;
-            try {
-                jsonObject = new JSONObject(availInfo);
-            } catch (JSONException ex) {
-                throw new RuntimeException(ex);
-            }
-            CdawebAvailabilitySource source= new CdawebAvailabilitySource( "notUsed", "availability/"+id, jsonObject, null );
-            Iterator<HapiRecord> it = source.getIterator(start, stop);
-            if ( it.hasNext() ) {
-                String s= it.next().getString( CdawebAvailabilitySource.FIELD_FILENAME );
-                return new URL( "https://cdaweb.gsfc.nasa.gov/pub/data/rbsp/rbspa/l4/emfisis/density/"+ s );
-            } else {
-                throw new RuntimeException("whoops there should have been one file, implementation error");
-            }
+            return new URL( file );
         }
         
     }
            
-    public CdawebServicesHapiRecordIterator(String id, JSONObject info, int[] start, int[] stop, String[] params) {
+    public CdawebServicesHapiRecordIterator(String id, JSONObject info, int[] start, int[] stop, String[] params, String file ) {
         try {
             logger.entering( CdawebServicesHapiRecordIterator.class.getCanonicalName(), "constructor" );
             
-            URL cdfUrl= getCdfDownloadURL(id, info, start, stop, params );
+            URL cdfUrl= getCdfDownloadURL(id, info, start, stop, params, file );
             
             logger.log(Level.FINER, "request {0}", cdfUrl);
             
@@ -598,7 +584,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 null,
                 new int[] { 2019, 7, 15, 0, 0, 0, 0 },
                 new int[] { 2019, 7, 16, 0, 0, 0, 0 }, 
-                new String[] { "Time", "fce", "bmag" } );
+                new String[] { "Time", "fce", "bmag" }, null );
         while ( dd.hasNext() ) {
             HapiRecord rec= dd.next();
             System.err.println( String.format( "%s %.2f %.2f", rec.getIsoTime(0), rec.getDouble(1), rec.getDouble(2) ) );
@@ -612,7 +598,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 null,
                 new int[] { 2023, 4, 26, 0, 0, 0, 0 },
                 new int[] { 2023, 4, 27, 0, 0, 0, 0 }, 
-                new String[] { "Time", "BGSEc" } );
+                new String[] { "Time", "BGSEc" }, null );
         while ( dd.hasNext() ) {
             HapiRecord rec= dd.next();
             double[] ds= rec.getDoubleArray(1);
@@ -627,7 +613,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 null,
                 new int[] { 1979, 3, 5, 6, 0, 0, 0 },
                 new int[] { 1979, 3, 5, 7, 0, 0, 0 }, 
-                new String[] { "Time", "Waveform" } );
+                new String[] { "Time", "Waveform" }, null );
         while ( dd.hasNext() ) {
             HapiRecord rec= dd.next();
             double[] ds= rec.getDoubleArray(1);
@@ -642,7 +628,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 null,
                 new int[] { 2023, 4, 6, 0, 0, 0, 0 },
                 new int[] { 2023, 4, 7, 0, 0, 0, 0 }, 
-                new String[] { "Time", "cnt_Si", "cnt_S" } );
+                new String[] { "Time", "cnt_Si", "cnt_S" }, null );
         while ( dd.hasNext() ) {
             HapiRecord rec= dd.next();
             double[] ds1= rec.getDoubleArray(1);
@@ -660,7 +646,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     null,
                     new int[] { 2022, 12, iday, 0, 0, 0, 0 },
                     new int[] { 2022, 12, iday+1, 0, 0, 0, 0 }, 
-                    "Time,flux_B".split(",",-2) );
+                    "Time,flux_B".split(",",-2), null );
             while ( dd.hasNext() ) {
                 HapiRecord rec= dd.next();
                 //double[] ds1= rec.getDoubleArray(1);
@@ -685,7 +671,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     null,
                     start,
                     next,
-                    "Time,flux_B".split(",",-2) );
+                    "Time,flux_B".split(",",-2), null );
             while ( dd.hasNext() ) {
                 HapiRecord rec= dd.next();
                 //double[] ds1= rec.getDoubleArray(1);
@@ -711,7 +697,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     null,
                     start,
                     next,
-                    "Time,XYZ_GSEO".split(",",-2) );
+                    "Time,XYZ_GSEO".split(",",-2), null );
             int nrec=0;
             while ( dd.hasNext() ) {
                 HapiRecord rec= dd.next();
@@ -738,7 +724,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 null,
                 new int[] { 2023, 4, 26, 0, 0, 0, 0 },
                 new int[] { 2023, 4, 27, 0, 0, 0, 0 }, 
-                new String[] { "Time", "Magnitude" } );
+                new String[] { "Time", "Magnitude" }, null );
         while ( dd.hasNext() ) {
             HapiRecord rec= dd.next();
             System.err.println( rec.getIsoTime(0) );

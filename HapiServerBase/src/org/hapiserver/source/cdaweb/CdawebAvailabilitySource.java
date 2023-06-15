@@ -44,6 +44,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
 
     String spid;
     int rootlen;
+    String root;
     
     public CdawebAvailabilitySource(  String hapiHome, String idavail, JSONObject info, JSONObject data ) {
         int i= idavail.indexOf("/");
@@ -57,11 +58,19 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             if ( !urin.getString("base").contains("sp_phys/") ) {
                 rootlen= rootlen + 4; //TODO: Bernie's server says "sp_phys" while all.xml says "pub".
             }
-            
+            root= urin.getString("base");
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
         }
         
+    }
+    
+    /**
+     * return the root for references in availability response
+     * @return 
+     */
+    public String getRoot() {
+        return this.root;
     }
     
     /**
