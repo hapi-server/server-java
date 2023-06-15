@@ -452,6 +452,6 @@ public final class Util {
      * @see https://github.com/hapi-server/data-specification for a spec for each version.
      */
     public static String hapiVersion() {
-        return "3.1";
+        return "3.1"; 
     }
 }
