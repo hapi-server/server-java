@@ -398,7 +398,19 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         
         if ( mustUseWebServices(id) ) {
             
-            String ss= String.join(",", Arrays.copyOfRange( params, 1, params.length ) ); // CDAWeb WS will send time.
+            String ss;
+            if ( params.length==1 ) {
+                try {
+                    // special case where we have to request some DATA variable, cannot just request time.
+                    JSONArray parameters = info.getJSONArray("parameters");
+                    String dependent= parameters.getJSONObject(parameters.length()-1).getString("name");
+                    ss= dependent;
+                } catch (JSONException ex) {
+                    throw new RuntimeException(ex);
+                }
+            } else {
+                ss= String.join(",", Arrays.copyOfRange( params, 1, params.length ) ); // CDAWeb WS will send time.
+            }
             if ( params.length>2 || ( params.length==2 && !params[0].equals("Time") ) ) {
                 ss= "ALL-VARIABLES";
             }
