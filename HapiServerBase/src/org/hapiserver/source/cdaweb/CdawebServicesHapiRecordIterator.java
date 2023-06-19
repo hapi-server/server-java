@@ -5,6 +5,7 @@ import gov.nasa.gsfc.spdf.cdfj.CDFException;
 import gov.nasa.gsfc.spdf.cdfj.CDFReader;
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -297,7 +298,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             offset= offset / 1000000000; // now it's in seconds
             int seconds= (int)(offset % 60);
             int minutes= (int)(offset / 60); // now it's in minutes
-            return baseYYYYmmddTHH + String.format( ":%02d:%02d.%09d", minutes, seconds, nanos );        
+            return baseYYYYmmddTHH + String.format( ":%02d:%02d.%09dZ", minutes, seconds, nanos );        
         }        
         
         @Override
@@ -438,36 +439,69 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
         
     }
+    
+    /**
+     * return the processID (pid), or the fallback if the pid cannot be found.
+     * @param fallback the string (null is okay) to return when the pid cannot be found.
+     * @return the process id or the fallback provided by the caller.
+     * //TODO: Java9 has method for accessing process ID.
+     */
+    public static String getProcessId(final String fallback) {
+        // Note: may fail in some JVM implementations
+        // therefore fallback has to be provided
+
+        // something like '<pid>@<hostname>', at least in SUN / Oracle JVMs
+        final String jvmName = ManagementFactory.getRuntimeMXBean().getName();
+        final int index = jvmName.indexOf('@');
+
+        if (index < 1) {
+            // part before '@' empty (index = 0) / '@' not found (index = -1)
+            return fallback;
+        }
+
+        try {
+            return Long.toString(Long.parseLong(jvmName.substring(0, index)));
+        } catch (NumberFormatException e) {
+            // ignore
+        }
+        return fallback;
+    }
+        
            
     public CdawebServicesHapiRecordIterator(String id, JSONObject info, int[] start, int[] stop, String[] params, String file ) {
         try {
+
             logger.entering( CdawebServicesHapiRecordIterator.class.getCanonicalName(), "constructor" );
-            
-            URL cdfUrl= getCdfDownloadURL(id, info, start, stop, params, file );
-            
-            logger.log(Level.FINER, "request {0}", cdfUrl);
-            
-            File p= new File( "/home/tomcat/tmp/" );
-            if ( !p.exists() ) {
-                if ( !p.mkdirs() ) {
-                    logger.warning("fail to make download area");
-                }
-            }
             
             String ss= String.join(",", Arrays.copyOfRange( params, 1, params.length ) ); // CDAWeb WS will send time.
             if ( params.length>2 || ( params.length==2 && !params[0].equals("Time") ) ) {
                 ss= "ALL-VARIABLES";
             }
-            
+
             String sstart= String.format( "%04d%02d%02dT%02d%02d%02dZ", start[0], start[1], start[2], start[3], start[4], start[5] );
             String sstop= String.format( "%04d%02d%02dT%02d%02d%02dZ", stop[0], stop[1], stop[2], stop[3], stop[4], stop[5] );
         
             String name= String.format( "%s_%s_%s_%s", id, sstart, sstop, ss );
+                        
+            String u= getProcessId("000");
+            File p= new File( "/home/tomcat/tmp/"+u+"/" );
             
-            File tmpFile= new File( "/home/tomcat/tmp/" + name + ".cdf" ); // madness...  apparently tomcat can't write to /tmp
-            tmpFile= SourceUtil.downloadFile( cdfUrl, tmpFile );
+            if ( !p.exists() ) {
+                if ( !p.mkdirs() ) {
+                    logger.warning("fail to make download area");
+                }
+            }
+
+            File tmpFile= new File( p,  name + ".cdf" ); // madness...  apparently tomcat can't write to /tmp
             
-            logger.log(Level.FINER, "downloaded {0}", cdfUrl);
+            if ( tmpFile.exists() && ( System.currentTimeMillis()-tmpFile.lastModified() )<3600000 ) {
+                logger.fine( "no need to download file I already have loaded!");
+            } else {
+                URL cdfUrl= getCdfDownloadURL(id, info, start, stop, params, file );
+                logger.log(Level.FINER, "request {0}", cdfUrl);
+                tmpFile= SourceUtil.downloadFile( cdfUrl, tmpFile );
+                logger.log(Level.FINER, "downloaded {0}", cdfUrl);
+            }
             
             adapters= new Adapter[params.length];
             
@@ -502,7 +536,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     Object o= reader.get(dep0);
                     if ( Array.getLength(o)>0 ) {
                         switch (type) {
-                            case 31:
+                            case 31:                                
                                 adapters[i]= new IsotimeEpochAdapter( (double[])o, length );
                                 break;
                             case 33:
