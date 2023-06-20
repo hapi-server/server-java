@@ -1,11 +1,14 @@
 
 package org.hapiserver.source.cdaweb;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -82,12 +85,31 @@ public class CdawebInfoCatalogSource {
         return null;
     }
 
+    private static HashSet<String> skips;
+    
+    private static void readSkips() throws IOException {
+        logger.info("reading skips");
+        skips= new HashSet<>();
+        URL skipsFile= CdawebInfoCatalogSource.class.getResource("skips.txt");
+        try (BufferedReader r = new BufferedReader(new InputStreamReader( skipsFile.openStream() ))) {
+            String s = r.readLine();
+            while ( s!=null ) {  
+                String[] ss= s.split(",",-2);
+                if ( ss.length==2 ) {
+                    skips.add(ss[0].trim());
+                }
+                s = r.readLine();
+            }
+        }
+    }
+    
     /**
      * return the catalog response by parsing all.xml.
      * @return
      * @throws IOException 
      */
     public static String getCatalog() throws IOException {
+        readSkips();
         try {
             URL url= new URL("https://cdaweb.gsfc.nasa.gov/pub/catalogs/all.xml");
             Document doc= SourceUtil.readDocument(url);
@@ -108,6 +130,8 @@ public class CdawebInfoCatalogSource {
                         //&& nssdc_ID.contains("None") ) {
                          ) {
                     String name= attrs.getNamedItem("serviceprovider_ID").getTextContent();
+                    if ( skips.contains(name) ) continue;
+                    
                     String sourceurl= getURL(name,node);
                     if ( sourceurl!=null && 
                             ( sourceurl.startsWith( CDAWeb ) ||

@@ -494,7 +494,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
             File tmpFile= new File( p,  name + ".cdf" ); // madness...  apparently tomcat can't write to /tmp
             
-            if ( tmpFile.exists() && ( System.currentTimeMillis()-tmpFile.lastModified() )<3600000 ) {
+            if ( tmpFile.exists() && ( System.currentTimeMillis()-tmpFile.lastModified() )<86400000 ) {
                 logger.fine( "no need to download file I already have loaded!");
             } else {
                 URL cdfUrl= getCdfDownloadURL(id, info, start, stop, params, file );
