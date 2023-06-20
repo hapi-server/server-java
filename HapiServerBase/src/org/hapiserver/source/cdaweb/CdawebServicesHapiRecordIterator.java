@@ -171,11 +171,17 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         double[] array;
         
         private DoubleDoubleAdapter( double[] array ) {
+            if ( array.length==1 ) {
+                System.err.println("here stop");
+            }
             this.array= array;
         }
         
         @Override
         public double adaptDouble(int index) {
+            if ( index>=this.array.length ) {
+                throw new ArrayIndexOutOfBoundsException("can't find the double at position "+index);
+            }
             return this.array[index];
         }
     }
@@ -520,6 +526,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             
             adapters= new Adapter[params.length];
             
+            int nrec=-1;
+            
             CDFReader reader= new CDFReader(tmpFile.toString());
             for ( int i=0; i<params.length; i++ ) {
                 if ( i==0 ) {
@@ -549,7 +557,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     }
                     int type= reader.getType(dep0); // 31=Epoch
                     Object o= reader.get(dep0);
-                    if ( Array.getLength(o)>0 ) {
+                    nrec= Array.getLength(o);
+                    if ( nrec>0 ) {
                         switch (type) {
                             case 31:                                
                                 adapters[i]= new IsotimeEpochAdapter( (double[])o, length );
@@ -558,6 +567,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                                 adapters[i]= new IsotimeTT2000Adapter( (long[])o, length );
                                 break;
                             default:
+                                //TODO: epoch16.
                                 throw new IllegalArgumentException("type not supported for column 0 time (cdf_epoch16");
                         }
                         nindex= Array.getLength(o);
@@ -569,6 +579,19 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     String param= params[i];
                     int type= reader.getType(param);
                     Object o= reader.get(param);
+                    if ( Array.getLength(o)!=nrec ) {
+                        if ( Array.getLength(o)==1 ) {
+                            // let's assume they meant for this to non-time varying.
+                            Object newO= Array.newInstance( o.getClass().getComponentType(), nrec );
+                            Object v1= Array.get( o, 0 );
+                            for ( int irec=0; irec<nrec; irec++ ) {
+                                Array.set( newO, irec, v1 );
+                            }
+                            o= newO;
+                        } else {
+                            throw new IllegalArgumentException("nrec is inconsistent!  This internal error must be fixed.");
+                        }
+                    }
                     String stype= nameForType(type);
                     Class c= o.getClass().getComponentType();
                     if ( !c.isArray() ) {
