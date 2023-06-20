@@ -355,6 +355,10 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
     }
     
+    /**
+     * List of datasets which are known to be readable from the files, containing no virtual variables.  Eventually
+     * there will be metadata in the infos which contains this information.
+     */
     private static final HashSet<String> readDirect= new HashSet<String>();
     static {
         readDirect.add("RBSP-A_DENSITY_EMFISIS-L4");
@@ -368,8 +372,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     /**
      * return true if the data contain virtual variables which must be calculated by CDAWeb web services.  This is
      * slower than reading the files directly.   Some virtual variables may be implemented within this server in the future.
-     * @param id
-     * @return 
+     * @param id the id, for example RBSP-A_DENSITY_EMFISIS-L4
+     * @return true if web services must be used.
      */
     private boolean mustUseWebServices( String id ) {
         return !readDirect.contains(id);
@@ -384,7 +388,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
      * @param start the seven-component start time
      * @param stop the seven-component stop time
      * @param params the list of parameters to read
-     * @param file the file which contains the data
+     * @param file null or the file which contains the data
      * @return the URL of the file containing the data.
      */
     private URL getCdfDownloadURL( String id, JSONObject info, int[] start, int[] stop, String[] params, String file ) throws MalformedURLException {
@@ -397,7 +401,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             id= id.substring(0,iat);
         }
         
-        if ( mustUseWebServices(id) ) {
+        if ( file==null || mustUseWebServices(id) ) {
             
             String ss;
             if ( params.length==1 ) {
@@ -466,8 +470,19 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
         return fallback;
     }
-        
-           
+
+    /**
+     * return the record iterator for the dataset.  This presumes that start and stop are based on the intervals
+     * calculated by CdawebServicesHapiRecordSource, and an incomplete set of records will be returned if this is not
+     * the case.  The file, possibly calculated when figuring out intervals, can be provided as well, so that the
+     * web service identifying the file is only called once.
+     * @param id the dataset id, such as AC_OR_SSC or RBSP-A_DENSITY_EMFISIS-L4
+     * @param info the info for this id
+     * @param start the start time
+     * @param stop the stop time
+     * @param params the parameters to read
+     * @param file the file, (or null if not known), of the data.
+     */
     public CdawebServicesHapiRecordIterator(String id, JSONObject info, int[] start, int[] stop, String[] params, String file ) {
         try {
 

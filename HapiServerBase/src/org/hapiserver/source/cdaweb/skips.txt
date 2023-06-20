@@ -1,2 +1,4 @@
-AIM_CIPS_SCI_3A, Tami NetCDF file
-AMPTECCE_H0_MEPA, Nand's server fails to give response
+AIM_CIPS_SCI_3A, Tami NetCDF file.
+AMPTECCE_H0_MEPA, Nand's server fails to give response.
+APOLLO12_.*, Doesn't show up on Nand's server but Autoplot can plot from CDAWeb.
+APOLLO15_.*, Presumably same problem as APOLLO12.

@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -86,17 +87,23 @@ public class CdawebInfoCatalogSource {
     }
 
     private static HashSet<String> skips;
+    private static HashSet<Pattern> skipsPatterns;
     
     private static void readSkips() throws IOException {
         logger.info("reading skips");
         skips= new HashSet<>();
+        skipsPatterns= new HashSet<>();
         URL skipsFile= CdawebInfoCatalogSource.class.getResource("skips.txt");
         try (BufferedReader r = new BufferedReader(new InputStreamReader( skipsFile.openStream() ))) {
             String s = r.readLine();
             while ( s!=null ) {  
                 String[] ss= s.split(",",-2);
                 if ( ss.length==2 ) {
-                    skips.add(ss[0].trim());
+                    if ( ss[0].contains(".") ) {
+                        skipsPatterns.add( Pattern.compile(ss[0]) );
+                    } else {
+                        skips.add(ss[0].trim());
+                    }
                 }
                 s = r.readLine();
             }
@@ -130,7 +137,19 @@ public class CdawebInfoCatalogSource {
                         //&& nssdc_ID.contains("None") ) {
                          ) {
                     String name= attrs.getNamedItem("serviceprovider_ID").getTextContent();
-                    if ( skips.contains(name) ) continue;
+                    
+                    if ( skips.contains(name) ) {
+                        logger.log(Level.FINE, "skipping {0}", name);
+                        continue;
+                    }
+                    boolean doSkip= false;
+                    for ( Pattern p: skipsPatterns ) {
+                        if ( p.matcher(name).matches() ) {
+                            doSkip= true;
+                            logger.log(Level.FINE, "skipping {0} because of match", name);
+                        }
+                    }
+                    if ( doSkip ) continue;
                     
                     String sourceurl= getURL(name,node);
                     if ( sourceurl!=null && 
