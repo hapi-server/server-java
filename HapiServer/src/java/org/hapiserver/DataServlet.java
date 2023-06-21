@@ -98,7 +98,7 @@ public class DataServlet extends HttpServlet {
         if ( start.compareTo(startTime)<0 ) {
             throw new HapiException( 1405, "time outside valid range", "start time must be no earlier than "+startTime );
         }
-        if ( stopTime.compareTo(stop)<0 ) {
+        if ( stopTime.compareTo(stopTime)<0 ) {
             throw new HapiException( 1405, "time outside valid range", "stop time must be no later than "+stopTime );
         }
         if ( info.has("x_requestLimits") ) {
