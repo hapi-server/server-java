@@ -171,9 +171,6 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         double[] array;
         
         private DoubleDoubleAdapter( double[] array ) {
-            if ( array.length==1 ) {
-                System.err.println("here stop");
-            }
             this.array= array;
         }
         
