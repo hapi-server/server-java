@@ -188,15 +188,30 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     
     private static class DoubleArrayDoubleAdapter extends Adapter {
         double[][] array;
+        int n; // there's a weird bit of code where the Java library is giving me double arrays containing ints.
         
         private DoubleArrayDoubleAdapter( double[][] array ) {
             this.array= array;
+            if ( array.length>0 ) {
+                this.n= array[0].length;
+            }
         }
         
         @Override
         public double[] adaptDoubleArray(int index) {
             return this.array[index];
         }
+
+        @Override
+        public int[] adaptIntegerArray(int index) {
+            int[] adapt= new int[n];
+            double[] rec= this.array[index];
+            for ( int i=0; i<n; i++ ) {
+                adapt[i]= (int)rec[i];
+            }
+            return adapt;
+        }
+        
     }
     
     private static class DoubleFloatAdapter extends Adapter {
@@ -261,6 +276,21 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         public int adaptInteger( int index ) {
             return this.array[index];
         }
+    }
+    
+    private static class IntegerArrayIntegerAdapter extends Adapter {
+        int[][] array;
+        
+        private IntegerArrayIntegerAdapter( int[][] array ) {
+            this.array= array;
+        }
+
+        @Override
+        public int[] adaptIntegerArray(int index) {
+            return this.array[index];
+        }
+        
+        
     }
     
     private static class IsotimeTT2000Adapter extends Adapter {
@@ -618,6 +648,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                         c= c.getComponentType();
                         if ( c==double.class ) {
                             adapters[i]= new DoubleArrayDoubleAdapter( (double[][])o );
+                        } else if ( c==int.class ) {
+                            adapters[i]= new IntegerArrayIntegerAdapter( (int[][])o );
                         } else {
                             throw new IllegalArgumentException("unsupported type");
                         }
@@ -683,7 +715,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
             @Override
             public int[] getIntegerArray(int i) {
-                return null;
+                return adapters[i].adaptIntegerArray(j);
             }
 
             @Override
