@@ -3,8 +3,10 @@ package org.hapiserver.source.cdaweb;
 
 import gov.nasa.gsfc.spdf.cdfj.CDFException;
 import gov.nasa.gsfc.spdf.cdfj.CDFReader;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Array;
 import java.net.MalformedURLException;
@@ -394,12 +396,30 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
      */
     private static final HashSet<String> readDirect= new HashSet<String>();
     static {
-        readDirect.add("RBSP-A_DENSITY_EMFISIS-L4");
-        readDirect.add("RBSP-B_DENSITY_EMFISIS-L4");
-        readDirect.add("RBSP-A_MAGNETOMETER_4SEC-GEI_EMFISIS-L3");
-        readDirect.add("RBSP-B_MAGNETOMETER_4SEC-GEI_EMFISIS-L3");
-        readDirect.add("RBSPA_REL04_ECT-HOPE-PA-L3");
-        readDirect.add("RBSPB_REL04_ECT-HOPE-PA-L3");
+        //readDirect.add("RBSP-A_DENSITY_EMFISIS-L4");
+        //readDirect.add("RBSP-B_DENSITY_EMFISIS-L4");
+        //readDirect.add("RBSP-A_MAGNETOMETER_4SEC-GEI_EMFISIS-L3");
+        //readDirect.add("RBSP-B_MAGNETOMETER_4SEC-GEI_EMFISIS-L3");
+        //readDirect.add("RBSPA_REL04_ECT-HOPE-PA-L3");
+        //readDirect.add("RBSPB_REL04_ECT-HOPE-PA-L3");
+        URL virt= CdawebServicesHapiRecordIterator.class.getResource("virtualVariables.txt");
+        try ( BufferedReader reader = new BufferedReader( new InputStreamReader( virt.openStream() ) ) ) {
+            String line= reader.readLine();
+            while ( line!=null ) {
+                if ( line.length()>0 && line.charAt(0)=='#' ) {
+                    // skip comment line
+                } else {
+                    String[] ss= line.split("\t");
+                    if ( ss[1].equals("0") ) {
+                        readDirect.add(ss[0]);
+                    }
+                }
+                line= reader.readLine();
+            }
+        } catch ( IOException ex ) {
+            logger.log( Level.WARNING, ex.getMessage(), ex );
+        }
+        logger.log(Level.INFO, "readDirect has {0} entries", readDirect.size());
     }
     
     /**
@@ -542,7 +562,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
             File tmpFile= new File( p,  name + ".cdf" ); // madness...  apparently tomcat can't write to /tmp
             
-            if ( tmpFile.exists() && ( System.currentTimeMillis()-tmpFile.lastModified() )<86400000 ) {
+            if ( tmpFile.exists() && ( System.currentTimeMillis()-tmpFile.lastModified() )<(5*86400000) ) {
                 logger.fine( "no need to download file I already have loaded!");
             } else {
                 URL cdfUrl= getCdfDownloadURL(id, info, start, stop, params, file );
