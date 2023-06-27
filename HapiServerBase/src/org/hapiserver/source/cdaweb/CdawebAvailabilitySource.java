@@ -117,6 +117,10 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             } catch (IOException ex) {
                 logger.log(Level.SEVERE, null, ex);
             }
+            if ( range==null ) {
+                logger.fine("Expect sample times in catalog");
+                return null;
+            }
         }
         try {
             int[] irange= TimeUtil.parseISO8601TimeRange(range);
