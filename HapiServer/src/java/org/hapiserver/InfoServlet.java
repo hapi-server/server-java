@@ -77,6 +77,7 @@ public class InfoServlet extends HttpServlet {
         try ( OutputStream out = response.getOutputStream() ) {
             String parameters= request.getParameter("parameters");
             if ( parameters!=null) {
+                parameters= parameters.replaceAll(" ","+");
                 try {
                     jo= Util.subsetParams(jo,parameters);
                 } catch ( BadRequestParameterException ex2 ) {

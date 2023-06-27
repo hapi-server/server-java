@@ -149,6 +149,9 @@ public class DataServlet extends HttpServlet {
         }
         String parameters= 
             getParam( params, "parameters", "", "The comma separated list of parameters to include in the response ", null );
+        if ( parameters!=null ) {
+            parameters= parameters.replaceAll(" ","+");
+        }
         String include= getParam(params, "include", "", "include header at the top", PATTERN_INCLUDE);
         String format= getParam(params, "format", "", "The desired format for the data stream.", PATTERN_FORMAT);
         
