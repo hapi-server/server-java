@@ -129,15 +129,15 @@ public class CdawebInfoCatalogSource {
             for ( int i=0; i<nodes.getLength(); i++ ) {
                 Node node= nodes.item(i);
                 NamedNodeMap attrs= node.getAttributes();
-                
+
                 String st= attrs.getNamedItem("timerange_start").getTextContent();
                 String en= attrs.getNamedItem("timerange_stop").getTextContent();
+                String nssdc_ID= attrs.getNamedItem("nssdc_ID").getTextContent();
                 if ( st.length()>1 && Character.isDigit(st.charAt(0))
                         && en.length()>1 && Character.isDigit(en.charAt(0))
-                        //&& nssdc_ID.contains("None") ) {
-                         ) {
+                        && nssdc_ID.contains("None") ) {
                     String name= attrs.getNamedItem("serviceprovider_ID").getTextContent();
-                    
+
                     if ( skips.contains(name) ) {
                         logger.log(Level.FINE, "skipping {0}", name);
                         continue;
@@ -150,7 +150,7 @@ public class CdawebInfoCatalogSource {
                         }
                     }
                     if ( doSkip ) continue;
-                    
+
                     String sourceurl= getURL(name,node);
                     if ( sourceurl!=null && 
                             ( sourceurl.startsWith( CDAWeb ) ||
@@ -166,13 +166,13 @@ public class CdawebInfoCatalogSource {
                         } catch (ParseException ex) {
                             logger.log(Level.SEVERE, null, ex);
                         }
-                        
+
                         catalog.put( ic++, jo );
                     }
                 }
 
             }
-            
+
             JSONObject result= new JSONObject();
             result.put( "catalog", catalog );
             return result.toString(4);
