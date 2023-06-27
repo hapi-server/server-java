@@ -525,6 +525,43 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     }
 
     /**
+     * flatten 3-D array into 2-D.  Thanks, Bard!
+     * @param array
+     * @return 
+     */
+    public static double[][] flatten(double[][][] array) {
+        int len1= array[0].length * array[0][0].length;
+        double[][] flattenedArray = new double[array.length][len1];
+        int index;
+        for (int i = 0; i < array.length; i++) {
+            index=0;
+            for (int j = 0; j < array[i].length; j++) {
+                System.arraycopy(array[i][j], 0, flattenedArray[i], index, array[i][j].length);
+                index+=array[i][j].length;
+            }
+        }
+
+        return flattenedArray;
+    }
+    
+    private double[][] flattenDoubleArray( Object array ) {
+        int numDimensions = 1;
+        Class<?> componentType = array.getClass().getComponentType();
+        while (componentType != double.class) {
+            numDimensions++;
+            componentType = componentType.getComponentType();
+        }
+        switch (numDimensions) {
+            case 2:
+                return (double[][])array;
+            case 3:
+                return flatten((double[][][])array);
+            default:
+                throw new IllegalArgumentException("Not supported: rank 4");
+        }
+    }
+    
+    /**
      * return the record iterator for the dataset.  This presumes that start and stop are based on the intervals
      * calculated by CdawebServicesHapiRecordSource, and an incomplete set of records will be returned if this is not
      * the case.  The file, possibly calculated when figuring out intervals, can be provided as well, so that the
@@ -551,7 +588,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         
             String name= String.format( "%s_%s_%s_%s", id, sstart, sstop, ss );
                         
-            String u= getProcessId("000");
+            String u= System.getProperty("user.name"); // getProcessId("000");
             File p= new File( "/home/tomcat/tmp/"+u+"/" );
             
             if ( !p.exists() ) {
@@ -667,6 +704,9 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             adapters[i]= new DoubleArrayDoubleAdapter( (double[][])o );
                         } else if ( c==int.class ) {
                             adapters[i]= new IntegerArrayIntegerAdapter( (int[][])o );
+                        } else if ( c.isArray()  ) {
+                            o= flattenDoubleArray(o);
+                            adapters[i]= new DoubleArrayDoubleAdapter( (double[][])o );
                         } else {
                             throw new IllegalArgumentException("unsupported type");
                         }
