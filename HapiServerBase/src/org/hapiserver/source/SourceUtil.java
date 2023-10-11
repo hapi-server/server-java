@@ -2,6 +2,7 @@
 package org.hapiserver.source;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -292,8 +294,8 @@ public class SourceUtil {
     
     /**
      * read the XML document from a remote site.
-     * @param url
-     * @return 
+     * @param url the XML document
+     * @return the XML document
      * @throws org.xml.sax.SAXException 
      * @throws java.io.IOException 
      * @throws javax.xml.parsers.ParserConfigurationException 
@@ -308,6 +310,29 @@ public class SourceUtil {
         }
     }
     
+    /**
+     * read the XML document from a String.
+     * @param src
+     * @return the XML document
+     * @throws SAXException
+     * @throws IOException
+     * @throws ParserConfigurationException 
+     */
+    public static Document readDocument( String src ) throws SAXException, IOException, ParserConfigurationException {
+        StringReader reader= new StringReader(src);
+        DocumentBuilder builder;
+        builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        InputSource source = new InputSource( reader );
+        Document document = builder.parse(source);
+        return document;
+    }
+    
+    /**
+     * read the JSONObject from a remote site.
+     * @param url the url
+     * @return the JSONObject
+     * @throws IOException 
+     */
     public static JSONObject readJSONObject( URL url ) throws IOException {
         try {
             byte[] bb= Files.readAllBytes( Paths.get( url.toURI() ) );
