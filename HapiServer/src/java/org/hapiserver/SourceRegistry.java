@@ -5,11 +5,13 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -48,31 +50,31 @@ public class SourceRegistry {
      * @throws org.hapiserver.exceptions.HapiException
      */
     public HapiRecordSource getSource( String hapiHome, String id, JSONObject info ) throws HapiException {
-        JSONObject data;
+        JSONObject dataConfig;
         try {
-            data= HapiServerSupport.getDataConfig( hapiHome, id );
+            dataConfig= HapiServerSupport.getDataConfig( hapiHome, id );
         } catch ( IOException | JSONException ex ) {
             throw new RuntimeException(ex);
         }
         
-        String source= data.optString( "source", data.optString("x_source") );
+        String source= dataConfig.optString( "source", dataConfig.optString("x_source") );
         
         switch (source) {
             case "aggregation":
-                return new AggregationRecordSource( hapiHome, id, info, data );
+                return new AggregationRecordSource( hapiHome, id, info, dataConfig );
             case "spawn":
-                return new SpawnRecordSource( hapiHome, id, info, data );
+                return new SpawnRecordSource( hapiHome, id, info, dataConfig );
             case "hapiserver":
-                return new HapiWrapperRecordSource( id, info, data );
+                return new HapiWrapperRecordSource( id, info, dataConfig );
             case "classpath":
-                String clas= data.optString("class",data.optString("x_class"));
+                String clas= dataConfig.optString("class",dataConfig.optString("x_class"));
                 if ( clas.endsWith(".java") ) {
                     throw new IllegalArgumentException("class should not end in .java");
                 }
                 ClassLoader cl=null;
-                if ( data.has("classpath") || data.has("x_classpath") ) {
+                if ( dataConfig.has("classpath") || dataConfig.has("x_classpath") ) {
                     try {
-                        String s= data.optString("classpath",data.optString("x_classpath"));
+                        String s= dataConfig.optString("classpath",dataConfig.optString("x_classpath"));
                         s= SpawnRecordSource.doMacros( hapiHome, id, s );
                         URL url;
                         if ( s.startsWith("http://") || s.startsWith("https://") || s.startsWith("file:") ) { 
@@ -98,13 +100,15 @@ public class SourceRegistry {
                         c= Class.forName(clas);
                     }
                     Object o;
-                    JSONArray args= data.optJSONArray("args"); 
+                    JSONArray args= dataConfig.optJSONArray("args"); 
                     if ( args==null ) {
-                        args= data.optJSONArray("x_args");
+                        args= dataConfig.optJSONArray("x_args");
                     }
+                    String method= dataConfig.optString("method",dataConfig.optString("x_method","") );
+                    
                     if ( args==null ) { // must have constructor that takes hapiHome, id, info, and data.
                         Constructor constructor= c.getConstructor( String.class, String.class, JSONObject.class, JSONObject.class );
-                        o= constructor.newInstance( hapiHome, id, info, data );
+                        o= constructor.newInstance( hapiHome, id, info, dataConfig );
                     } else {
                         Class[] cc= new Class[args.length()];
                         Object[] oo= new Object[args.length()];
@@ -113,15 +117,45 @@ public class SourceRegistry {
                                 oo[i]= args.get(i);
                                 cc[i]= oo[i].getClass();
                                 if ( cc[i]==String.class ) { // check for macros
-                                    String s= SpawnRecordSource.doMacros( hapiHome, id, (String)oo[i] );
-                                    oo[i]= s;
+                                    if ( oo[i].equals("${info}") ) {
+                                        oo[i]= info;
+                                        cc[i]= JSONObject.class;
+                                    } else if ( oo[i].equals("${data-config}") ) {
+                                        oo[i]= dataConfig;
+                                    } else {
+                                        String s= SpawnRecordSource.doMacros( hapiHome, id, (String)oo[i] );
+                                        oo[i]= s;
+                                    }
                                 }
                             } catch (JSONException ex) {
                                 Logger.getLogger(SourceRegistry.class.getName()).log(Level.SEVERE, null, ex);
                             }
                         }
-                        Constructor constructor= c.getConstructor( cc );
-                        o= constructor.newInstance( oo );
+                        if ( method.length()>0 ) { // call static method
+                            Method m;
+                            try {
+                                m= c.getMethod( method, cc );
+                            } catch ( NoSuchMethodException ex ) {
+                                String[] arglist= new String[cc.length];
+                                for ( int i=0; i<cc.length; i++ ) {
+                                    arglist[i]= cc[i].getSimpleName();
+                                }
+                                throw new IllegalArgumentException("No such method: "+clas+"."+method+"("+String.join(",", arglist)+")");
+                            }
+                            o= m.invoke( null, oo );
+                        } else {
+                            Constructor constructor;
+                            try {
+                                constructor= c.getConstructor( cc );
+                            } catch ( NoSuchMethodException ex ) {
+                                String[] arglist= new String[cc.length];
+                                for ( int i=0; i<cc.length; i++ ) {
+                                    arglist[i]= cc[i].getSimpleName();
+                                }
+                                throw new IllegalArgumentException("No such constructor: "+clas+"("+String.join(",", arglist)+")");
+                            }
+                            o= constructor.newInstance( oo );
+                        }
                     }
                     if ( !( o instanceof HapiRecordSource ) ) {
                         throw new RuntimeException("classpath refers to class which is not an instance of HapiRecordSource");
