@@ -351,6 +351,18 @@ public class HapiServerSupport {
             Object o;
             JSONArray args= jo.optJSONArray("args");
             if ( args==null ) {
+                if ( jo.has("x_args") ) {
+                    try {
+                        if ( !( jo.get("x_args") instanceof JSONArray ) ) {
+                            throw new IllegalArgumentException("x_args should be an array");
+                        }
+                    } catch (JSONException ex) {
+                        Logger.getLogger(HapiServerSupport.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } 
+                args= jo.optJSONArray("x_args");
+            }
+            if ( args==null ) {
                 Method method= c.getMethod( methodString );
                 if ( method.getReturnType()!=String.class ) {
                     throw new IllegalArgumentException("method should return String: " + clas + "."+ methodString );
@@ -379,7 +391,7 @@ public class HapiServerSupport {
                     }
                 }
                 Method method= c.getMethod( methodString, cc );
-                String infoString= (String)method.invoke( null );
+                String infoString= (String)method.invoke( null, oo ); // method is static
                 try {
                     return new JSONObject(infoString);
                 } catch ( JSONException ex ) {
