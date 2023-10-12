@@ -144,7 +144,10 @@ public class SpawnRecordSource implements HapiRecordSource {
     }
 
     /**
-     * add code for implementing hapiHome and id macros.
+     * add code for implementing hapiHome and id macros.  The following macros are supported:<ul>
+     * <li>${id}  -- the data id
+     * <li>${HAPI_HOME}  -- the server home
+     * </ul>
      * @param hapiHome
      * @param id
      * @param command
