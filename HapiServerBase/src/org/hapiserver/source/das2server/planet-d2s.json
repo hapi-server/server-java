@@ -1,0 +1,4 @@
+{
+    "server":"https://planet.physics.uiowa.edu/das/server",
+    "include":[ "Voyager/1/PWS/SpecAnalyzer-4s-Efield", "Voyager/2/PWS/SpecAnalyzer-4s-Efield" ]
+}
