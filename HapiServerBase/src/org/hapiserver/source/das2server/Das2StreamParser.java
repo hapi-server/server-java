@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
@@ -23,6 +24,7 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -54,6 +56,12 @@ public class Das2StreamParser implements Iterator<HapiRecord> {
     int[] offs;
     int[] lens;
     String[] d2stypes;
+    
+    private static final String UNIT_US2000 = "us2000";
+    private static final String UNIT_T1970 = "t1970";
+    private static final String UNIT_MS1970 = "ms1970";
+    
+    String units;
 
     private HapiRecord nextRecord;
     
@@ -92,6 +100,10 @@ public class Das2StreamParser implements Iterator<HapiRecord> {
         
         String xmlString= new String(bnbb,Charset.forName("UTF-8"));
         packetDescriptor=  SourceUtil.readDocument(xmlString);
+         
+        XPath xpath= XPathFactory.newInstance().newXPath();
+        String u= (String) xpath.evaluate( "//packet/x/units", packetDescriptor, XPathConstants.STRING );
+        units= UNIT_US2000;
         
         recordLengthBytes= getRecordLengthBytes(packetDescriptor);
         
@@ -197,7 +209,28 @@ public class Das2StreamParser implements Iterator<HapiRecord> {
         return new HapiRecord() {
             @Override
             public String getIsoTime(int i) {
-                return new String( buffer, offs[i], lens[i] );
+                if ( d2stypes[i].equals("little_endian_real4") ) {
+                    throw new IllegalArgumentException("not supported");
+                    
+                } else if ( d2stypes[i].equals("little_endian_real8") ) {
+                    ByteBuffer buff= ByteBuffer.wrap( buffer, offs[i], 8 );
+                    buff.order(ByteOrder.LITTLE_ENDIAN);
+                    double d= buff.getDouble();
+                    switch (Das2StreamParser.this.units) {
+                        case UNIT_MS1970:
+                            return TimeUtil.fromMillisecondsSince1970((int)d);
+                        case UNIT_T1970:
+                            return TimeUtil.fromMillisecondsSince1970((int)d*1000);
+                        case UNIT_US2000:
+                            d = d / 1000. + 946684800000.;
+                            return TimeUtil.fromMillisecondsSince1970((int)d);
+                        default:
+                            throw new IllegalArgumentException("not yet supported");
+                    }
+                    
+                } else {
+                    return new String( buffer, offs[i], lens[i] );
+                }
             }
 
             @Override
@@ -237,7 +270,36 @@ public class Das2StreamParser implements Iterator<HapiRecord> {
 
             @Override
             public double[] getDoubleArray(int i) {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                double[] result;
+                if ( d2stypes[i].equals("little_endian_real4") ) {
+                    int nj= lens[i]/4;
+                    result= new double[nj];
+                    ByteBuffer buff= ByteBuffer.wrap( buffer, offs[i], lens[i] );
+                    buff.order(ByteOrder.LITTLE_ENDIAN);
+                    for ( int j=0; j<nj; j++ ) {
+                        result[j]= buff.getFloat();
+                    }
+                } else if ( d2stypes[i].equals("little_endian_real8") ) {
+                    int nj= lens[i]/4;
+                    result= new double[nj];
+                    ByteBuffer buff= ByteBuffer.wrap( buffer, offs[i], lens[i] );
+                    buff.order(ByteOrder.LITTLE_ENDIAN);
+                    for ( int j=0; j<nj; j++ ) {
+                        result[j]= buff.getFloat();
+                    }
+                } else if ( d2stypes[i].startsWith("ascii") ) {
+                    int fieldLen= Integer.parseInt(d2stypes[i].substring(5));
+                    int nj= lens[i]/fieldLen;
+                    int o = offs[i];
+                    result= new double[nj];
+                    for ( int j=0; j<nj; j++ ) {
+                        String s= new String( buffer, o+i*fieldLen, fieldLen );
+                        result[j]= Double.parseDouble(s);
+                    }
+                } else {
+                    throw new IllegalArgumentException("hmm, exception should have been thrown already.");
+                }
+                return result;
             }
 
             @Override
@@ -277,20 +339,32 @@ public class Das2StreamParser implements Iterator<HapiRecord> {
             for ( int i=0; i<nl.getLength(); i++ ) {
                 Node n= nl.item(i);
                 NamedNodeMap attributes= n.getAttributes();
-                JSONObject param= new JSONObject();
-                String name = i==0 ? "time" : attributes.getNamedItem("name").getNodeValue();
-                param.put("name",name);
                 String d2stype= attributes.getNamedItem("type").getNodeValue();
-                param.put("type",convertType(d2stype));
-                if ( d2stype.startsWith("time") ) {
-                    int len= Integer.parseInt(d2stype.substring(4));
+                
+                JSONObject param= new JSONObject();
+                if ( i==0 ) {
+                    param.put("name","time");
+                    param.put("type","isotime");
+                    int len;
+                    if ( d2stype.startsWith("time") ) {
+                        len= Integer.parseInt(d2stype.substring(4));
+                    } else {
+                        len= 25;
+                        units= "us2000";
+                    }
                     param.put("length",len);
-                    recordLengthBytes+=len;
+                } else {
+                    String name = attributes.getNamedItem("name").getNodeValue();
+                    param.put("name",name);
+                    param.put("type",convertType(d2stype));
                 }
+                                
                 if ( n.getNodeName().equals("yscan") ) {
                     int len= Integer.parseInt(attributes.getNamedItem("nitems").getNodeValue());
-                    param.put("length",len);
+                    param.put("size",new JSONArray( "[" + String.format("%d",len) +"]" ) );
                     recordLengthBytes+=(len*getBytesFor(d2stype));
+                } else if ( n.getNodeName().equals("x") ) {
+                    recordLengthBytes+= getBytesFor(d2stype);
                 } else if ( n.getNodeName().equals("y") ) {
                     recordLengthBytes+= getBytesFor(d2stype);
                 } else if ( n.getNodeName().equals("z") ) {
@@ -336,23 +410,35 @@ public class Das2StreamParser implements Iterator<HapiRecord> {
     
     public static void main( String[] args ) throws Exception {
         InputStream ins;
-        args= new String[] {"test1"};
+        String surl;
+        args= new String[] {"test2"};
         if ( args[0].equals("test1") ) {
-            String surl= "https://jupiter.physics.uiowa.edu/das/server?"
-                    + "server=dataset"
+            surl= "https://jupiter.physics.uiowa.edu/das/server"
+                    + "?server=dataset"
                     + "&dataset=Juno/Ephemeris/EuropaCoRotational"
                     + "&start_time=2021-04-15T00:00Z"
                     + "&end_time=2021-04-17T00:00Z"
                     + "&interval=600";
+            ins= new URL(surl).openStream();
+        } else if ( args[0].equals("test2") ) {
+            // wget -O - 'https://planet.physics.uiowa.edu/das/das2Server?server=dataset&start_time=2000-01-01T00:00:00.000Z&end_time=2000-01-02T00:00:00.000Z&resolution=50.58548009367681&dataset=Voyager/1/PWS/SpecAnalyzer-4s-Efield&ascii=true'
+            https://planet.physics.uiowa.edu/das/das2Server?server=dataset&start_time=2000-01-01T00%3A00%3A00.000Z&end_time=2000-01-02T00%3A00%3A00.000Z&resolution=50.58548009367681&dataset=Voyager%2F1%2FPWS%2FSpecAnalyzer-4s-Efield
+            surl= "https://planet.physics.uiowa.edu/das/das2Server"
+                    + "?server=dataset"
+                    + "&dataset=Voyager/1/PWS/SpecAnalyzer-4s-Efield"
+                    + "&start_time=2000-01-01T00:00Z"
+                    + "&end_time=2000-01-02T00:00Z"
+                    + "&ascii=true";
             ins= new URL(surl).openStream();
         } else {
             throw new IllegalArgumentException("bad arg1");
         }
         Das2StreamParser p= new Das2StreamParser(ins);
         System.out.println( p.getInfo().toString(4) );
-        Iterator<HapiRecord> rec= p.getHapiRecordIterator();
-        while ( rec.hasNext() ) {
-            System.out.println(rec.next());
+        Iterator<HapiRecord> reciter= p.getHapiRecordIterator();
+        while ( reciter.hasNext() ) {
+            HapiRecord rec=reciter.next();
+            System.out.println(rec.getIsoTime(0));
         }
     }    
 }

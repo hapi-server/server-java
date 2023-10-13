@@ -77,14 +77,16 @@ public class Das2ServerDataSource extends AbstractHapiRecordSource {
     public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
         String sstart= TimeUtil.formatIso8601TimeBrief(start);
         String sstop= TimeUtil.formatIso8601TimeBrief(stop);
-        String url=this.das2server + "?server=dataset&dataset="+id+"&start_time="+sstart+"&end_time="+sstop;
+        StringBuilder url= new StringBuilder(this.das2server);
+        url.append("?server=dataset&dataset=").append(id).append("&start_time=").append(sstart).append("&end_time=").append(sstop);
         int interval= info.optInt("x_interval",0);
         if ( interval>0 ) {
-            url=url + "&interval="+interval;
+            url.append("&interval=").append(interval);
         }
+    url.append("&ascii=true");
         InputStream ins;
         try {
-            URL das2StreamUrl= new URL( url );
+            URL das2StreamUrl= new URL( url.toString() );
             ins= das2StreamUrl.openStream();
             return new Das2StreamParser(ins).getHapiRecordIterator();
         } catch ( MalformedURLException ex ) {

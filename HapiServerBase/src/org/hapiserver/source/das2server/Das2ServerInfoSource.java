@@ -23,6 +23,10 @@ public class Das2ServerInfoSource {
     public static int STANDARD_STEP_SIZE_SECONDS=30;
     
     private static String[] parseTimeRange( String timerange ) {
+        int i= timerange.indexOf("|");
+        if ( i>-1 ) {
+            timerange= timerange.substring(0,i);
+        }
         String[] ss= timerange.split("to");
         return new String[] { ss[0].trim(), ss[1].trim() };
     }
@@ -69,6 +73,7 @@ public class Das2ServerInfoSource {
         } else {
             throw new IllegalArgumentException("unable to identify time range to download example.");
         }
+    dataRequest.append("&ascii=true"); // TODO: support for native types
         JSONObject result= parseDas2StreamForInfo( new URL(dataRequest.toString()) );
         if ( testInterval.length()>0 ) {
             dataRequest.append("&interval=").append(testInterval);
