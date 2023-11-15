@@ -1,0 +1,26 @@
+{
+    "$schema" : "http://json-schema.org/draft-07/schema#", 
+    "description" : "Configuration for the landing page",
+    "properties" : {
+        "x-landing-count" : {
+            "description" : "Number of example data sets to be listed on the landing page, 10 is the default",
+            "type" : "integer"
+        },
+        "x-landing-exclude" : {
+            "description" : "Datasets to exclude from this list, expressed as an array of regular expressions.  Items excluded will not be shown, even if in include list.",
+            "type" : "array",
+            "items" : {
+                "type": "string"
+            },
+            "uniqueItems": true
+        },
+        "x-landing-include" : {
+            "description" : "Datasets to include in the list, expressed as an array of regular expressions.",
+            "type" : "array",
+            "items" : {
+                "type": "string"
+            },
+            "uniqueItems": true
+        }
+    }
+}
