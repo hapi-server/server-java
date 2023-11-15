@@ -4,6 +4,7 @@ package org.hapiserver;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -490,7 +491,7 @@ public class HapiServerSupport {
     public static JSONObject getLandingConfig( String HAPI_HOME ) throws IOException, JSONException {
         logger.info("getLandingConfig");
         
-        JSONObject result= loadAndCheckConfig( HAPI_HOME, "x-landing.json", new JSONObject() );
+        JSONObject result= loadAndCheckConfig( HAPI_HOME, "x-landing.json", null );
         return result;
         
     }
@@ -573,11 +574,12 @@ public class HapiServerSupport {
     }
 
     /**
-     * load the file, checking to see if there's a newer version in the config area.
+     * load the file, checking to see if there's a newer version in the config area, and loading the 
+     * initial version from the templates area or deft object.
      * @param HAPI_HOME
-     * @param ff the name of the file, one of "about", "landing-info", "semantics", or "relations"
-     * @param deft a deft value to use.
-     * @return
+     * @param ff the name of the file, one of "about.json", "x-landing.json", "semantics.json", or "relations.json"
+     * @param deft a deft value to use, if null then load from templates area.
+     * @return the JSON object for the file.
      * @throws IOException
      * @throws JSONException 
      */
@@ -590,10 +592,23 @@ public class HapiServerSupport {
         
         File releaseFile= new File( HAPI_HOME, ff );
         long releaseFileTimeStamp= releaseFile.exists() ? releaseFile.lastModified() : 0;
-        File configFile= new File( new File( HAPI_HOME, "config" ), ff );
+        File configDir= new File( HAPI_HOME, "config" );
+        File configFile= new File( configDir, ff );
         if ( !configFile.exists() ) {
             if ( deft==null ) {
-                throw new IOException("config directory should contain "+ff);
+                try {
+                    InputStream ins= Util.getTemplateAsStream(ff);
+                    File tmpFile = new File( configDir, "_"+ff );
+                    Util.transfer( ins, new FileOutputStream(tmpFile), true );
+                    if ( !tmpFile.renameTo(configFile) ) {
+                        logger.log(Level.SEVERE, "Unable to write to {0}", configFile);
+                        throw new IllegalArgumentException("unable to write file");
+                    } else {
+                        logger.log(Level.FINE, "wrote config file {0}", configFile);
+                    }
+                } catch ( NullPointerException ex ) {
+                    throw new IOException("templates directory should contain "+ff);
+                }
             } else {
                 if ( configFile.getParentFile().canWrite() ) {
                     Files.write( configFile.toPath(), deft.toString(4).getBytes(CHARSET) );
