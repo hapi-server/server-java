@@ -521,6 +521,9 @@ public class CsaInfoCatalogSource {
                     int i = s.indexOf(",");
                     JSONObject jo = new JSONObject();
                     String id= s.substring(0, i).trim();
+                    if ( id.startsWith("\"") && id.endsWith("\"") ) {
+                        id= id.substring(1,id.length()-1);
+                    }
                     if ( exclude.contains(id) ) {
                         logger.log(Level.FINE, "excluding dataset id {0}", id);
                         s = ins.readLine();
