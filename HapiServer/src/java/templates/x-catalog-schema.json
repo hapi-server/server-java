@@ -1,0 +1,104 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#", 
+    "description": "Configuration for the catalog and info responses",
+    "type": "object",
+    "properties": {
+        "HAPI": {
+            "description": "HAPI declaration declares version of catalog and info responses.",
+            "type": "string"
+        },        
+        "x-catalog": {
+            "description": "Entries or recipie for generating entries",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "x_group_id": { 
+                        "description": "an identifier for this source generator",
+                        "type": "string"
+                    },
+                    "x_source": {
+                        "description": "the source type",
+                        "type": "string",
+                        "enum" : [
+                            "classpath",
+                            "spawn"
+                        ]                            
+                    },
+                    "x_class": {
+                        "description": "the class to call",
+                        "type": "string"
+                    },
+                    "x_method": {
+                        "description": "the method of the class to call",
+                        "type": "string"
+                    },
+                    "x_config": {
+                        "description": "configuration for the info and data responses",
+                        "type": "object",
+                        "properties": {
+                            "x_info": {
+                                "description": "configuration for the info response",
+                                "type": "object",
+                                "properties" : {
+                                    "x_source":{
+                                        "description": "the source type",
+                                        "type": "string",
+                                        "enum" : [
+                                            "classpath",
+                                            "spawn"
+                                        ]
+                                    },
+                                    "x_class": {
+                                        "description": "the class to call",
+                                        "type": "string"
+                                    },
+                                    "x_method": {
+                                        "description": "the method of the class to call",
+                                        "type": "string"
+                                    },
+                                    "x_args": {
+                                        "description": "arguments passed in to the method, including templates like ${id}",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "x_data": {
+                                "description": "configuration for the data response",
+                                "type": "object",
+                                "properties" : {
+                                    "x_source":{
+                                        "description": "the source type",
+                                        "type": "string",
+                                        "enum" : [
+                                            "classpath",
+                                            "spawn"
+                                        ]
+                                    },
+                                    "x_class": {
+                                        "description": "the class to call",
+                                        "type": "string"
+                                    },
+                                    "x_method": {
+                                        "description": "the method of the class to call",
+                                        "type": "string"
+                                    },
+                                    "x_args": {
+                                        "description": "arguments passed in to the method, including templates like ${id}",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
