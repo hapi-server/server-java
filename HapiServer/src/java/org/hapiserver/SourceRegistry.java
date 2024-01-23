@@ -29,6 +29,8 @@ import org.hapiserver.source.SpawnRecordSource;
  */
 public class SourceRegistry {
     
+    private static final Logger logger= Logger.getLogger("hapi");
+    
     private static SourceRegistry instance= new SourceRegistry();
     
     public static SourceRegistry getInstance() {
@@ -107,8 +109,16 @@ public class SourceRegistry {
                     String method= dataConfig.optString("method",dataConfig.optString("x_method","") );
                     
                     if ( args==null ) { // must have constructor that takes hapiHome, id, info, and data.
-                        Constructor constructor= c.getConstructor( String.class, String.class, JSONObject.class, JSONObject.class );
-                        o= constructor.newInstance( hapiHome, id, info, dataConfig );
+                        try {
+                            Constructor constructor= c.getConstructor( String.class, String.class, JSONObject.class, JSONObject.class );
+                            o= constructor.newInstance( hapiHome, id, info, dataConfig );
+                        } catch ( NoSuchMethodException ex ) {
+                            logger.fine("Constructor not found.  Found constructors: ");
+                            for ( Constructor constructor : c.getConstructors() ) {
+                                logger.log(Level.FINE, "  {0}", constructor.toGenericString());
+                            }
+                            throw ex;
+                        }
                     } else {
                         Class[] cc= new Class[args.length()];
                         Object[] oo= new Object[args.length()];
