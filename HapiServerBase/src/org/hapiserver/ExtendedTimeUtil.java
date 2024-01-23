@@ -2,6 +2,8 @@
 package org.hapiserver;
 
 import java.text.ParseException;
+import java.util.logging.Level;
+import org.hapiserver.exceptions.InconsistentDataException;
 
 /**
  * Useful extentions to the TimeUtil class, like support for times like "now-P1D"
@@ -145,6 +147,32 @@ public class ExtendedTimeUtil {
             return now;
         }
         
+    }
+    
+    /**
+     * trim or expand the field to the proper length.  Note when trimming,
+     * the time is not rounded, it is truncated.
+     * @param field the IsoTime
+     * @param lengthsi the target length
+     * @return the isotime
+     */
+    public static String trimIsotime( String field, int lengthsi ) {
+        if ( field.length()!=lengthsi ) {
+            if ( field.length()==lengthsi-1 && field.charAt(field.length()-1)!='Z' ) {
+                field= field+"Z";
+            } else if ( field.endsWith("Z") ) {
+                if ( field.length()>lengthsi ) {
+                    field= field.substring(0,lengthsi-1) + "Z";
+                } else {
+                    field= field + "                              ".substring(0,lengthsi-field.length());
+                }
+            } else {
+                throw new InconsistentDataException( 
+                    String.format( "length of field is in correct, should be %d but is %d", 
+                    lengthsi, field.length() ) );
+            }
+        }
+        return field;
     }
     
 }

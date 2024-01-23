@@ -106,11 +106,11 @@ public class BinaryDataFormatter implements DataFormatter {
                                 @Override
                                 public void write( HapiRecord record, int i, ByteBuffer buffer) {
                                     if ( nfields==1 ) {
-                                        buffer.put( record.getIsoTime(i).getBytes(CHARSET) );
+                                        buffer.put( ExtendedTimeUtil.trimIsotime(record.getIsoTime(i),len).getBytes(CHARSET) );
                                     } else {
                                         String[] ss= record.getIsoTimeArray(i);
                                         for ( int j=0; j<nfields; j++ ) {
-                                            buffer.put( ss[j].getBytes(CHARSET) );
+                                            buffer.put( ExtendedTimeUtil.trimIsotime(ss[j],len).getBytes(CHARSET) );
                                         }
                                     }
                                     
@@ -133,7 +133,7 @@ public class BinaryDataFormatter implements DataFormatter {
                             tt= new TransferType() {
                                 @Override
                                 public void write( HapiRecord record, int i, ByteBuffer buffer) {
-                                    if ( nfields>1 ) throw new IllegalArgumentException("not supported, email jbfaden"); //TODO: nfields
+                                    if ( nfields>1 ) throw new IllegalArgumentException("not supported, please contact Jeremy Faden"); //TODO: nfields
                                     byte[] bytes= record.getString(i).getBytes( Charset.forName("UTF-8") );
                                     if ( bytes.length==len ) {
                                         buffer.put( bytes );
