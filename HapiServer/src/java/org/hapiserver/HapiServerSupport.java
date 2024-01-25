@@ -130,7 +130,7 @@ public class HapiServerSupport {
         }
     }
 
-    private static Map<String,CatalogData> catalogCache= new HashMap<>();
+    private static final Map<String,CatalogData> catalogCache= new HashMap<>();
 
     private static JSONObject resolveCatalog(JSONObject jo) throws JSONException {
         JSONArray catalog= jo.getJSONArray("catalog");
@@ -257,7 +257,7 @@ public class HapiServerSupport {
      * @throws java.io.IOException
      */
     public static JSONObject getCatalogFromSpawnCommand( String command ) throws IOException {
-        logger.log(Level.INFO, "spawn command {0}", command);
+        logger.log(Level.FINE, "spawn command {0}", command);
         String[] ss= command.split("\\s+");
 
         ProcessBuilder pb= new ProcessBuilder( ss );
@@ -281,7 +281,7 @@ public class HapiServerSupport {
      * @throws IOException 
      */
     public static JSONObject getInfoFromSpawnCommand( JSONObject jo, String HAPI_HOME, String id ) throws IOException {
-        logger.log(Level.INFO, "getInfoFromSpawnCommand {0}", id);        
+        logger.log(Level.FINE, "getInfoFromSpawnCommand {0}", id);        
         try {
             String command = SpawnRecordSource.doMacros( HAPI_HOME, id, jo.getString("command") );
             
@@ -311,7 +311,7 @@ public class HapiServerSupport {
      * @throws java.io.IOException
      */
     public static JSONObject getCatalogFromClasspath( JSONObject jo, String HAPI_HOME ) throws IOException {
-        logger.log(Level.INFO, "getCatalogFromClasspath" );
+        logger.log(Level.FINE, "getCatalogFromClasspath" );
                     
         ClassLoader cl=null;
         String s= jo.optString( "classpath", jo.optString("x_classpath","") );
@@ -501,7 +501,7 @@ public class HapiServerSupport {
      * @throws JSONException 
      */
     public static JSONObject getLandingConfig( String HAPI_HOME ) throws IOException, JSONException {
-        logger.info("getLandingConfig");
+        logger.fine("getLandingConfig");
         
         JSONObject result= loadAndCheckConfig( HAPI_HOME, "x-landing.json", null );
         return result;
@@ -517,7 +517,7 @@ public class HapiServerSupport {
      */
     public static JSONObject getAbout( String HAPI_HOME ) throws IOException, JSONException {
         
-        logger.info("getAbout");
+        logger.fine("getAbout");
         
         JSONObject result= loadAndCheckConfig( HAPI_HOME, "about.json" );
         result.put( "x_buildTime", Util.buildTime() );
@@ -648,7 +648,6 @@ public class HapiServerSupport {
                     Files.copy( ins,
                             releaseFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
                 }
-                releaseFileTimeStamp= releaseFile.lastModified();
             } catch ( JSONException ex ) {
                 warnWebMaster(ex);
                 throw ex;
@@ -679,7 +678,7 @@ public class HapiServerSupport {
      */
     public static JSONObject getCatalog( String HAPI_HOME ) throws IOException, JSONException {
         
-        logger.info("getCatalog");
+        logger.fine("getCatalog");
         
         Initialize.maybeInitialize( HAPI_HOME );
         
@@ -857,6 +856,7 @@ public class HapiServerSupport {
      * @return the JSONObject for the data description, with "server" tag.
      * @throws java.io.IOException 
      * @throws org.codehaus.jettison.json.JSONException 
+     * @throws org.hapiserver.exceptions.HapiException 
      * @throws IllegalArgumentException for bad id.
      */
     public static JSONObject getDataConfig( String HAPI_HOME, String id ) throws IOException, JSONException, HapiException {
@@ -982,7 +982,7 @@ public class HapiServerSupport {
     /**
      * number of millis to allow a cached info to be used.
      */
-    private static long CONFIG_CACHE_FILE_MAX_LIFE_MILLIS=10000;
+    private static final long CONFIG_CACHE_FILE_MAX_LIFE_MILLIS=10000;
     
     /**
      * keep and monitor a cached version of the info in memory.  If not in memory,
@@ -1247,7 +1247,7 @@ public class HapiServerSupport {
      * @param ex 
      */
     private static void warnWebMaster(Exception ex) {
-        logger.info("warnWebMaster");
+        logger.info("warnWebMaster see catalina.out or server log files.");
         ex.printStackTrace();
     }
     
