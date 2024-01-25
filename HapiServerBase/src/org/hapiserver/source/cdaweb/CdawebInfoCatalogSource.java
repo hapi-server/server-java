@@ -2,11 +2,17 @@
 package org.hapiserver.source.cdaweb;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -111,6 +117,36 @@ public class CdawebInfoCatalogSource {
     }
     
     /**
+     * read all available cached infos and form a catalog.
+     * @return
+     * @throws IOException 
+     */
+    public static String getCatalog20230629() throws IOException {
+        File cache= new File("/home/jbf/ct/autoplot/project/cdf/2023/bobw/nl/");
+        File[] ff= cache.listFiles((File dir, String name) -> name.endsWith(".json"));
+
+        ArrayList<File> catalog= new ArrayList<>( Arrays.asList(ff) );
+        Collections.sort(catalog, (File o1, File o2) -> o1.getName().compareTo(o2.getName()));
+        
+        JSONObject result= new JSONObject();
+        JSONArray jscat= new JSONArray();
+
+        try {
+            for ( File f : catalog ) {
+                JSONObject item= new JSONObject();
+                String n= f.getName();
+                item.put("id",n.substring(0,n.length()-5));
+                jscat.put( jscat.length(), item);            
+            }
+            result.put( "catalog", jscat );
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        return result.toString();
+    }
+    
+    /**
      * return the catalog response by parsing all.xml.
      * @return
      * @throws IOException 
@@ -209,6 +245,16 @@ public class CdawebInfoCatalogSource {
             } catch ( JSONException ex ) {
                 throw new IllegalArgumentException("bad thing that will never happen");
             }
+        } else if ( srcid.equals("jf") ) {
+            try {
+                URL url = new URL( "file:/home/jbf/ct/autoplot/project/cdf/2023/bobw/nl/"+id+".json" );
+                String src= SourceUtil.getAllFileLines( url );
+                JSONObject jo= new JSONObject(src);
+                jo.put("x_info_author", "jfnl");
+                return jo.toString(4);
+            } catch (JSONException ex) {
+                throw new IllegalArgumentException("bad thing that will never happen");
+            }
         } else if ( srcid.equals("nl") ) {
             try {
                 URL url = new URL( "https://cdaweb.gsfc.nasa.gov/hapi/info?id="+id );
@@ -230,7 +276,7 @@ public class CdawebInfoCatalogSource {
         args= new String[0];
         
         if ( args.length==0 ) {
-            System.out.println( CdawebInfoCatalogSource.getCatalog() );
+            System.out.println( CdawebInfoCatalogSource.getCatalog20230629() );
         } else if ( args.length==1 ) {
             System.out.println( CdawebInfoCatalogSource.getInfo( args[0], "bw" ) );
         }
