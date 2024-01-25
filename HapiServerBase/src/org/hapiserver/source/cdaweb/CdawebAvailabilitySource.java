@@ -112,7 +112,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         String range= CdawebInfoCatalogSource.coverage.get(id);
         if ( range==null ) {
             try {
-                CdawebInfoCatalogSource.getCatalog();
+                CdawebInfoCatalogSource.getCatalog20230629();
                 range= CdawebInfoCatalogSource.coverage.get(id);
             } catch (IOException ex) {
                 logger.log(Level.SEVERE, null, ex);

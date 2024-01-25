@@ -65,7 +65,7 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
         logger.entering("CdawebServicesHapiRecordSource","getIterator");
         String f= this.root + availabilityIterator.getFile();
         
-        CdawebServicesHapiRecordIterator result=new CdawebServicesHapiRecordIterator(id, info, start, stop, params, f );
+        CdawebServicesHapiRecordIterator result= CdawebServicesHapiRecordIterator.create(id, info, start, stop, params, f );
         
         logger.exiting("CdawebServicesHapiRecordSource","getIterator");
         return result;
