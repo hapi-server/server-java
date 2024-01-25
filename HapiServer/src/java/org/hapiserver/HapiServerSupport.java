@@ -633,8 +633,8 @@ public class HapiServerSupport {
                 }
             }
         }
-        logger.log(Level.INFO, " configFile.lastModified(): {0}", configFile.lastModified());
-        logger.log(Level.INFO, " latestTimeStamp: {0}", releaseFileTimeStamp);
+        logger.log(Level.FINE, " configFile.lastModified(): {0}", configFile.lastModified());
+        logger.log(Level.FINE, " latestTimeStamp: {0}", releaseFileTimeStamp);
         if ( configFile.lastModified() > releaseFileTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
             byte[] bb= Files.readAllBytes( Paths.get( configFile.toURI() ) );
             String s= new String( bb, CHARSET );
@@ -654,7 +654,7 @@ public class HapiServerSupport {
                 throw ex;
             }
         }
-        logger.log(Level.INFO, "reading config json from {0}", releaseFile );
+        logger.log(Level.FINE, "reading config json from {0}", releaseFile );
         byte[] bb= Files.readAllBytes( Paths.get( releaseFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         JSONObject jo= Util.newJSONObject(s);
@@ -896,12 +896,15 @@ public class HapiServerSupport {
             
             JSONObject jo;
             if ( config==null ) {
+                logger.log(Level.INFO, "parsing {0}", dataConfigFile);
                 byte[] bb= Files.readAllBytes( Paths.get( dataConfigFile.toURI() ) );
                 String s= new String( bb, Charset.forName("UTF-8") );
                 jo= Util.newJSONObject(s);
             } else {
+                logger.log(Level.INFO, "using {0}", config.toString() );
                 jo= config;
             }
+            
             
             try {
                 jo= jo.getJSONObject("data");
