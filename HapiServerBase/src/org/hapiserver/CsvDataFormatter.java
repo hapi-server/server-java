@@ -24,6 +24,7 @@ public class CsvDataFormatter implements DataFormatter {
     
     boolean[] unitsFormatter;
     int[] types;
+    String[] exampleTimes;
     
     private final int TYPE_ISOTIME=0;
     private final int TYPE_STRING=9;
@@ -77,6 +78,39 @@ public class CsvDataFormatter implements DataFormatter {
         return result;
     }    
     
+    /**
+     * trim time subseconds or expand with spaces.  If the time is the correct length,
+     * then leave it alone.
+     * @param field
+     * @param lengthsi
+     * @return 
+     */
+    public static String trimExpandTime( String field, int lengthsi, boolean expand ) {
+        field= field.trim();
+        if ( field.length()<lengthsi ) {
+            if ( field.length()==lengthsi-1 && field.charAt(field.length()-1)!='Z' ) {
+                field= field+"Z";
+            } else if ( field.endsWith("Z") ) {
+                if ( expand ) {
+                    field= field + "                                 ".substring(0,lengthsi-field.length());
+                }
+            } else {
+                if ( expand ) {
+                    field= field + "Z                                ".substring(0,lengthsi-field.length());
+                } else {
+                    field= field + "Z";
+                }
+            }
+        } else if ( field.length()>lengthsi ) {
+            field= field.substring(0,lengthsi-1)+"Z";
+        }
+        if ( field.charAt(lengthsi-1)!='Z' ) {
+            field= field.substring(0,lengthsi-1)+"Z";
+        }
+        return field;
+    }
+    
+    
     @Override
     public void initialize( JSONObject info, OutputStream out, HapiRecord record) {
         try {
@@ -84,6 +118,8 @@ public class CsvDataFormatter implements DataFormatter {
             lengths= new int[record.length()];
             fill= new String[record.length()];
             types= new int[record.length()];
+            exampleTimes= new String[record.length()];
+            
             int[] lens= getNumberOfElements(info);
             JSONArray parameters= info.getJSONArray("parameters");
             int iparam=0;
@@ -95,20 +131,13 @@ public class CsvDataFormatter implements DataFormatter {
                 switch ( parameter.getString("type") ) {
                     case "isotime": 
                         types[i]= TYPE_ISOTIME; 
-                        String field= record.getIsoTime(i).trim();
-                        if ( field.length()!=lengths[i] ) {
-                            if ( field.length()==lengths[i]-1 && field.charAt(field.length()-1)!='Z' ) {
-                                field= field+"Z";
-                            } else if ( field.endsWith("Z") ) {
-                                if ( field.length()>lengths[i] ) {
-                                   logger.log(Level.WARNING, "isotime field is longer than info length ({0}): {1}", new Object[]{lengths[i], parameter.getString("name")});
-                                }
-                            } else {
-                                throw new InconsistentDataException( 
-                                    String.format( "length of field is in correct, should be %d but is %d", 
-                                    lengths[i], field.length() ) );
-                            }
+                        if ( record.getIsoTime(i).charAt(8)=='T' ) {
+                            exampleTimes[i]= trimExpandTime( "2000-001T00:00:00.000000000Z", lengths[i], false );
+                        } else {
+                            exampleTimes[i]= trimExpandTime( "2000-01-01T00:00:00.000000000Z", lengths[i], false );
                         }
+                        
+                        String field= TimeUtil.reformatIsoTime(exampleTimes[i],record.getIsoTime(i));
                         if ( field.charAt(field.length()-1)!='Z' ) throw new RuntimeException("isotime should end in Z");
                     break;
                     case "integer": {
@@ -185,7 +214,7 @@ public class CsvDataFormatter implements DataFormatter {
             if ( i>0 ) build.append(",");
             switch ( types[i] ) {
                 case TYPE_ISOTIME:
-                    s= record.getIsoTime(i);
+                    s= TimeUtil.reformatIsoTime(exampleTimes[i],record.getIsoTime(i));
                     build.append(s);
                     break;
                 case TYPE_STRING: 
