@@ -535,7 +535,7 @@ public class HapiServerSupport {
      */
     public static JSONObject getSemantics( String HAPI_HOME ) throws IOException, JSONException {
         
-        logger.info("getSemantics");
+        logger.fine("getSemantics");
         
         String ff= "semantics.json";
         
@@ -554,7 +554,7 @@ public class HapiServerSupport {
      */
     public static JSONObject getRelations( String HAPI_HOME ) throws IOException, JSONException {
         
-        logger.info("getRelations");
+        logger.fine("getRelations");
         
         String ff= "relations.json";
         
@@ -572,7 +572,7 @@ public class HapiServerSupport {
      */
     public static JSONObject getCapabilities( String HAPI_HOME ) throws IOException, JSONException {
         
-        logger.info("getCapabilities");
+        logger.fine("getCapabilities");
         
         String ff= "capabilities.json";
         
