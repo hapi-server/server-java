@@ -40,6 +40,9 @@ public class SourceUtil {
     private static final Logger logger= Logger.getLogger("hapi");
     
     private static boolean lineStartsWithTimeTag( String line ) {
+        if ( line.startsWith("\"") ) {
+            line= line.substring(1);
+        }
         if ( line.length()<2 ) {
             return false;
         } else if ( line.charAt(0)=='1' ) {
@@ -139,7 +142,8 @@ public class SourceUtil {
     }
     
     /**
-     * return an iterator for each line of the ASCII data file.
+     * return an iterator for each line of the ASCII data file, only returning the records which 
+     * start with timetags or quoted timetags.
      * @param f a file containing timetags.
      * @return an iterator for the lines.
      * @throws FileNotFoundException
@@ -150,7 +154,8 @@ public class SourceUtil {
     }
     
     /**
-     * return an iterator for each line of the ASCII data URL.
+     * return an iterator for each line of the ASCII data URL, only returning the records which 
+     * start with timetags or quoted timetags.
      * @param url a URL pointing to an ASCII file containing timetags.
      * @return an iterator for the lines.
      * @throws FileNotFoundException
