@@ -64,7 +64,9 @@ public class InfoServlet extends HttpServlet {
             jo = HapiServerSupport.getInfo( HAPI_HOME, id );
             
         } catch ( BadRequestIdException ex ) {
-            Util.raiseError( 1406, "HAPI error 1406: unknown dataset id", response, response.getOutputStream() );
+            OutputStream outs= response.getOutputStream();
+            Util.raiseError( 1406, "HAPI error 1406: unknown dataset id", response, outs );
+            outs.close();
             return;
         } catch ( HapiException | JSONException ex ) {
             throw new RuntimeException(ex);
@@ -85,6 +87,7 @@ public class InfoServlet extends HttpServlet {
                     return;
                 }
             }
+            jo.remove("x_indexmap");
             String s= jo.toString(4);
             out.write(s.getBytes( HapiServerSupport.CHARSET ));
             
