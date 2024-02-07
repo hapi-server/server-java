@@ -248,7 +248,7 @@ public final class Util {
         try {
             JSONObject jo= newJSONObject();
             jo.put("HAPI",Util.hapiVersion());
-            jo.put("createdAt",String.format("%tFT%<tRZ",Calendar.getInstance(TimeZone.getTimeZone("Z"))));
+            jo.put("x_createdAt",String.format("%tFT%<tRZ",Calendar.getInstance(TimeZone.getTimeZone("Z"))));
             JSONObject status= newJSONObject();
             status.put( "code", statusCode );
             status.put( "message", message );
