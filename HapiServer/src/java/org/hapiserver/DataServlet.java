@@ -316,7 +316,7 @@ public class DataServlet extends HttpServlet {
             
             if ( !parameters.equals("") ) {
                 jo= Util.subsetParams( jo0, parameters );
-                indexMap= (int[])jo.get("x_indexmap");
+                indexMap= (int[])jo.remove("x_indexmap");
                 if ( dataNeedsParameterSubsetting ) {
                     dsiter= new SubsetFieldsDataSetIterator( dsiter, indexMap );
                 }
