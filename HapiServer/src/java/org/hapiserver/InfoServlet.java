@@ -60,7 +60,7 @@ public class InfoServlet extends HttpServlet {
         
         logger.log(Level.FINE, "info request for {0}", dataset);
         
-        if ( dataset==null ) throw new ServletException("required parameter 'id' is missing from request");
+        if ( dataset==null ) throw new ServletException("required parameter 'dataset' is missing from request");
         
         response.setContentType("application/json;charset=UTF-8");        
         

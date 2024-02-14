@@ -209,10 +209,10 @@
                                 TimeUtil.formatIso8601TimeBrief( TimeUtil.getStopTime(exampleRange) ) ); 
                         out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
                         if ( exampleRange!=null ) {
-                            out.println( String.format("[<a href=\"hapi/info?id=%s\">Info</a>] [<a href=\"hapi/data?id=%s&%s\">Data</a>]", 
+                            out.println( String.format("[<a href=\"hapi/info?dataset=%s\">Info</a>] [<a href=\"hapi/data?dataset=%s&%s\">Data</a>]", 
                                 id, id, exampleTimeRange ) );
                         } else {
-                            out.println( String.format("[<a href=\"hapi/info?id=%s\">Info</a>] [Data]", 
+                            out.println( String.format("[<a href=\"hapi/info?dataset=%s\">Info</a>] [Data]", 
                                 id, id ) );
                         }
 
