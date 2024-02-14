@@ -148,8 +148,8 @@ public class DataServlet extends HttpServlet {
             start= getParam( params, "start", null, "The earliest value of time to include in the response.", null );
             stop= getParam( params, "stop", null, "Include values of time up to but not including this time in the response.", null );
         } else {
-            dataset= getParam( params,"id",null,"The identifier for the resource.", null );
-            if ( dataset==null ) {
+            dataset= getParam( params,"id","","The identifier for the resource.", null );
+            if ( dataset.equals("") ) {
                 dataset= getParam( params,"dataset",null,"The identifier for the resource.", null ); // allowed in 3.0
             }
             start= getParam( params, "time.min", "", "The earliest value of time to include in the response.", null );
