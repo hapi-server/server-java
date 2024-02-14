@@ -46,11 +46,21 @@ public class InfoServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
                     
-        String id= request.getParameter("id");
+        String dataset;
         
-        logger.log(Level.FINE, "info request for {0}", id);
+        if ( HapiServerSupport.HAPI_VERSION==HapiServerSupport.HAPI_VERSION_3_1 ) {
+            dataset= request.getParameter("dataset");
+        } else {
+            dataset= request.getParameter("id");
+            if ( dataset==null ) {
+                dataset= request.getParameter("dataset"); // allowed in 3.0
+            }
+        }
+            
         
-        if ( id==null ) throw new ServletException("required parameter 'id' is missing from request");
+        logger.log(Level.FINE, "info request for {0}", dataset);
+        
+        if ( dataset==null ) throw new ServletException("required parameter 'id' is missing from request");
         
         response.setContentType("application/json;charset=UTF-8");        
         
@@ -61,7 +71,7 @@ public class InfoServlet extends HttpServlet {
         JSONObject jo;
         try {
             
-            jo = HapiServerSupport.getInfo( HAPI_HOME, id );
+            jo = HapiServerSupport.getInfo( HAPI_HOME, dataset );
             
         } catch ( BadRequestIdException ex ) {
             OutputStream outs= response.getOutputStream();

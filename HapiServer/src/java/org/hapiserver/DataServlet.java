@@ -138,15 +138,28 @@ public class DataServlet extends HttpServlet {
         throws ServletException, IOException {
 
         Map<String,String[]> params= new HashMap<>( request.getParameterMap() );
-        String id= getParam( params,"id",null,"The identifier for the resource.", null );
-        String timeMin= getParam( params, "time.min", "", "The earliest value of time to include in the response.", null );
-        String timeMax= 
-            getParam( params, "time.max", "", "Include values of time up to but not including this time in the response.", null );
-        if ( timeMin.length()==0 ) { // support 3.0
-            timeMin= getParam( params, "start", null, "The earliest value of time to include in the response.", null );
-            timeMax= 
-                getParam( params, "stop", null, "Include values of time up to but not including this time in the response.", null );
+        
+        String dataset;
+        String start;
+        String stop;
+        
+        if ( HapiServerSupport.HAPI_VERSION==HapiServerSupport.HAPI_VERSION_3_1 ) {
+            dataset= getParam( params,"dataset",null,"The identifier for the resource.", null );
+            start= getParam( params, "start", null, "The earliest value of time to include in the response.", null );
+            stop= getParam( params, "stop", null, "Include values of time up to but not including this time in the response.", null );
+        } else {
+            dataset= getParam( params,"id",null,"The identifier for the resource.", null );
+            if ( dataset==null ) {
+                dataset= getParam( params,"dataset",null,"The identifier for the resource.", null ); // allowed in 3.0
+            }
+            start= getParam( params, "time.min", "", "The earliest value of time to include in the response.", null );
+            stop= getParam( params, "time.max", "", "Include values of time up to but not including this time in the response.", null );
+            if ( start.length()==0 ) {
+                start= getParam( params, "start", null, "The earliest value of time to include in the response.", null );
+                stop= getParam( params, "stop", null, "Include values of time up to but not including this time in the response.", null );
+            }
         }
+
         String parameters= 
             getParam( params, "parameters", "", "The comma separated list of parameters to include in the response ", null );
         if ( parameters!=null ) {
@@ -161,25 +174,25 @@ public class DataServlet extends HttpServlet {
             return;
         }
         
-        if ( timeMax.length()>timeMin.length() ) {
-            timeMin= TimeUtil.reformatIsoTime( timeMax, timeMin );
-        } else if ( timeMin.length()>timeMax.length() ) {
-            timeMax= TimeUtil.reformatIsoTime( timeMin, timeMax );
+        if ( stop.length()>start.length() ) {
+            start= TimeUtil.reformatIsoTime( stop, start );
+        } else if ( start.length()>stop.length() ) {
+            stop= TimeUtil.reformatIsoTime( start, stop );
         }
         
-        logger.log(Level.FINE, "data request for {0} {1}/{2}", new Object[]{id, timeMin, timeMax});
+        logger.log(Level.FINE, "data request for {0} {1}/{2}", new Object[]{dataset, start, stop});
         
         DataFormatter dataFormatter;
         if ( format.equals("binary") ) {
             response.setContentType("application/binary");
             dataFormatter= new BinaryDataFormatter();
             response.setHeader("Content-disposition", "attachment; filename="
-                + Util.fileSystemSafeName(id).replaceAll("\\/", "_" ) + "_"+timeMin+ "_"+timeMax + ".bin" );
+                + Util.fileSystemSafeName(dataset).replaceAll("\\/", "_" ) + "_"+start+ "_"+stop + ".bin" );
         } else {
             response.setContentType("text/csv;charset=UTF-8");  
             dataFormatter= new CsvDataFormatter();
             response.setHeader("Content-disposition", "attachment; filename=" 
-                + Util.fileSystemSafeName(id).replaceAll("\\/", "_" ) + "_"+timeMin+ "_"+timeMax + ".csv" ); 
+                + Util.fileSystemSafeName(dataset).replaceAll("\\/", "_" ) + "_"+start+ "_"+stop + ".csv" ); 
         }
         
         
@@ -191,7 +204,7 @@ public class DataServlet extends HttpServlet {
         
         JSONObject jo;
         try {
-            jo= HapiServerSupport.getInfo( HAPI_HOME, id );
+            jo= HapiServerSupport.getInfo( HAPI_HOME, dataset );
         } catch ( BadRequestIdException ex ) {
             Util.raiseError( ex, response, response.getOutputStream() );
             return;
@@ -200,7 +213,7 @@ public class DataServlet extends HttpServlet {
         }
 
         try {
-            check1405TimeRange( jo, timeMin, timeMax );
+            check1405TimeRange( jo, start, stop );
         } catch ( HapiException ex ) {
             try (ServletOutputStream out = response.getOutputStream()) {
                 Util.raiseError( ex.getCode(), ex.getMessage(), response, out );
@@ -212,7 +225,7 @@ public class DataServlet extends HttpServlet {
 
         int[] dr;
         try {
-            dr = TimeUtil.createTimeRange( TimeUtil.parseISO8601Time(timeMin), TimeUtil.parseISO8601Time(timeMax) );
+            dr = TimeUtil.createTimeRange( TimeUtil.parseISO8601Time(start), TimeUtil.parseISO8601Time(stop) );
         } catch ( ParseException ex ) {
             throw new RuntimeException(ex); //TODO: HAPI Exceptions
         }
@@ -228,7 +241,7 @@ public class DataServlet extends HttpServlet {
 
         HapiRecordSource source;
         try {
-            source= SourceRegistry.getInstance().getSource(HAPI_HOME, id, jo);
+            source= SourceRegistry.getInstance().getSource(HAPI_HOME, dataset, jo);
         } catch ( BadRequestIdException ex ) {
             Util.raiseError( 1406, "HAPI error 1406: unknown dataset id", response, response.getOutputStream() );
             return;
@@ -291,7 +304,7 @@ public class DataServlet extends HttpServlet {
         }
 
         if ( dsiter==null ) {
-            Util.raiseError( 1500, "HAPI error 1500: internal server error, id has no reader " + id, 
+            Util.raiseError( 1500, "HAPI error 1500: internal server error, id has no reader " + dataset, 
                 response, response.getOutputStream() );
             source.doFinalize();
             return;
@@ -311,7 +324,7 @@ public class DataServlet extends HttpServlet {
         
         try {
 
-            jo0= HapiServerSupport.getInfo( HAPI_HOME, id );
+            jo0= HapiServerSupport.getInfo( HAPI_HOME, dataset );
             int[] indexMap;
             
             if ( !parameters.equals("") ) {
@@ -346,8 +359,8 @@ public class DataServlet extends HttpServlet {
                 doVerify(dataFormatter, first, jo);
                 
                 // format time boundaries so they are in the same format as the data, and simple string comparisons can be made.
-                String startTime= TimeUtil.reformatIsoTime( first.getIsoTime(0), timeMin );
-                String stopTime= TimeUtil.reformatIsoTime( first.getIsoTime(0), timeMax );
+                String startTime= TimeUtil.reformatIsoTime( first.getIsoTime(0), start );
+                String stopTime= TimeUtil.reformatIsoTime( first.getIsoTime(0), stop );
         
                 if ( first.getIsoTime(0).compareTo( startTime )>=0 && first.getIsoTime(0).compareTo( stopTime )<0 ) {
                     if ( sentSomething==false ) {
@@ -382,7 +395,7 @@ public class DataServlet extends HttpServlet {
             }
 
             if ( !sentSomething ) {
-                Util.raiseError( 1201, "HAPI error 1201: no data found " + id, response, out );   
+                Util.raiseError( 1201, "HAPI error 1201: no data found " + dataset, response, out );   
             }
             
             dataFormatter.finalize(out);

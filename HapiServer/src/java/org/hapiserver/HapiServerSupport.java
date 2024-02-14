@@ -663,7 +663,7 @@ public class HapiServerSupport {
         status.put( "message", "OK request successful");
                 
         jo.put( "status", status );
-        jo.put( "HAPI", "3.1" );    
+        jo.put("HAPI", HAPI_VERSION);    
         
         return jo;
     }
@@ -730,12 +730,16 @@ public class HapiServerSupport {
                 
         jo.put( "status", status );
         
-        jo.put( "HAPI", "3.1" );
+        jo.put("HAPI", HAPI_VERSION);
         
         cc= new CatalogData(jo,latestTimeStamp);
         catalogCache.put( HAPI_HOME, cc );
         return jo;
     }
+    
+    public static final Object HAPI_VERSION_3_1 = "3.1";
+    
+    public static final Object HAPI_VERSION = HAPI_VERSION_3_1;
     
     /**
      * keep and monitor a cached version of the configuration in memory.
@@ -1157,7 +1161,7 @@ public class HapiServerSupport {
                 
         jo.put( "status", status );
         
-        jo.put( "HAPI", "3.1" );
+        jo.put("HAPI", HAPI_VERSION);
         
         cc= catalogCache.get( HAPI_HOME );
         if ( cc==null ) {
