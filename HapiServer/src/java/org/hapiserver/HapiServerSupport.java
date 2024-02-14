@@ -737,6 +737,8 @@ public class HapiServerSupport {
         return jo;
     }
     
+    public static final Object HAPI_VERSION_3_0 = "3.0";
+
     public static final Object HAPI_VERSION_3_1 = "3.1";
     
     public static final Object HAPI_VERSION = HAPI_VERSION_3_1;
