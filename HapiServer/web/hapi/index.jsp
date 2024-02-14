@@ -233,7 +233,7 @@
                             if ( j>0 ) out.print("  ");
                             try {
                                 String pname= parameters.getJSONObject(j).getString("name");
-                                out.print( String.format( "<a href=\"hapi/data?id=%s&parameters=%s&%s\">%s</a>", id, pname, exampleTimeRange, labels[j] ) );
+                                out.print( String.format( "<a href=\"hapi/data?dataset=%s&parameters=%s&%s\">%s</a>", id, pname, exampleTimeRange, labels[j] ) );
                                 if ( j>0 && sparklines ) { //sparklines
                                     //     vap  +hapi  :https      ://jfaden.net  /HapiServerDemo  /hapi  ?id=?parameters=Temperature
                                     //?url=vap%2Bhapi%3Ahttps%3A%2F%2Fjfaden.net%2FHapiServerDemo%2Fhapi%3Fid%3DpoolTemperature%26timerange%3D2020-08-06&format=image%2Fpng&width=70&height=20&column=0%2C100%25&row=0%2C100%25&timeRange=2003-mar&renderType=&color=%23000000&symbolSize=&fillColor=%23aaaaff&foregroundColor=%23000000&backgroundColor=none
@@ -267,7 +267,7 @@
                         }
                     } catch ( Exception ex ) {
                         out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
-                        out.println( "<p>Unable to load info for dataset: <a href=\"hapi/info?id="+id+"\">"+id+"</a>, log files should notify the server host.<br></p>" ) ;
+                        out.println( "<p>Unable to load info for dataset: <a href=\"hapi/info?dataset="+id+"\">"+id+"</a>, log files should notify the server host.<br></p>" ) ;
                         Util.logError(ex);
                         //out.println( "ex: " + ex ); //TODO: security!!!
                     }
