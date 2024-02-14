@@ -442,7 +442,7 @@ public final class Util {
      * @return the time this file was last modified.
      */
     public static String buildTime() {
-        String time= "last_modified_at: 2024-02-07T11:20:00";
+        String time= "last_modified_at: 2024-02-14T14:08:00";
         return time.substring(18);
     }
     
@@ -452,6 +452,6 @@ public final class Util {
      * @see https://github.com/hapi-server/data-specification for a spec for each version.
      */
     public static String hapiVersion() {
-        return "3.1"; 
+        return (String)HapiServerSupport.HAPI_VERSION; 
     }
 }
