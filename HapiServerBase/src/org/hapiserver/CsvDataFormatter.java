@@ -214,8 +214,13 @@ public class CsvDataFormatter implements DataFormatter {
             if ( i>0 ) build.append(",");
             switch ( types[i] ) {
                 case TYPE_ISOTIME:
-                    s= TimeUtil.reformatIsoTime(exampleTimes[i],record.getIsoTime(i));
-                    build.append(s);
+                    try {
+                        s= TimeUtil.reformatIsoTime(exampleTimes[i],record.getIsoTime(i));
+                        build.append(s);
+                    } catch ( IllegalArgumentException ex ) {
+                        s= TimeUtil.reformatIsoTime(exampleTimes[i],record.getIsoTime(i));
+                        build.append(s);
+                    }
                     break;
                 case TYPE_STRING: 
                     if ( quotes[i] ) build.append('"');
