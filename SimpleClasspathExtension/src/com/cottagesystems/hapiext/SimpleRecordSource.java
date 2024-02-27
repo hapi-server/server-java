@@ -86,4 +86,9 @@ public class SimpleRecordSource implements HapiRecordSource {
         return null;
     }
 
+    @Override
+    public void doFinalize() {
+        // no actions needed
+    }
+
 }
