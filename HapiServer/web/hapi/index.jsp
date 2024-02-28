@@ -4,6 +4,11 @@
     Author     : jbf
 --%>
 
+<%@page import="org.hapiserver.SourceRegistry"%>
+<%@page import="java.net.URLClassLoader"%>
+<%@page import="java.net.URL"%>
+<%@page import="org.hapiserver.source.SpawnRecordSource"%>
+<%@page import="java.lang.reflect.Method"%>
 <%@page import="java.util.List"%>
 <%@page import="java.util.ArrayList"%>
 <%@page import="java.util.ArrayList"%>
@@ -269,7 +274,7 @@
                         out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
                         out.println( "<p>Unable to load info for dataset: <a href=\"hapi/info?dataset="+id+"\">"+id+"</a>, log files should notify the server host.<br></p>" ) ;
                         Util.logError(ex);
-                        //out.println( "ex: " + ex ); //TODO: security!!!
+                        //out.println( "ex: " ;+ ex ); //TODO: security!!!
                     }
                 }
                 if ( numDataSets<dss.length() ) {
@@ -284,6 +289,22 @@
             }
             
             out.println("<br><br><br><small>build id: "+Util.buildTime()+"</small>");
+            JSONObject footer= (JSONObject)landingConfig.opt("x_footer");
+            if ( footer!=null ) {
+                String s= footer.optString( "classpath", footer.optString("x_classpath","") );
+                String clas= footer.getString("x_class");
+                String method= footer.getString("x_method");
+                if ( clas!=null && method!=null ) {
+                    s= SpawnRecordSource.doMacros( HAPI_HOME, "", s );
+                    ClassLoader cl= new URLClassLoader( new URL[] { new URL( s ) }, SourceRegistry.class.getClassLoader() );
+                    cl.getParent();
+                    Class c= Class.forName(clas,true,cl);
+                    Method m = c.getMethod( method );
+                    String sfooter= (String)m.invoke(null);
+                    out.println("<small>"+sfooter+"</small>");
+                } 
+            }
+            
             
         %>
     </body> 
