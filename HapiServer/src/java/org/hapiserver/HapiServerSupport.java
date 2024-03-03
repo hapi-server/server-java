@@ -980,8 +980,8 @@ public class HapiServerSupport {
      * @throws IllegalArgumentException when not valid
      */
     public static boolean validInfoObject( JSONObject jo ) throws IllegalArgumentException {
-        String hapiVersion= jo.optString("HAPI","" );
-        if ( !hapiVersion.equals(Util.hapiVersion()) ) throw new IllegalArgumentException("HAPI version must be "+Util.hapiVersion());
+        //String hapiVersion= jo.optString("HAPI","" );
+        //if ( !hapiVersion.equals(Util.hapiVersion()) ) throw new IllegalArgumentException("HAPI version must be "+Util.hapiVersion());
         if ( !jo.has("parameters") ) throw new IllegalArgumentException("Info must contain parameters");
         if ( !jo.has("startDate") )  throw new IllegalArgumentException("Info must have startDate");
         if ( !jo.has("stopDate") )  throw new IllegalArgumentException("Info must have stopDate");
