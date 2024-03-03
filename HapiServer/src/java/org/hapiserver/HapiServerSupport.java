@@ -993,6 +993,27 @@ public class HapiServerSupport {
                 throw new IllegalArgumentException("cadence cannot be parsed: "+cadence);
             }
         }
+        try {
+            JSONArray parameters=  jo.getJSONArray("parameters");
+            if ( parameters.length()==0 ) throw new IllegalArgumentException("info contains no parameters");
+            JSONObject time= parameters.getJSONObject(0);
+            if ( !time.getString("type").equals("isotime") ) throw new IllegalArgumentException("First parameter must be isotime");
+            for ( int i=0; i<parameters.length(); i++ ) {
+                JSONObject param=  parameters.getJSONObject(i);
+                String name= param.getString("name");
+                if ( name==null ) throw new IllegalArgumentException( String.format( "parameter #%d must have name",i ) );
+                String type= param.getString("type");
+                if ( type==null ) throw new IllegalArgumentException( String.format( "paramter \"%s\" must have type", name ) );
+                if ( type.equals("isotime") || type.equals("string") ) {
+                    if ( param.optInt("length",-1)==-1 ) {
+                        throw new IllegalArgumentException( String.format( "parameter \"%s\" of type \"%s\" must have length",name,type ) );
+                    }
+                }
+            }
+        } catch (JSONException ex) {
+            Logger.getLogger(HapiServerSupport.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         return true;
     }
     
