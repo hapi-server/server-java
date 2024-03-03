@@ -20,7 +20,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -214,6 +217,7 @@ public class HapiServerSupport {
         long catalogTimeStamp;
         JSONObject about;
         long aboutTimeStamp;
+        Set<String> datasetIds= new LinkedHashSet<>();
         Map<String,InfoData> infoCache= new HashMap<>();
         Map<String,ConfigData> configCache = new HashMap<>();
         Map<String,DataConfigData> dataConfigCache = new HashMap<>();
@@ -733,6 +737,13 @@ public class HapiServerSupport {
         jo.put("HAPI", HAPI_VERSION);
         
         cc= new CatalogData(jo,latestTimeStamp);
+
+        JSONArray ids= jo.getJSONArray("catalog");
+        for ( int i=0; i<ids.length(); i++ ) {
+            JSONObject dataset= ids.getJSONObject(i);
+            cc.datasetIds.add(dataset.getString("id"));
+        }
+                
         catalogCache.put( HAPI_HOME, cc );
         return jo;
     }
@@ -1015,6 +1026,12 @@ public class HapiServerSupport {
         getCatalog(HAPI_HOME);
         
         CatalogData cc= catalogCache.get( HAPI_HOME );
+        
+        // Test to see that it is an identified id.
+        if ( !cc.datasetIds.contains(id) ) {
+            throw new BadRequestIdException("",id);
+        }
+        
         long latestTimeStamp= infoFile.exists() ? infoFile.lastModified() : 0;
         
         File configFile= new File( HAPI_HOME, "config" );
