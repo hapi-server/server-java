@@ -48,15 +48,11 @@ public class InfoServlet extends HttpServlet {
                     
         String dataset;
         
-        if ( HapiServerSupport.HAPI_VERSION==HapiServerSupport.HAPI_VERSION_3_1 ) {
-            dataset= request.getParameter("dataset");
-        } else {
-            dataset= request.getParameter("id");
-            if ( dataset==null ) {
-                dataset= request.getParameter("dataset"); // allowed in 3.0
-            }
-        }
-            
+        // HAPI 3.x servers must accept both old and new parameters.
+        dataset= request.getParameter("dataset");
+        if ( dataset==null ) {
+            dataset= request.getParameter("id"); 
+        }            
         
         logger.log(Level.FINE, "info request for {0}", dataset);
         

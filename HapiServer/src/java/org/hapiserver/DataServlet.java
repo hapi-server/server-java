@@ -142,22 +142,17 @@ public class DataServlet extends HttpServlet {
         String dataset;
         String start;
         String stop;
-        
-        if ( HapiServerSupport.HAPI_VERSION==HapiServerSupport.HAPI_VERSION_3_1 ) {
-            dataset= getParam( params,"dataset",null,"The identifier for the resource.", null );
+
+        // HAPI 3.0 servers must accept both old and new parameters.
+        dataset= getParam( params,"id","","The identifier for the resource.", null );
+        if ( dataset.equals("") ) {
+            dataset= getParam( params,"dataset",null,"The identifier for the resource.", null ); // allowed in 3.0
+        }
+        start= getParam( params, "time.min", "", "The earliest value of time to include in the response.", null );
+        stop= getParam( params, "time.max", "", "Include values of time up to but not including this time in the response.", null );
+        if ( start.length()==0 ) {
             start= getParam( params, "start", null, "The earliest value of time to include in the response.", null );
             stop= getParam( params, "stop", null, "Include values of time up to but not including this time in the response.", null );
-        } else {
-            dataset= getParam( params,"id","","The identifier for the resource.", null );
-            if ( dataset.equals("") ) {
-                dataset= getParam( params,"dataset",null,"The identifier for the resource.", null ); // allowed in 3.0
-            }
-            start= getParam( params, "time.min", "", "The earliest value of time to include in the response.", null );
-            stop= getParam( params, "time.max", "", "Include values of time up to but not including this time in the response.", null );
-            if ( start.length()==0 ) {
-                start= getParam( params, "start", null, "The earliest value of time to include in the response.", null );
-                stop= getParam( params, "stop", null, "Include values of time up to but not including this time in the response.", null );
-            }
         }
 
         String parameters= 
