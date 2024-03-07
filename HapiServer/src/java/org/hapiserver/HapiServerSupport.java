@@ -1123,32 +1123,34 @@ public class HapiServerSupport {
                 }
                 String source= jo.optString("source",jo.optString("x_source","") );
                 if ( source.length()>0 ) {
-                    if ( source.equals("spawn") ) {
-                        jo= getInfoFromSpawnCommand( jo, HAPI_HOME, id );
-                        try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
-                            File parentFile= infoFile.getParentFile();
-                            if ( !parentFile.exists() ) {
-                                if ( !parentFile.mkdirs() ) {
-                                    throw new IllegalArgumentException("unable to make directory for info");
+                    switch (source) {
+                        case "spawn":
+                            jo= getInfoFromSpawnCommand( jo, HAPI_HOME, id );
+                            try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                                File parentFile= infoFile.getParentFile();
+                                if ( !parentFile.exists() ) {
+                                    if ( !parentFile.mkdirs() ) {
+                                        throw new IllegalArgumentException("unable to make directory for info");
+                                    }
                                 }
-                            }
-                            Files.copy( ins, 
-                                infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
-                        }
-                    } else if ( source.equals("classpath") ) {
-                        jo= getInfoFromClasspath( jo, HAPI_HOME, id );
-                        try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
-                            File parentFile= infoFile.getParentFile();
-                            if ( !parentFile.exists() ) {
-                                if ( !parentFile.mkdirs() ) {
-                                    throw new IllegalArgumentException("unable to make directory for info");
+                                Files.copy( ins,
+                                        infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                            }   break;
+                        case "classpath":
+                            jo= getInfoFromClasspath( jo, HAPI_HOME, id );
+                            try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                                File parentFile= infoFile.getParentFile();
+                                if ( !parentFile.exists() ) {
+                                    if ( !parentFile.mkdirs() ) {
+                                        throw new IllegalArgumentException("unable to make directory for info");
+                                    }
                                 }
-                            }
-                            Files.copy( ins, 
-                                infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
-                        }
-                    } else {
-                        warnWebMaster(new RuntimeException("catalog source can only be spawn or classpath") );
+                                Files.copy( ins,
+                                        infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                            }   break;
+                        default:
+                            warnWebMaster(new RuntimeException("catalog source can only be spawn or classpath") );
+                            break;
                     }
                 } else {
                     validInfoObject(jo);
@@ -1166,16 +1168,15 @@ public class HapiServerSupport {
             }
         }
         
-        if ( cc!=null ) {
-            InfoData infoData= cc.infoCache.get( safeId );
-            if ( infoData!=null ) {
-                if ( infoData.infoTimeStamp==latestTimeStamp ) {
-                    JSONObject jo= infoData.info;
-                    jo= resolveTimes(jo);
-                    return jo;
-                }
+        InfoData infoData= cc.infoCache.get( safeId );
+        if ( infoData!=null ) {
+            if ( infoData.infoTimeStamp==latestTimeStamp ) {
+                JSONObject jo= infoData.info;
+                jo= resolveTimes(jo);
+                return jo;
             }
         }
+
         byte[] bb= Files.readAllBytes( Paths.get( infoFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
         JSONObject jo= Util.newJSONObject(s);
@@ -1213,7 +1214,7 @@ public class HapiServerSupport {
                 throw new IllegalArgumentException("This should not happen");
             }
             long expiresTimeStamp= System.currentTimeMillis()+CONFIG_CACHE_FILE_MAX_LIFE_MILLIS;
-            InfoData infoData= new InfoData(jo,latestTimeStamp,expiresTimeStamp);
+            infoData= new InfoData(jo,latestTimeStamp,expiresTimeStamp);
             cc.infoCache.put( safeId, infoData );
         }
         return jo;
