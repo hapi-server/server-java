@@ -45,7 +45,7 @@ public class CsvHapiRecordConverter {
         String[] ff= new String[params.length()];
         int i=0;
         if ( params.length()>fields.length ) {
-            throw new IndexOutOfBoundsException( "not enough fields found in record, or too many records in info.");
+            throw new IndexOutOfBoundsException( String.format( "too few fields (%d) found in record, or too many parameters (%d) in info.", fields.length, params.length() ) );
         }
         for ( int j=0; j<params.length(); j++ ) {
             if ( sizes[j]==1 ) {
