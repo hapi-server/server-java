@@ -164,7 +164,7 @@ public class CsvDataFormatter implements DataFormatter {
                     } 
                     break;
                     default:
-                        throw new RuntimeException(parameter.getString("type")+" type not supported");
+                        throw new RuntimeException("\"" +parameter.getString("type")+ "\" type not supported.  Must be one of: isotime, integer, double, or string." );
                     
                 }
             }
