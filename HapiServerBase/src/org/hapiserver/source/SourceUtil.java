@@ -129,6 +129,9 @@ public class SourceUtil {
             try {
                 String t= line;
                 line= reader.readLine();
+                while ( line!=null && line.length()==0 ) {
+                    line= reader.readLine();
+                }
                 return t;
             } catch (IOException ex) {
                 try {
