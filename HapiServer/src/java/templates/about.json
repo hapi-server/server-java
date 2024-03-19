@@ -1,6 +1,5 @@
 {
-    "$schema": "https://raw.githubusercontent.com/hapi-server/data-specification-schema/jon-jeremy-mess-3.0/3.1/about.json",
-    "HAPI": "3.1",
+    "HAPI": "3.2",
     "id":"Java-Demo-Server",
     "title":"Demo Server",
     "contact":"Jeremy Faden <faden@cottagesystems.com>",

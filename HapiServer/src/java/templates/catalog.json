@@ -1,6 +1,5 @@
  {
-     "$schema": "https://raw.githubusercontent.com/hapi-server/data-specification-schema/jon-jeremy-mess-3.0/3.1/catalog.json",
-     "HAPI": "3.0",
+     "HAPI": "3.2",
      "catalog": [
          {
              "x_group_id": "csa",
