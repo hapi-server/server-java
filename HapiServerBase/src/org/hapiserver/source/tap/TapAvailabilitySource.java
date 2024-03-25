@@ -149,8 +149,8 @@ public class TapAvailabilitySource extends AbstractHapiRecordSource {
     public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
         String templ= "https://csa.esac.esa.int/csa-sl-tap/tap/sync?REQUEST=doQuery&LANG=ADQL&FORMAT=CSV&QUERY=SELECT+start_time,end_time,num_instances+FROM+csa.v_dataset_inventory+WHERE+dataset_id='%s'+AND+start_time>='%s'+AND+start_time<'%s'+AND+num_instances>0+ORDER+BY+start_time";
         
-        String startStr= TimeUtil.formatIso8601TimeBrief(start);
-        String stopStr= TimeUtil.formatIso8601TimeBrief(stop);
+        String startStr= TimeUtil.formatIso8601Time(start);
+        String stopStr= TimeUtil.formatIso8601Time(stop);
         
         String url= String.format( templ, id, startStr, stopStr );
         logger.log(Level.INFO, "readData URL: {0}", url);
