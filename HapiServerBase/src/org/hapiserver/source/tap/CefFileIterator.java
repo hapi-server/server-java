@@ -599,7 +599,11 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                 if ( idx<0 ) {
                     return vfields.get(idx)[0];
                 } else {
-                    return fields[idx].trim();
+                    String s= fields[idx].trim();
+                    if ( s.startsWith("\"") && s.endsWith("\"") ) {
+                        s= s.substring(1,s.length()-1);
+                    }
+                    return s;
                 }
             }
 
@@ -670,6 +674,11 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
     private HapiRecord nextRecord;
 
+//    private static String peekWorkBuffer( ByteBuffer work_buffer ) {
+//        byte[] bb= work_buffer.duplicate().array();
+//        return new String(bb);
+//    }
+    
     private void readNextRecord() throws IOException {
 
         eor = cef.eor;
@@ -680,8 +689,8 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             this.lun.close();
 
         } else {
-
-            //    removeComments(work_buffer, work_buffer.limit() );
+            removeComments(work_buffer, work_buffer.limit() );
+            //peekWorkBuffer(work_buffer);
             int last_eor = getLastEor(work_buffer); //*** look for delimeters, EOR, comments, EOL etc
             int loop = 0;
             while (last_eor < 0) { // reload the work_buffer
@@ -710,8 +719,11 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                     work_buffer.flip();
                 }
 
-                //removeComments(work_buffer, work_buffer.limit() );                
+                removeComments(work_buffer, work_buffer.limit() );                
+                //peekWorkBuffer(work_buffer);
+                
                 last_eor = getLastEor(work_buffer);
+                
                 if (last_eor < 0) {
                     //No full record available, so prepare the work buffer to read more
                     work_buffer.position(work_buffer.limit());
@@ -772,7 +784,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         String endDate;
         String urlString;
 
-        if ( false ) {
+        if ( true ) {
             dataSet= "C1_CP_FGM_20030303";
             startDate = "2003-03-03T00:00:00Z";
             endDate = "2003-03-03T02:00:00Z";
@@ -781,9 +793,14 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                 startDate, endDate);
         }
         
-        if ( true ) {
+        if ( false ) {
             dataSet="CL_SP_WHI";
             urlString = "https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=CL_SP_WHI&START_DATE=2012-12-25T00:00:00Z&END_DATE=2012-12-26T00:00:00Z";
+        }
+        
+        if ( false ) {
+            dataSet="C3_CQ_EDI_ANOMALY_AE";
+            urlString= "https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C3_CQ_EDI_ANOMALY_AE&START_DATE=2020-12-31T00:00:00Z&END_DATE=2021-01-01T00:00:00Z";
         }
         
         URL uu = new URL(urlString);
@@ -794,7 +811,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         ReadableByteChannel lun = Channels.newChannel(in);
 
 //		String dataSet = "C1_CP_FGM_test";
-        String outfileString = "/home/jbf/tmp/20230314/" + dataSet + "csv.gz";
+        String outfileString = "/home/jbf/tmp/20230314/" + dataSet + ".csv.gz";
 
         FileOutputStream fos = new FileOutputStream(outfileString);
         GZIPOutputStream gzos = new GZIPOutputStream(fos);
