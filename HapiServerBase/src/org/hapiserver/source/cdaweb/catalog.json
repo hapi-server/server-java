@@ -13,7 +13,7 @@
                      "x_source":"classpath",
                      "x_class":"org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
                      "x_method": "getInfo",
-                     "x_args": [ "${id}" ]
+                     "x_args": [ "${id}", "nl" ]
                  },
                  "_info": {
                     "source":"spawn",
