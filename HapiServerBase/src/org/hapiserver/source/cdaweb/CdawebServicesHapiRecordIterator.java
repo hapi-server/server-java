@@ -583,10 +583,10 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     }
 
     /**
-     * return the record iterator for the dataset. This presumes that start and stop are based on the intervals calculated by
-     * CdawebServicesHapiRecordSource, and an incomplete set of records will be returned if this is not the case. The file, possibly
-     * calculated when figuring out intervals, can be provided as well, so that the web service identifying the file is only called
-     * once.
+     * return the record iterator for the dataset.This presumes that start and stop are based on the intervals calculated by
+     * CdawebServicesHapiRecordSource, and an incomplete set of records will be returned if this is not the case. The file, 
+     * possibly calculated when figuring out intervals, can be provided as well, so that the web service identifying the file 
+     * is only called once.
      *
      * @param id the dataset id, such as AC_OR_SSC or RBSP-A_DENSITY_EMFISIS-L4
      * @param info the info for this id
@@ -594,8 +594,10 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
      * @param stop the stop time
      * @param params the parameters to read
      * @param file the file, (or null if not known), of the data.
+     * @return the record iterator.
      */
-    public static CdawebServicesHapiRecordIterator create(String id, JSONObject info, int[] start, int[] stop, String[] params, String file) {
+    public static CdawebServicesHapiRecordIterator create(
+        String id, JSONObject info, int[] start, int[] stop, String[] params, String file) {
         try {
 
             logger.entering(CdawebServicesHapiRecordIterator.class.getCanonicalName(), "constructor");
@@ -623,10 +625,12 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
             if (tmpFile.exists() && (System.currentTimeMillis() - tmpFile.lastModified()) < (5 * 86400000)) {
                 logger.fine("no need to download file I already have loaded!");
+                file= tmpFile.toString();
             } else {
                 URL cdfUrl = getCdfDownloadURL(id, info, start, stop, params, file);
                 logger.log(Level.FINER, "request {0}", cdfUrl);
                 tmpFile = SourceUtil.downloadFile(cdfUrl, tmpFile);
+                file= tmpFile.toString();
                 logger.log(Level.FINER, "downloaded {0}", cdfUrl);
             }
 
@@ -637,8 +641,22 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
     }
 
+    /**
+     * CDF files coming from CDAWeb will not contain characters which 
+     * are not allowed in IDL tag names.
+     */
+    private static String mungeParameterName( String paramName ) {
+        //['\','/','.','%','!','@','#','^','&','*','(',')','-','+','=', $ , '`','~','|','?','<','>',' ']
+        String result= paramName.replaceAll("\\/|\\.|\\%|\\!|\\@|\\#|\\^|\\&|\\*|\\(|\\)|\\-|\\+|\\=|\\`|\\~|\\?|\\<|\\>|\\ ", "\\$");
+        return result;
+    }
+    
     public CdawebServicesHapiRecordIterator(JSONObject info, int[] start, int[] stop, String[] params, String tmpFile) throws CDFException.ReaderError {
 
+        if ( tmpFile==null ) {
+            throw new NullPointerException("tmpFile is null");
+        }
+        
         try {
             adapters = new Adapter[params.length];
 
@@ -668,7 +686,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             throw new RuntimeException(ex);
                         }
                     } else {
-                        String[] deps = reader.getDependent(params[1]);
+                        String[] deps = reader.getDependent(mungeParameterName(params[1]));
                         dep0 = deps[0];
                     }
                     int type = reader.getType(dep0); // 31=Epoch
@@ -692,7 +710,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     }
 
                 } else {
-                    String param = params[i];
+                    String param = mungeParameterName(params[i]);
                     int type = reader.getType(param);
                     Object o = reader.get(param);
                     if (Array.getLength(o) != nrec) {
@@ -965,8 +983,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     public static void mainCase9() {
         long t0 = System.currentTimeMillis();
         //http://localhost:8080/HapiServer/hapi/data?id=OMNI2_H0_MRG1HR&parameters=SIGMA-ABS_B1800&start=1979-03-03T00:00Z&stop=1979-03-04T00:00Z
-        int[] start = new int[]{1979, 3, 3, 0, 0, 0, 0};
-        int[] stop = new int[]{1979, 3, 4, 0, 0, 0, 0};
+        int[] start = new int[]{2024, 1, 4, 0, 0, 0, 0};
+        int[] stop = new int[]{2024, 1, 5, 0, 0, 0, 0};
         while (TimeUtil.gt(stop, start)) {
             int[] next = TimeUtil.add(start, new int[]{0, 0, 1, 0, 0, 0, 0});
             System.err.println("t: " + TimeUtil.formatIso8601Time(start));
@@ -975,14 +993,12 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 null,
                 start,
                 next,
-                "Time,SIGMA-ABS_B1800".split(",", -2), null);
+                "Time,ABS_B1800".split(",", -2), null);
             int nrec = 0;
             while (dd.hasNext()) {
                 HapiRecord rec = dd.next();
                 nrec++;
-                //double[] ds1= rec.getDoubleArray(1);
-                //System.err.println(  String.format( "%s: %.1e %.1e %.1e %.1e %.1e %.1e %.1e", 
-                //        rec.getIsoTime(0), ds1[0], ds1[1], ds1[2], ds1[3], ds1[4], ds1[5], ds1[6] ) );
+                System.err.println(  String.format( "%s: %.1e", rec.getIsoTime(0), rec.getDouble(1) ) );
             }
             System.err.println("  nrec..." + nrec);
             start = next;
