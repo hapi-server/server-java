@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
@@ -56,7 +54,11 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             JSONObject urin= stringType.getJSONObject("uri");
             rootlen= urin.getString("base").length();
             if ( !urin.getString("base").contains("sp_phys/") ) {
-                rootlen= rootlen + 4; //TODO: Bernie's server says "sp_phys" while all.xml says "pub".
+                if ( idavail.endsWith("OMNI2_H0_MRG1HR") ) {
+                    rootlen= rootlen - 8; // problem for another day...
+                } else {
+                    rootlen= rootlen + 4; //TODO: Bernie's server says "sp_phys" while all.xml says "pub".
+                }
             }
             root= urin.getString("base");
         } catch (JSONException ex) {
@@ -149,6 +151,17 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
      * @return 
      */
     public static String getInfo( String idavail ) {
+        
+        synchronized ( CdawebInfoCatalogSource.class ) {
+            if ( CdawebInfoCatalogSource.filenaming==null || CdawebInfoCatalogSource.filenaming.isEmpty() ) {
+                try {
+                    CdawebInfoCatalogSource.getCatalog();
+                } catch (IOException ex) {
+                    logger.log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        
         int i= idavail.indexOf("/");
         String id= idavail.substring(i+1);
         String sampleTime= getSampleTime(id);
@@ -286,7 +299,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
                 NodeList stops = (NodeList) xpath.evaluate( "//DataResult/FileDescription/EndTime", doc, XPathConstants.NODESET );
                 NodeList files = (NodeList) xpath.evaluate( "//DataResult/FileDescription/Name", doc, XPathConstants.NODESET );
                 //NodeList lengths = (NodeList) xpath.evaluate( "//DataResult/FileDescription/Length", doc, XPathConstants.NODESET );
-                return fromNodes( starts, stops, rootlen, files );
+                return fromNodes( starts, stops, root, rootlen, files );
             } catch (IOException | SAXException | ParserConfigurationException | XPathExpressionException ex) {
                 throw new RuntimeException(ex);
             }
@@ -296,20 +309,28 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
     }
     
     
-    private static Iterator<HapiRecord> fromNodes( final NodeList starts, final NodeList stops, int rootlen, final NodeList files ) {
+    private static Iterator<HapiRecord> fromNodes( final NodeList starts, final NodeList stops, final String root, final int rootlen, final NodeList files ) {
         final int len= starts.getLength();
+        String[] fields= new String[3];
                 
         return new Iterator<HapiRecord>() {
             int i=0;
             
             @Override
             public boolean hasNext() {
+                boolean result= i<len;
+                if ( result ) {
+                    fields[0]= starts.item(i).getTextContent();
+                    fields[1]= stops.item(i).getTextContent();
+                    fields[2]= files.item(i).getTextContent();
+                    fields[2].substring(0,rootlen);
+                    root.substring(0,rootlen);
+                }
                 return i<len;
             }
 
             @Override
             public HapiRecord next() {
-                String[] fields= new String[] { starts.item(i).getTextContent(), stops.item(i).getTextContent(), files.item(i).getTextContent() };
                 i=i+1;
                 return new AbstractHapiRecord() {
                     @Override
