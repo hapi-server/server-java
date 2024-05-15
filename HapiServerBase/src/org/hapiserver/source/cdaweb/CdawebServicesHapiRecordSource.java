@@ -39,14 +39,18 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
     @Override
     public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
         logger.entering("CdawebServicesHapiRecordSource","getGranuleIterator");
-        String availInfo= CdawebAvailabilitySource.getInfo( "availability/"+id );
+        
+        int ia= id.indexOf("@");
+        String availId= ia==-1 ? id : id.substring(0,ia);
+                
+        String availInfo= CdawebAvailabilitySource.getInfo( "availability/"+availId );
         JSONObject jsonObject;
         try {
             jsonObject = new JSONObject(availInfo);
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
         }
-        CdawebAvailabilitySource source= new CdawebAvailabilitySource( "notUsed", "availability/"+id, jsonObject, new JSONObject() );
+        CdawebAvailabilitySource source= new CdawebAvailabilitySource( "notUsed", "availability/"+availId, jsonObject, new JSONObject() );
         Iterator<HapiRecord> it = source.getIterator(start, stop);
         this.root= source.getRoot();
         
