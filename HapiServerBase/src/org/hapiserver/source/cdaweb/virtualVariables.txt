@@ -1,5 +1,6 @@
 # 1 indicates the dataset id uses virtual variables
 # dataset name, has virt, example virt name
+# See https://github.com/autoplot/dev/blob/master/rfe/sf/672/printVirtualVariables.jy, an Autoplot script.
 AC_OR_SSC	1	ALTERNATE_VIEW
 AC_OR_DEF	0	
 AC_AT_DEF	0	
