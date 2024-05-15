@@ -662,6 +662,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
             int nrec = -1;
 
+            logger.log(Level.FINE, "opening CDF file {0}", tmpFile);
             CDFReader reader = new CDFReader(tmpFile.toString());
             for (int i = 0; i < params.length; i++) {
                 if (i == 0) {
@@ -686,7 +687,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             throw new RuntimeException(ex);
                         }
                     } else {
-                        String[] deps = reader.getDependent(mungeParameterName(params[1]));
+                        String p= mungeParameterName(params[1]);
+                        String[] deps = reader.getDependent(p);
+                        if ( deps.length==0 ) {
+                            throw new IllegalArgumentException("unable to find dependences for "+p+" in "+tmpFile);
+                        }
                         dep0 = deps[0];
                     }
                     int type = reader.getType(dep0); // 31=Epoch
