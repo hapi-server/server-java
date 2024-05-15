@@ -430,6 +430,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     String[] ss = line.split("\t");
                     if (ss[1].equals("0")) {
                         readDirect.add(ss[0]);
+                    } else {
+                        System.err.println("virtual variable: "+ss[0]);
                     }
                 }
                 line = reader.readLine();
