@@ -174,7 +174,7 @@ public class CdawebInfoCatalogSource {
                         && nssdc_ID.contains("None") ) {
                     String name= attrs.getNamedItem("serviceprovider_ID").getTextContent();
                     if ( name.contains(" ") ) {
-                        logger.log(Level.FINE, "skipping because space in name: {0}", name);
+                        logger.log(Level.FINE, "skipping because space in name: {0}", name); //TODO: trailing spaces can probably be handled.
                         continue;
                     }
 
