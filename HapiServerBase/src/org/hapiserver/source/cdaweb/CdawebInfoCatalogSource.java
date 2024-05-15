@@ -173,6 +173,10 @@ public class CdawebInfoCatalogSource {
                         && en.length()>1 && Character.isDigit(en.charAt(0))
                         && nssdc_ID.contains("None") ) {
                     String name= attrs.getNamedItem("serviceprovider_ID").getTextContent();
+                    if ( name.contains(" ") ) {
+                        logger.log(Level.FINE, "skipping because space in name: {0}", name);
+                        continue;
+                    }
 
                     if ( skips.contains(name) ) {
                         logger.log(Level.FINE, "skipping {0}", name);
