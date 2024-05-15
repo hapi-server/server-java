@@ -89,7 +89,11 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             for ( int i=0; i<n; i++ ) {
                 JSONObject jo= catalog.getJSONObject(i);
                 jo.setEscapeForwardSlashAlways(false);
-                jo.put( "id", "availability/" + jo.getString("id") );
+                String id= jo.getString("id");
+                if ( id.contains(" ") ) {
+                    System.err.println("here stop");
+                }
+                jo.put( "id", "availability/" + id );
                 if ( jo.has("title") ) {
                     jo.put("title","Availability of "+jo.getString("title") );
                 }
@@ -188,6 +192,9 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         String root;
         int filenameLen=0;
         String filenaming= CdawebInfoCatalogSource.filenaming.get(id);
+        
+        if ( filenaming==null ) throw new IllegalArgumentException("unable to find \""+id+"\" in filenaming");
+        
         int iroot= filenaming.indexOf("%");
         iroot= filenaming.lastIndexOf("/",iroot);
         root= filenaming.substring(0,iroot+1);
@@ -314,24 +321,22 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         String[] fields= new String[3];
                 
         return new Iterator<HapiRecord>() {
-            int i=0;
+            int irec=0;
             
             @Override
             public boolean hasNext() {
-                boolean result= i<len;
+                boolean result= irec<len;
                 if ( result ) {
-                    fields[0]= starts.item(i).getTextContent();
-                    fields[1]= stops.item(i).getTextContent();
-                    fields[2]= files.item(i).getTextContent();
-                    fields[2].substring(0,rootlen);
-                    root.substring(0,rootlen);
+                    fields[0]= starts.item(irec).getTextContent();
+                    fields[1]= stops.item(irec).getTextContent();
+                    fields[2]= files.item(irec).getTextContent();
                 }
-                return i<len;
+                return irec<len;
             }
 
             @Override
             public HapiRecord next() {
-                i=i+1;
+                irec=irec+1; // just for debugging.
                 return new AbstractHapiRecord() {
                     @Override
                     public int length() {
@@ -377,8 +382,8 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         //args= new String[] { "availability/AC_K1_SWE" };
         //args= new String[] { "availability/BAR_1A_L2_SSPC" };
         //args= new String[] { "availability/AC_K1_SWE", "2022-01-01T00:00Z", "2023-05-01T00:00Z" };
-        args= new String[] { "availability/RBSP-A-RBSPICE_LEV-2_ESRHELT", "2014-01-01T00:00Z", "2014-02-01T00:00Z" };
-        
+        //args= new String[] { "availability/RBSP-A-RBSPICE_LEV-2_ESRHELT", "2014-01-01T00:00Z", "2014-02-01T00:00Z" };
+        args= new String[] { "availability/FORMOSAT5_AIP_IDN" };
         switch (args.length) {
             case 0:
                 System.out.println( getCatalog() );
