@@ -50,9 +50,17 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
      */
     private Object makeFillValues( JSONObject param, int nrec) throws JSONException {
         JSONArray sizej= param.optJSONArray("size");
-        int[] size= new int[1+sizej.length()];
+        int[] size;
+        int ndims;
+        if ( sizej==null ) {
+            size= new int[1];
+            ndims=0;
+        } else {
+            size= new int[1+sizej.length()];
+            ndims= sizej.length();
+        }
         size[0]= nrec;
-        for ( int i=0; i<sizej.length(); i++ ) {
+        for ( int i=0; i<ndims; i++ ) {
             size[i+1]= sizej.getInt(i);
         }
         switch ( param.getString("type") ) {
@@ -705,7 +713,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             int nrec = -1;
 
             logger.log(Level.FINE, "opening CDF file {0}", tmpFile);
-            CDFReader reader = new CDFReader(tmpFile.toString());
+            CDFReader reader = new CDFReader(tmpFile);
             for (int i = 0; i < params.length; i++) {
                 if (i == 0) {
                     int length = 24;
