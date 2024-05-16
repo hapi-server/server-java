@@ -193,29 +193,32 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         int filenameLen=0;
         String filenaming= CdawebInfoCatalogSource.filenaming.get(id);
         
-        if ( filenaming==null ) throw new IllegalArgumentException("unable to find \""+id+"\" in filenaming");
-        
-        int iroot= filenaming.indexOf("%");
-        iroot= filenaming.lastIndexOf("/",iroot);
-        root= filenaming.substring(0,iroot+1);
-        for ( int ii=iroot; ii<filenaming.length(); ii++ ) {
-            if ( filenaming.charAt(ii)=='%' ) {
-                filenameLen+=1;
-                char f= filenaming.charAt(ii+1);
-                switch (f) {
-                    case 'Y':
-                        filenameLen+=4;
-                        break;
-                    case 'Q':
-                        filenameLen+=4; // we don't really know, unfortunately.
-                        break;
-                    default:
-                        filenameLen+=2;
-                        break;
+        if ( filenaming==null ) {
+            throw new IllegalArgumentException("unable to find \""+id+"\" in filenaming");
+        } else {
+
+            int iroot= filenaming.indexOf("%");
+            iroot= filenaming.lastIndexOf("/",iroot);
+            root= filenaming.substring(0,iroot+1);
+            for ( int ii=iroot; ii<filenaming.length(); ii++ ) {
+                if ( filenaming.charAt(ii)=='%' ) {
+                    filenameLen+=1;
+                    char f= filenaming.charAt(ii+1);
+                    switch (f) {
+                        case 'Y':
+                            filenameLen+=4;
+                            break;
+                        case 'Q':
+                            filenameLen+=4; // we don't really know, unfortunately.
+                            break;
+                        default:
+                            filenameLen+=2;
+                            break;
+                    }
+                    ii=ii+1;
+                } else {
+                    filenameLen+=1;
                 }
-                ii=ii+1;
-            } else {
-                filenameLen+=1;
             }
         }
         
