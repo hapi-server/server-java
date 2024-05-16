@@ -169,10 +169,11 @@ public class CdawebInfoCatalogSource {
                 String st= attrs.getNamedItem("timerange_start").getTextContent();
                 String en= attrs.getNamedItem("timerange_stop").getTextContent();
                 String nssdc_ID= attrs.getNamedItem("nssdc_ID").getTextContent();
+                String name= attrs.getNamedItem("serviceprovider_ID").getTextContent();
                 if ( st.length()>1 && Character.isDigit(st.charAt(0))
                         && en.length()>1 && Character.isDigit(en.charAt(0))
                         && nssdc_ID.contains("None") ) {
-                    String name= attrs.getNamedItem("serviceprovider_ID").getTextContent();
+                    
                     if ( name.contains(" ") ) {
                         logger.log(Level.FINE, "skipping because space in name: {0}", name); //TODO: trailing spaces can probably be handled.
                         continue;
