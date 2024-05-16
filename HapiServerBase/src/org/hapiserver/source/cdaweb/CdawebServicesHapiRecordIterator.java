@@ -42,6 +42,46 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
     private static final Logger logger = Logger.getLogger("hapi.cdaweb");
 
+    /**
+     * the variable was not found in the CDF, so just return fill values.
+     * @param param
+     * @param nrec
+     * @return 
+     */
+    private Object makeFillValues( JSONObject param, int nrec) throws JSONException {
+        JSONArray sizej= param.optJSONArray("size");
+        int[] size= new int[1+sizej.length()];
+        size[0]= nrec;
+        for ( int i=0; i<sizej.length(); i++ ) {
+            size[i+1]= sizej.getInt(i);
+        }
+        switch ( param.getString("type") ) {
+            case "double":
+                if ( size.length==1 ) {
+                    double[] aa= (double[])Array.newInstance( double.class, size );
+                    Arrays.fill( aa, Double.NaN );
+                    return aa;
+                } else if ( size.length==2 ) {
+                    double[][] aa= (double[][])Array.newInstance( double.class, size );
+                    for ( int i=0; i<nrec; i++ ) {
+                        Arrays.fill( aa[i], Double.NaN );
+                    }
+                    return aa;
+                } else {
+                    throw new IllegalArgumentException("not supported: missing high-dimensional array.");
+                    // return Array.newInstance( double.class, size );
+                }
+                
+            case "int":
+                return Array.newInstance( int.class, size );
+            case "isotime":
+                return Array.newInstance( char.class, size );
+            case "string":
+                return Array.newInstance( char.class, size );
+        }
+        throw new IllegalArgumentException("unsupported type: "+param.getString("type"));
+    }
+
     static class TimerFormatter extends Formatter {
 
         long t0 = System.currentTimeMillis();
@@ -720,6 +760,14 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     String param = mungeParameterName(params[i]);
                     int type = reader.getType(param);
                     Object o = reader.get(param);
+                    if ( o==null || !o.getClass().isArray() ) {
+                        try {
+                            o= makeFillValues( info.getJSONArray("parameters").getJSONObject(i), nrec );
+                            //throw new RuntimeException("didn't get array from reader: "+param+" file: "+tmpFile.toString());
+                        } catch (JSONException ex) {
+                            logger.log(Level.SEVERE, null, ex);
+                        }
+                    }
                     if (Array.getLength(o) != nrec) {
                         if (Array.getLength(o) == 1) {
                             // let's assume they meant for this to non-time varying.
