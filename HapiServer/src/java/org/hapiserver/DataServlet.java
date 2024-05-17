@@ -169,12 +169,20 @@ public class DataServlet extends HttpServlet {
             return;
         }
         
-        if ( !TimeUtil.isValidFormattedTime(start) ) {
+        try {
+            TimeUtil.parseISO8601Time(start);
+        } catch ( IllegalArgumentException | ParseException ex ) {
             Util.raiseError( 1402, "Bad request - syntax error in start time", response, response.getOutputStream() );
+            return;
         }        
-        if ( !TimeUtil.isValidFormattedTime(stop) ) {
+        
+        try {
+            TimeUtil.parseISO8601Time(stop);
+        } catch ( IllegalArgumentException | ParseException ex ) {
             Util.raiseError( 1403, "Bad request - syntax error in stop time", response, response.getOutputStream() );            
+            return;
         }
+        
         if ( stop.length()>start.length() ) {
             start= TimeUtil.reformatIsoTime( stop, start );
         } else if ( start.length()>stop.length() ) {
