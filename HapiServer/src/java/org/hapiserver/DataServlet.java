@@ -83,7 +83,7 @@ public class DataServlet extends HttpServlet {
         if ( startTime.length()==0 ) throw new IllegalArgumentException("info must contain startDate");
         if ( stopTime.length()==0 ) throw new IllegalArgumentException("info must contain stopDate");
         if ( stop.compareTo(start)<=0 ) {
-            throw new HapiException( 1404, "start time equal to or after stop time" );
+            throw new HapiException( 1404, "Bad request - start equal to or after stop" );
         }
         try {
             start= TimeUtil.reformatIsoTime( startTime, start );
@@ -164,11 +164,17 @@ public class DataServlet extends HttpServlet {
         String format= getParam(params, "format", "", "The desired format for the data stream.", PATTERN_FORMAT);
         
         if ( !params.isEmpty() ) {
-            Util.raiseError( 1401, "Bad request - unknown API parameter name " + params.entrySet().iterator().next().getKey(), 
+            Util.raiseError( 1401, "Bad request - unknown API parameter name", 
                 response, response.getOutputStream() );
             return;
         }
         
+        if ( !TimeUtil.isValidFormattedTime(start) ) {
+            Util.raiseError( 1402, "Bad request - syntax error in start time", response, response.getOutputStream() );
+        }        
+        if ( !TimeUtil.isValidFormattedTime(stop) ) {
+            Util.raiseError( 1403, "Bad request - syntax error in stop time", response, response.getOutputStream() );            
+        }
         if ( stop.length()>start.length() ) {
             start= TimeUtil.reformatIsoTime( stop, start );
         } else if ( start.length()>stop.length() ) {
