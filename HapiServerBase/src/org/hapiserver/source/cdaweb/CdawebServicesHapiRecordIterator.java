@@ -152,7 +152,21 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             return null;
         }
     }
+    private static class StringAdapter extends Adapter {
 
+        String[] array; 
+        
+        protected StringAdapter( String[] array ) {
+            this.array= array;
+        }
+        
+        @Override
+        public String adaptString(int index) {
+            return this.array[index];
+        }
+    
+    }
+    
     private static class IsotimeEpochAdapter extends Adapter {
 
         int julianDay;
@@ -808,6 +822,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             adapters[i] = new IntegerIntegerAdapter((int[]) o);
                         } else if (stype.equals("CDF_UINT1")) {
                             adapters[i] = new IntegerShortAdapter((short[]) o);
+                        } else if ( c == String.class ) {
+                            adapters[i] = new StringAdapter((String[])o);
                         } else {
                             throw new IllegalArgumentException("unsupported type");
                         }
