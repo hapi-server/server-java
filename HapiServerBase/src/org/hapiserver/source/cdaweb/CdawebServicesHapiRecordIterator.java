@@ -610,7 +610,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
     /**
      * flatten 3-D array into 2-D. Thanks, Bard!
-     *
+     * TODO: review--looks like IBEX_H3_ENA_HI_R13_CG_NOSP_RAM_1YR needs transpose
      * @param array
      * @return
      */
