@@ -729,16 +729,25 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             logger.log(Level.FINE, "opening CDF file {0}", tmpFile);
             CDFReader reader = new CDFReader(tmpFile);
             for (int i = 0; i < params.length; i++) {
-                if (i == 0) {
-                    int length = 24;
-                    try {
-                        if (info != null) {
-                            JSONArray pp = info.getJSONArray("parameters");
-                            length = pp.getJSONObject(0).getInt("length");
+                JSONArray pp;
+                JSONObject param1=null;
+                try {
+                    pp = info.getJSONArray("parameters");
+                    for ( int j=0; j<pp.length(); j++ ) {
+                        JSONObject p= pp.getJSONObject(j);
+                        if ( p.getString("name").equals(params[i]) ) {
+                            param1= p;
                         }
-                    } catch (JSONException ex) {
-                        logger.warning("There should always be a length on parameters[0]");
                     }
+                    if ( param1==null ) {
+                        throw new IllegalArgumentException("didn't find parameter named \""+params[i]+"\"");
+                    }
+                } catch (JSONException ex) {
+                    throw new RuntimeException("info has wrong form, expecting parameters");
+                }
+                if (i == 0) {
+                    int length = param1.optInt("length",24);
+                    
                     String dep0;
                     if (params.length == 1) {
                         try {
@@ -779,6 +788,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     }
 
                 } else {
+                    
                     String param = mungeParameterName(params[i]);
                     int type = reader.getType(param);
                     Object o = reader.get(param);
@@ -791,16 +801,22 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                         }
                     }
                     if (Array.getLength(o) != nrec) {
-                        if (Array.getLength(o) == 1) {
-                            // let's assume they meant for this to non-time varying.
-                            Object newO = Array.newInstance(o.getClass().getComponentType(), nrec);
-                            Object v1 = Array.get(o, 0);
-                            for (int irec = 0; irec < nrec; irec++) {
-                                Array.set(newO, irec, v1);
-                            }
-                            o = newO;
+                        if ( nrec==1 ) { // IBEX_H3_ENA_HI_R13_CG_NOSP_RAM_1YR has one record of 30x60 map
+                            Object newo= Array.newInstance( o.getClass(), nrec );
+                            Array.set(newo, 0, o);
+                            o= newo;
                         } else {
-                            throw new IllegalArgumentException("nrec is inconsistent!  This internal error must be fixed.");
+                            if (Array.getLength(o) == 1) {
+                                // let's assume they meant for this to non-time varying.
+                                Object newO = Array.newInstance(o.getClass().getComponentType(), nrec);
+                                Object v1 = Array.get(o, 0);
+                                for (int irec = 0; irec < nrec; irec++) {
+                                    Array.set(newO, irec, v1);
+                                }
+                                o = newO;
+                            } else {
+                                throw new IllegalArgumentException("nrec is inconsistent!  This internal error must be fixed.");
+                            }
                         }
                     }
                     String stype = nameForType(type);
