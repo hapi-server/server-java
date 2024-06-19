@@ -55,7 +55,5 @@ https://cottagesystems.com/autoplot/git/server-java/HapiServer/dist/HapiServer.w
 # Manual
 For installation instuctions, see the wiki: https://github.com/hapi-server/server-java/wiki.
 
----
-last_modified_at: 2022-07-26T16:26:24
----
+
 
