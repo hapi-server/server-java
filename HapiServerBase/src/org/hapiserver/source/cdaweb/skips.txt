@@ -5,10 +5,5 @@ APOLLO15_.*, Presumably same problem as APOLLO12.
 BAR_2K_L2_FSPC, data contains repeat timetags.
 BAR_2L_L2_MAGN, data contains repeat timetags.
 AEROCUBE-6-B_DOSIMETER_L2, is.FileStructureOK(): The verifier should have enough information to make a request that returns data.
-A.*, skip As
-B.*, skip Bs
-C.*, skip Cs
 ELA_L1_STATE_DEFN, 400 from Nand's server
-D.*, skip Ds
-E.*, skip Es
-
+NEW_HORIZONS_SWAP_VALIDSUM, 500 returned from Nand's server

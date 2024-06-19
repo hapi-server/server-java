@@ -19,25 +19,6 @@
                      "args":["https://csa.esac.esa.int/csa-sl-tap/","${id}"]
                  }
              }
-         },
-         {
-             "x_group_id": "csa-availability",
-             "x_source": "classpath",
-             "x_class": "org.hapiserver.source.tap.TapAvailabilitySource",
-             "x_method": "getCatalog",
-             "x_config": {
-                 "info": {
-                     "x_source":"classpath",
-                     "x_class":"org.hapiserver.source.tap.TapAvailabilitySource",
-                     "x_method": "getInfo",
-                     "x_args": [ "${id}" ]
-                 },
-                 "data": {
-                     "source": "classpath",
-                     "class":"org.hapiserver.source.tap.TapAvailabilitySource",
-                     "args":["${id}"]
-                 }
-             }
          }
      ]
  }

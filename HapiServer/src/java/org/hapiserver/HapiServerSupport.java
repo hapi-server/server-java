@@ -672,6 +672,25 @@ public class HapiServerSupport {
         return jo;
     }
     
+    /**
+     * return the file which was once catalog.json and is now config.json.  This
+     * file contains either the literal catalog response, or a configuration 
+     * which will generate the catalog response.  If HAPI_HOME/config/config.json 
+     * does not exist, then HAPI_HOME/config/catalog.json is returned.
+     * @param HAPI_HOME
+     * @return 
+     */
+    private static File getConfigFile( String HAPI_HOME ) {
+        File configDirectory= new File( HAPI_HOME, "config" );
+        
+        File configFile= new File( configDirectory, "config.json" );
+        if ( configFile.exists() ) {
+            return configFile;
+        } else {
+            File catalogFile= new File( configDirectory, "catalog.json" );
+            return catalogFile;
+        }
+    }
     
     /**
      * keep and monitor a cached version of the catalog in memory.
@@ -691,10 +710,10 @@ public class HapiServerSupport {
 
         long latestTimeStamp= catalogFile.lastModified();
         
-        File catalogConfigFile= new File( new File( HAPI_HOME, "config" ), "catalog.json" );     
+        File catalogConfigFile= getConfigFile(HAPI_HOME);     
         
         if ( !catalogConfigFile.exists() ) {
-            throw new IOException("config directory should contain catalog.json");
+            throw new IOException("config directory should contain config.json or catalog.json");
         }
         
         if ( catalogConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
@@ -1080,14 +1099,14 @@ public class HapiServerSupport {
                     String groupId= thisId.getString("x_group_id");
                     JSONObject groups= cc.catalog.getJSONObject("x_groups");
                     config= groups.getJSONObject(groupId);
-                    infoConfigFile= new File( configFile, "catalog.json" );
+                    infoConfigFile= getConfigFile( HAPI_HOME );
                 } else {
                     if ( cc.catalog.has("x_dataset_to_group") ) {
                         JSONObject map= cc.catalog.getJSONObject("x_dataset_to_group");
                         String groupId= map.getString(id);
                         JSONObject groups= cc.catalog.getJSONObject("x_groups");
                         config= groups.getJSONObject(groupId);
-                        infoConfigFile= new File( configFile, "catalog.json" );
+                        infoConfigFile= getConfigFile( HAPI_HOME );
                     }
                 }
 
