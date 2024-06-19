@@ -165,11 +165,10 @@ public class CdawebInfoCatalogSource {
             for ( int i=0; i<nodes.getLength(); i++ ) {
                 Node node= nodes.item(i);
                 NamedNodeMap attrs= node.getAttributes();
-
+                String name= attrs.getNamedItem("serviceprovider_ID").getTextContent();
                 String st= attrs.getNamedItem("timerange_start").getTextContent();
                 String en= attrs.getNamedItem("timerange_stop").getTextContent();
                 String nssdc_ID= attrs.getNamedItem("nssdc_ID").getTextContent();
-                String name= attrs.getNamedItem("serviceprovider_ID").getTextContent();
                 if ( st.length()>1 && Character.isDigit(st.charAt(0))
                         && en.length()>1 && Character.isDigit(en.charAt(0))
                         && nssdc_ID.contains("None") ) {
@@ -241,10 +240,11 @@ public class CdawebInfoCatalogSource {
             throw new IllegalArgumentException("bad id: "+id);
         }
         if ( srcid.equals("bw") ) {
-            URL url = new URL( "http://mag.gmu.edu/git-data/cdaweb-hapi-metadata/hapi/bw/CDAWeb/info/"+id+".json" );
+            URL url = new URL( "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/info/"+id+".json" );
             String src= SourceUtil.getAllFileLines( url );
             try {
                 JSONObject jo= new JSONObject(src);
+                jo= jo.getJSONObject("info");
                 jo.put("x_info_author", "bw");
                 return jo.toString(4);
             } catch ( JSONException ex ) {
