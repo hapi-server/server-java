@@ -3,7 +3,6 @@ package org.hapiserver.source.cdaweb;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
@@ -12,7 +11,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -47,6 +45,8 @@ public class CdawebInfoCatalogSource {
     private static final Logger logger= Logger.getLogger("hapi.cdaweb");
     
     public static final String CDAWeb = "https://cdaweb.gsfc.nasa.gov/";
+
+    private static final String CDAWEB_HAPI_VERSION = "20240621.2";
     
     protected static Map<String,String> coverage= new HashMap<>();
     protected static Map<String,String> filenaming= new HashMap<>();
@@ -246,7 +246,7 @@ public class CdawebInfoCatalogSource {
                 JSONObject jo= new JSONObject(src);
                 jo= jo.getJSONObject("info");
                 jo.put("x_info_author", "bw");
-                jo.put("x_cdaweb_hapi_version", "20240621.1");
+                jo.put("x_cdaweb_hapi_version", CDAWEB_HAPI_VERSION);
                 return jo.toString(4);
             } catch ( JSONException ex ) {
                 throw new IllegalArgumentException("bad thing that will never happen");
@@ -257,7 +257,7 @@ public class CdawebInfoCatalogSource {
                 String src= SourceUtil.getAllFileLines( url );
                 JSONObject jo= new JSONObject(src);
                 jo.put("x_info_author", "jfnl");
-                jo.put("x_cdaweb_hapi_version", "20240621.1");
+                jo.put("x_cdaweb_hapi_version", CDAWEB_HAPI_VERSION);
                 return jo.toString(4);
             } catch (JSONException ex) {
                 throw new IllegalArgumentException("bad thing that will never happen");
@@ -268,7 +268,7 @@ public class CdawebInfoCatalogSource {
                 String src= SourceUtil.getAllFileLines( url );
                 JSONObject jo= new JSONObject(src);
                 jo.put("x_info_author", "nl");
-                jo.put("x_cdaweb_hapi_version", "20240621.1");
+                jo.put("x_cdaweb_hapi_version", CDAWEB_HAPI_VERSION);
                 return jo.toString(4);
             } catch (JSONException ex) {
                 throw new IllegalArgumentException("bad thing that will never happen");
