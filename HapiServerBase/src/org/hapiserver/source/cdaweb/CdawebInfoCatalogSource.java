@@ -246,6 +246,7 @@ public class CdawebInfoCatalogSource {
                 JSONObject jo= new JSONObject(src);
                 jo= jo.getJSONObject("info");
                 jo.put("x_info_author", "bw");
+                jo.put("x_cdaweb_hapi_version", "20240621.1");
                 return jo.toString(4);
             } catch ( JSONException ex ) {
                 throw new IllegalArgumentException("bad thing that will never happen");
@@ -256,6 +257,7 @@ public class CdawebInfoCatalogSource {
                 String src= SourceUtil.getAllFileLines( url );
                 JSONObject jo= new JSONObject(src);
                 jo.put("x_info_author", "jfnl");
+                jo.put("x_cdaweb_hapi_version", "20240621.1");
                 return jo.toString(4);
             } catch (JSONException ex) {
                 throw new IllegalArgumentException("bad thing that will never happen");
@@ -266,6 +268,7 @@ public class CdawebInfoCatalogSource {
                 String src= SourceUtil.getAllFileLines( url );
                 JSONObject jo= new JSONObject(src);
                 jo.put("x_info_author", "nl");
+                jo.put("x_cdaweb_hapi_version", "20240621.1");
                 return jo.toString(4);
             } catch (JSONException ex) {
                 throw new IllegalArgumentException("bad thing that will never happen");
