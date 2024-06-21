@@ -218,7 +218,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         private String formatTime(double t) {
             double offset = t - baseTime;  // milliseconds
             while (offset >= 3600000.) {
-                double hours = offset / 3600000.;
+                double hours = Math.floor( offset / 3600000. );
                 baseTime = baseTime + hours * 3600000.;
                 int hour = Integer.parseInt(baseYYYYmmddTHH.substring(11, 13));
                 baseYYYYmmddTHH = baseYYYYmmddTHH.substring(0, 11) + String.format("%02d", (int) (hour + hours));
@@ -1116,15 +1116,23 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 next,
                 "Time,ICON_L25_O_Plus_Density".split(",", -2), null);
             int nrec = 0;
+            
+            double lastT=0;
+            int irec=0;
             while (dd.hasNext()) {
                 HapiRecord rec = dd.next();
                 nrec++;
                 double[] rec1= rec.getDoubleArray(1);
-                System.err.print(  String.format( "%s: ", rec.getIsoTime(0) ) );
-                for ( int i=0; i<rec1.length; i++ ) {
-                    System.err.print( ","+rec1[i]);
+                if ( ( TimeUtil.toMillisecondsSince1970(rec.getIsoTime(0))-lastT ) > 30000 ) {
+                    System.err.print(  String.format( "%4d %s: ", irec, rec.getIsoTime(0) ) );
+                    for ( int i=0; i<Math.min(5,rec1.length); i++ ) {
+                        System.err.print( (i>0?",":"")+String.format("%15.3e",rec1[i]) );
+                    }
+                    System.err.println();
                 }
-                System.err.println();
+                irec=irec+1;
+                lastT= TimeUtil.toMillisecondsSince1970(rec.getIsoTime(0));
+                if ( irec>575 ) System.exit(0);
             }
             System.err.println("  nrec..." + nrec);
             start = next;
