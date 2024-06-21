@@ -218,7 +218,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         private String formatTime(double t) {
             double offset = t - baseTime;  // milliseconds
             while (offset >= 3600000.) {
-                double hours = Math.floor( offset / 3600000. );
+                double hours = Math.floor( offset / 3600000. ); 
                 baseTime = baseTime + hours * 3600000.;
                 int hour = Integer.parseInt(baseYYYYmmddTHH.substring(11, 13));
                 baseYYYYmmddTHH = baseYYYYmmddTHH.substring(0, 11) + String.format("%02d", (int) (hour + hours));
