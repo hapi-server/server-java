@@ -244,7 +244,9 @@ public class CdawebInfoCatalogSource {
             String src= SourceUtil.getAllFileLines( url );
             try {
                 JSONObject jo= new JSONObject(src);
-                jo= jo.getJSONObject("info");
+                if ( jo.has("info") ) {
+                    jo= jo.getJSONObject("info");
+                }
                 jo.put("x_info_author", "bw");
                 jo.put("x_cdaweb_hapi_version", CDAWEB_HAPI_VERSION);
                 return jo.toString(4);
