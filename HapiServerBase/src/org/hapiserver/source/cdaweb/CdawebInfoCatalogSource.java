@@ -3,7 +3,6 @@ package org.hapiserver.source.cdaweb;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
@@ -12,7 +11,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -47,49 +45,61 @@ public class CdawebInfoCatalogSource {
     private static final Logger logger= Logger.getLogger("hapi.cdaweb");
     
     public static final String CDAWeb = "https://cdaweb.gsfc.nasa.gov/";
+
+    private static final String CDAWEB_HAPI_VERSION = "20240709.1";
     
     protected static Map<String,String> coverage= new HashMap<>();
     protected static Map<String,String> filenaming= new HashMap<>();
 
-    private static String getURL( String id, Node dataset ) {
-        NodeList kids= dataset.getChildNodes();
+    /**
+     * read the node and note the filenaming and form a template
+     * @param id
+     * @param dataset
+     * @param jo the JSON object for the catalog
+     * @return the URL found.
+     */
+    private static String getURL( String id, Node dataset, JSONObject jo ) throws JSONException {
+        
+        Node childNode= getNodeByName( dataset, "access" );
+        
         String lookfor= "ftp://cdaweb.gsfc.nasa.gov/pub/istp/";
         String lookfor2= "ftp://cdaweb.gsfc.nasa.gov/pub/cdaweb_data";
-        for ( int j=0; j<kids.getLength(); j++ ) {
-            Node childNode= kids.item(j);
-            if ( childNode.getNodeName().equals("access") ) {
-                NodeList kids2= childNode.getChildNodes();
-                for ( int k=0; k<kids2.getLength(); k++ ) {
-                    if ( kids2.item(k).getNodeName().equals("URL") ) {
-                        if ( kids2.item(k).getFirstChild()==null ) {
-                            logger.log(Level.FINE, "URL is missing for {0}, data cannot be accessed.", id);
-                            return null;
-                        }
-                        
-                        String url= kids2.item(k).getFirstChild().getTextContent().trim();
-                        if ( url.startsWith( lookfor ) ) {
-                            // "ftp://cdaweb.gsfc.nasa.gov/pub/istp/ace/mfi_h2"
-                            //  http://cdaweb.gsfc.nasa.gov/istp_public/data/
-                            url= CDAWeb + "sp_phys/data/" + url.substring(lookfor.length());
-                        }
-                        if ( url.startsWith(lookfor2) ) {
-                            url= CDAWeb + "sp_phys/data/" + url.substring(lookfor2.length());
-                        }
-                        String templ= url + "/";
-                        String subdividedby= childNode.getAttributes().getNamedItem("subdividedby").getTextContent();
-                        String filenaming= childNode.getAttributes().getNamedItem("filenaming").getTextContent();
-                        
-                        if ( !subdividedby.equals("None") ) {
-                            templ= templ + subdividedby + "/";
-                        }
-                        templ= templ + filenaming;
-                        CdawebInfoCatalogSource.filenaming.put(id,templ);
-                        return url;
-                    }
-                }
-            }
+
+        Node urlNode= getNodeByName( childNode, "URL" );
+        
+        if ( urlNode.getFirstChild()==null ) {
+            logger.log(Level.FINE, "URL is missing for {0}, data cannot be accessed.", id);
+            return null;
         }
-        return null;
+
+        String url= urlNode.getFirstChild().getTextContent().trim();
+        if ( url.startsWith( lookfor ) ) {
+            // "ftp://cdaweb.gsfc.nasa.gov/pub/istp/ace/mfi_h2"
+            //  http://cdaweb.gsfc.nasa.gov/istp_public/data/
+            url= CDAWeb + "sp_phys/data/" + url.substring(lookfor.length());
+        }
+        if ( url.startsWith(lookfor2) ) {
+            url= CDAWeb + "sp_phys/data/" + url.substring(lookfor2.length());
+        }
+        String templ= url + "/";
+        String subdividedby= childNode.getAttributes().getNamedItem("subdividedby").getTextContent();
+        String filenaming= childNode.getAttributes().getNamedItem("filenaming").getTextContent();
+
+        if ( !subdividedby.equals("None") ) {
+            templ= templ + subdividedby + "/";
+        }
+        templ= templ + filenaming;
+
+        CdawebInfoCatalogSource.filenaming.put(id,templ);
+
+        jo.put( "x_sourceUrl", url );
+        if ( !subdividedby.equals("None") ) {
+            jo.put( "x_subdividedby", subdividedby );
+        }
+        jo.put( "x_filenaming", filenaming );
+
+        return url;
+
     }
 
     private static HashSet<String> skips;
@@ -146,6 +156,17 @@ public class CdawebInfoCatalogSource {
         return result.toString();
     }
     
+    private static Node getNodeByName( Node parent, String childName ) {
+        NodeList nn = parent.getChildNodes();
+        for ( int i=0; i<nn.getLength(); i++ ) {
+            Node n= nn.item(i);
+            if ( n.getNodeName().equals(childName) ) {
+                return n;
+            }
+        }
+        throw new IllegalArgumentException("unable to find child node named: "+childName);
+    }
+    
     /**
      * return the catalog response by parsing all.xml.
      * @return
@@ -191,12 +212,22 @@ public class CdawebInfoCatalogSource {
                     }
                     if ( doSkip ) continue;
 
-                    String sourceurl= getURL(name,node);
+                    JSONObject jo= new JSONObject();
+                    jo.setEscapeForwardSlashAlways(false);
+                    
+                    jo.put( "id", name );
+                    
+                    String sourceurl;
+                    try {
+                        sourceurl = getURL(name,node,jo);
+                    } catch ( Exception ex ) {
+                        continue;
+                    }
                     if ( sourceurl!=null && 
                             ( sourceurl.startsWith( CDAWeb ) ||
                             sourceurl.startsWith("ftp://cdaweb.gsfc.nasa.gov" ) ) && !sourceurl.startsWith("/tower3/private" ) ) {
-                        JSONObject jo= new JSONObject();
-                        jo.put( "id", name );
+                        jo.put( "x_sourceUrl", sourceurl );
+                                                
                         try {
                             st = TimeUtil.formatIso8601TimeBrief( TimeUtil.parseISO8601Time(st) );
                             en = TimeUtil.formatIso8601TimeBrief( TimeUtil.parseISO8601Time(en) );
@@ -244,8 +275,11 @@ public class CdawebInfoCatalogSource {
             String src= SourceUtil.getAllFileLines( url );
             try {
                 JSONObject jo= new JSONObject(src);
-                jo= jo.getJSONObject("info");
+                if ( jo.has("info") ) {
+                    jo= jo.getJSONObject("info");
+                }
                 jo.put("x_info_author", "bw");
+                jo.put("x_cdaweb_hapi_version", CDAWEB_HAPI_VERSION);
                 return jo.toString(4);
             } catch ( JSONException ex ) {
                 throw new IllegalArgumentException("bad thing that will never happen");
@@ -256,6 +290,7 @@ public class CdawebInfoCatalogSource {
                 String src= SourceUtil.getAllFileLines( url );
                 JSONObject jo= new JSONObject(src);
                 jo.put("x_info_author", "jfnl");
+                jo.put("x_cdaweb_hapi_version", CDAWEB_HAPI_VERSION);
                 return jo.toString(4);
             } catch (JSONException ex) {
                 throw new IllegalArgumentException("bad thing that will never happen");
@@ -266,6 +301,7 @@ public class CdawebInfoCatalogSource {
                 String src= SourceUtil.getAllFileLines( url );
                 JSONObject jo= new JSONObject(src);
                 jo.put("x_info_author", "nl");
+                jo.put("x_cdaweb_hapi_version", CDAWEB_HAPI_VERSION);
                 return jo.toString(4);
             } catch (JSONException ex) {
                 throw new IllegalArgumentException("bad thing that will never happen");
@@ -281,7 +317,7 @@ public class CdawebInfoCatalogSource {
         args= new String[0];
         
         if ( args.length==0 ) {
-            System.out.println( CdawebInfoCatalogSource.getCatalog20230629() );
+            System.out.println( CdawebInfoCatalogSource.getCatalog() );
         } else if ( args.length==1 ) {
             System.out.println( CdawebInfoCatalogSource.getInfo( args[0], "bw" ) );
         }

@@ -218,7 +218,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         private String formatTime(double t) {
             double offset = t - baseTime;  // milliseconds
             while (offset >= 3600000.) {
-                double hours = offset / 3600000.;
+                double hours = Math.floor( offset / 3600000. ); 
                 baseTime = baseTime + hours * 3600000.;
                 int hour = Integer.parseInt(baseYYYYmmddTHH.substring(11, 13));
                 baseYYYYmmddTHH = baseYYYYmmddTHH.substring(0, 11) + String.format("%02d", (int) (hour + hours));
@@ -260,17 +260,28 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
         double[][] array;
         int n; // there's a weird bit of code where the Java library is giving me double arrays containing ints.
+        int items; // number of items in array
+        double fill; // fill for extra values
 
-        private DoubleArrayDoubleAdapter(double[][] array) {
+        private DoubleArrayDoubleAdapter(double[][] array, int items,double fill) {
+            this.items= items;
             this.array = array;
             if (array.length > 0) {
                 this.n = array[0].length;
             }
+            this.fill= fill;
         }
 
         @Override
         public double[] adaptDoubleArray(int index) {
-            return this.array[index];
+            if ( this.array[index].length==items ) {
+                return this.array[index];
+            } else {
+                double[] result= new double[items];
+                System.arraycopy( this.array[index], 0, result, 0, n );
+                Arrays.fill( result, n, items, fill );
+                return result;
+            }
         }
 
         @Override
@@ -700,7 +711,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
             return new CdawebServicesHapiRecordIterator(info, start, stop, params, file);
 
-        } catch (CDFException.ReaderError | IOException r) {
+        } catch (CDFException.ReaderError | JSONException | IOException r ) {
             throw new RuntimeException(r);
         }
     }
@@ -715,7 +726,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         return result;
     }
     
-    public CdawebServicesHapiRecordIterator(JSONObject info, int[] start, int[] stop, String[] params, String tmpFile) throws CDFException.ReaderError {
+    public CdawebServicesHapiRecordIterator(JSONObject info, int[] start, int[] stop, String[] params, String tmpFile) throws CDFException.ReaderError, JSONException {
 
         if ( tmpFile==null ) {
             throw new NullPointerException("tmpFile is null");
@@ -846,12 +857,24 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     } else {
                         c = c.getComponentType();
                         if (c == double.class) {
-                            adapters[i] = new DoubleArrayDoubleAdapter((double[][]) o);
+                            JSONArray size= param1.getJSONArray("size");
+                            int items= size.getInt(0);
+                            for ( int k=1; k<size.length(); k++ ) {
+                                items*= size.getInt(k);
+                            }
+                            double fill= param1.getDouble("fill"); //TODO: I think this is actually a string.
+                            adapters[i] = new DoubleArrayDoubleAdapter((double[][]) o,items,fill);
                         } else if (c == int.class) {
                             adapters[i] = new IntegerArrayIntegerAdapter((int[][]) o);
                         } else if (c.isArray()) {
+                            JSONArray size= param1.getJSONArray("size");
+                            int items= size.getInt(0);
+                            for ( int k=1; k<size.length(); k++ ) {
+                                items*= size.getInt(k);
+                            }
+                            double fill= param1.getDouble("fill"); //TODO: I think this is actually a string.
                             o = flattenDoubleArray(o);
-                            adapters[i] = new DoubleArrayDoubleAdapter((double[][]) o);
+                            adapters[i] = new DoubleArrayDoubleAdapter((double[][]) o,items,fill);
                         } else {
                             throw new IllegalArgumentException("unsupported type");
                         }
@@ -1073,6 +1096,51 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     }
 
     /**
+     * ICON_L2-5_FUV_NIGHT has channels which change size with each file.  The info says there should
+     * be 129,6 but the file might only have 127,6.
+     */
+    public static void mainCase10() throws IOException, JSONException {
+        long t0 = System.currentTimeMillis();
+        //http://localhost:8080/HapiServer/hapi/data?id=ICON_L2-5_FUV_NIGHT&parameters=ICON_L25_O_Plus_Density&start=2022-11-23T00:54:54Z&stop=2022-11-23T23:58:38Z
+        int[] start = new int[]{2022, 11, 23, 0, 54, 54, 0};
+        int[] stop = new int[]{2022, 11, 23, 23, 58, 38, 0};
+        
+        JSONObject info= new JSONObject( CdawebInfoCatalogSource.getInfo("ICON_L2-5_FUV_NIGHT", "bw") );
+        while (TimeUtil.gt(stop, start)) {
+            int[] next = TimeUtil.add(start, new int[]{0, 0, 1, 0, 0, 0, 0});
+            System.err.println("t: " + TimeUtil.formatIso8601Time(start));
+            CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
+                "ICON_L2-5_FUV_NIGHT",
+                info,
+                start,
+                next,
+                "Time,ICON_L25_O_Plus_Density".split(",", -2), null);
+            int nrec = 0;
+            
+            double lastT=0;
+            int irec=0;
+            while (dd.hasNext()) {
+                HapiRecord rec = dd.next();
+                nrec++;
+                double[] rec1= rec.getDoubleArray(1);
+                if ( ( TimeUtil.toMillisecondsSince1970(rec.getIsoTime(0))-lastT ) > 30000 ) {
+                    System.err.print(  String.format( "%4d %s: ", irec, rec.getIsoTime(0) ) );
+                    for ( int i=0; i<Math.min(5,rec1.length); i++ ) {
+                        System.err.print( (i>0?",":"")+String.format("%15.3e",rec1[i]) );
+                    }
+                    System.err.println();
+                }
+                irec=irec+1;
+                lastT= TimeUtil.toMillisecondsSince1970(rec.getIsoTime(0));
+                if ( irec>575 ) System.exit(0);
+            }
+            System.err.println("  nrec..." + nrec);
+            start = next;
+        }
+        System.err.println("time (sec): " + (System.currentTimeMillis() - t0) / 1000.);
+    }
+    
+    /**
      * Virtual variable OMNI2_H0_MRG1HR&parameters=SIGMA-ABS_B1800 doesn't load with Nand's.
      */
     public static void mainCase9() {
@@ -1119,7 +1187,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         //mainCase1();
         //mainCase2();
         //mainCase3();
@@ -1128,7 +1196,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         //mainCase6();
         //mainCase7();
         //mainCase8();
-        mainCase9();
+        //mainCase9();
+        mainCase10();
     }
 
 }
