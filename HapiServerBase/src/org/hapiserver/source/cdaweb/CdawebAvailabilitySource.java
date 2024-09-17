@@ -191,19 +191,19 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         }
         String root;
         int filenameLen=0;
-        String filenaming= CdawebInfoCatalogSource.filenaming.get(id);
+        String dsFileNames= CdawebInfoCatalogSource.filenaming.get(id);
         
-        if ( filenaming==null ) {
-            throw new IllegalArgumentException("unable to find \""+id+"\" in filenaming");
+        if ( dsFileNames==null ) {
+            throw new IllegalArgumentException("unable to find \""+id+"\" in filenaming.");
         } else {
 
-            int iroot= filenaming.indexOf("%");
-            iroot= filenaming.lastIndexOf("/",iroot);
-            root= filenaming.substring(0,iroot+1);
-            for ( int ii=iroot; ii<filenaming.length(); ii++ ) {
-                if ( filenaming.charAt(ii)=='%' ) {
+            int iroot= dsFileNames.indexOf("%");
+            iroot= dsFileNames.lastIndexOf("/",iroot);
+            root= dsFileNames.substring(0,iroot+1);
+            for ( int ii=iroot; ii<dsFileNames.length(); ii++ ) {
+                if ( dsFileNames.charAt(ii)=='%' ) {
                     filenameLen+=1;
-                    char f= filenaming.charAt(ii+1);
+                    char f= dsFileNames.charAt(ii+1);
                     switch (f) {
                         case 'Y':
                             filenameLen+=4;
