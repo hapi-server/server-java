@@ -292,8 +292,20 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         
         try {
             
-            String sstart= String.format( "%04d%02d%02dT%02d%02d%02dZ", start[0], start[1], start[2], start[3], start[4], start[5] );
-            String sstop= String.format( "%04d%02d%02dT%02d%02d%02dZ", stop[0], stop[1], stop[2], stop[3], stop[4], stop[5] );
+            // calculate month or months containing, so we can cache this result
+            String sstart= String.format( "%04d%02d%02dT%02d%02d%02dZ", start[0], start[1], 1, 1, 1, 1 );
+            String sstop;
+            if ( stop[2]==1 && stop[3]==0 && stop[4]==0 && stop[5]==0 && stop[6]==0 ) {
+                sstop= String.format( "%04d%02d%02dT%02d%02d%02dZ", stop[0], stop[1], 1, 0, 0, 0 );
+            } else {
+                int year= stop[0];
+                int month= stop[1]+1;
+                if ( month==13 ) {
+                    year++;
+                    month=1;
+                }
+                sstop= String.format( "%04d%02d%02dT%02d%02d%02dZ", year, month, 1, 0, 0, 0 );
+            }
             
             URL url = new URL(String.format( CdawebInfoCatalogSource.CDAWeb + "WS/cdasr/1/dataviews/sp_phys/datasets/%s/orig_data/%s,%s", spid, sstart, sstop) );
             
@@ -302,7 +314,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             System.out.println("url: "+url );
             
             try {
-                Document doc= SourceUtil.readDocument( url );
+                Document doc= SourceUtil.readDocument( url, 3600 );
                 XPathFactory factory = XPathFactory.newInstance();
                 XPath xpath = (XPath) factory.newXPath();
                 NodeList starts = (NodeList) xpath.evaluate( "//DataResult/FileDescription/StartTime", doc, XPathConstants.NODESET );
