@@ -1,9 +1,10 @@
 
 package org.hapiserver.source;
 
+import hapi.cache.InputStreamProvider;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -19,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -310,6 +312,63 @@ public class SourceUtil {
      */
     public static Document readDocument( URL url )  throws SAXException, IOException, ParserConfigurationException {
         try ( InputStream is= url.openStream() ) {
+            DocumentBuilder builder;
+            builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            InputSource source = new InputSource(new InputStreamReader(is));
+            Document document = builder.parse(source);
+            return document;
+        }
+    }
+    
+    /**
+     * return an input stream for the resource, possibly using a cached copy which is no older than ageSeconds.
+     * Note this should only be used for testing, and not in production use.
+     * @param url the URL
+     * @param ageSeconds the maximum allowed age in seconds.
+     * @return an InputStream
+     * @throws java.io.IOException
+     */
+    public static InputStream getInputStream( URL url, int ageSeconds ) throws IOException {
+        InputStream result;
+        boolean allowCaching= true;
+        if ( allowCaching ) {
+            String hash = Integer.toHexString(url.hashCode());
+            File cacheFile= new File( "/tmp/HapiServerCache/" + url.getHost() + "/" + hash );
+            if ( !cacheFile.getParentFile().exists() ) {
+                if ( !cacheFile.getParentFile().mkdirs() ) {
+                    logger.log(Level.FINE, "unable to mkdirs for {0}", cacheFile);
+                }
+            }
+            if ( cacheFile.exists() ) {
+                long timeTag= cacheFile.lastModified();
+                if ( System.currentTimeMillis() - timeTag < ( ageSeconds * 1000 ) ) {
+                    return new FileInputStream(cacheFile);
+                }
+            }
+            InputStreamProvider urlInputStreamProvider= () -> url.openStream();
+            InputStreamProvider bcisp= new BuildCacheInputStreamProvider( urlInputStreamProvider, cacheFile );
+            
+            result= bcisp.openInputStream();
+            
+        } else {
+            result= url.openStream();
+        }
+        return result;
+    }
+    
+    /**
+     * read the XML document from a remote site, allowing cached response to be used.  The cache
+     * of files is kept in /tmp/HapiServerCache/.
+     * @param url the XML document
+     * @param ageSeconds the age of the document allowed, since the last read.
+     * @return the XML document
+     * @throws org.xml.sax.SAXException 
+     * @throws java.io.IOException 
+     * @throws javax.xml.parsers.ParserConfigurationException 
+     */
+    public static Document readDocument( URL url, int ageSeconds )  throws SAXException, IOException, ParserConfigurationException {
+        
+        try ( InputStream is= getInputStream( url, ageSeconds ) ) {
             DocumentBuilder builder;
             builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             InputSource source = new InputSource(new InputStreamReader(is));
