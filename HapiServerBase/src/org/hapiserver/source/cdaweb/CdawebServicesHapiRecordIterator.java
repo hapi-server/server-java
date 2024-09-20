@@ -12,9 +12,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
@@ -800,6 +802,19 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             JSONArray parameters = info.getJSONArray("parameters");
                             String dependent = parameters.getJSONObject(parameters.length() - 1).getString("name");
                             String[] deps = reader.getDependent(dependent);
+                            if ( deps.length==0 ) {
+                                //throw new IllegalArgumentException("data has no dep 0");
+                                String[] ss= reader.getVariableNames();
+                                List<String> candidates= new ArrayList<>();
+                                for ( String s: ss ) {
+                                    if ( s.toLowerCase().endsWith("epoch") ) {
+                                        candidates.add(s);
+                                    }
+                                }
+                                if ( candidates.size()==1 ) {
+                                    deps= candidates.toArray( new String[candidates.size()] );
+                                }
+                            }
                             dep0 = deps[0];
                         } catch (JSONException ex) {
                             throw new RuntimeException(ex);
