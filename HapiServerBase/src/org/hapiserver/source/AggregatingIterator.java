@@ -21,6 +21,7 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
     Iterator<HapiRecord> hapiRecordIterator;
     String[] parameters;
     HapiRecordSource source;
+    int[] stop;
     
     /**
      * construct an iterator which will use the source create and go through a set of iterators, one for each granule.
@@ -42,18 +43,26 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
     public AggregatingIterator( HapiRecordSource source, int[] start, int[] stop, String[] parameters ) {
         this.source= source;
         this.granuleIterator= source.getGranuleIterator(start, stop);
+        this.stop= stop;
         this.parameters= parameters;
         if ( granuleIterator.hasNext() ) {
             this.granule= granuleIterator.next();
-            if ( this.granule.length!=TimeUtil.TIME_RANGE_DIGITS ) {
-                throw new IllegalArgumentException("implementation error, granule iterator did not return 14 time range digits");
+            while ( TimeUtil.gt( start, TimeUtil.getStopTime(this.granule) ) && granuleIterator.hasNext() ) {
+                this.granule= granuleIterator.next();
             }
-            if ( this.parameters==null ) {
-                this.hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule) );
+            if ( TimeUtil.gt( this.granule, stop ) ) {
+                this.granule= null;
             } else {
-                this.hapiRecordIterator= source.getIterator(granule, TimeUtil.getStopTime(granule), this.parameters );
+                if ( this.granule.length!=TimeUtil.TIME_RANGE_DIGITS ) {
+                    throw new IllegalArgumentException("implementation error, granule iterator did not return 14 time range digits");
+                }
+                if ( this.parameters==null ) {
+                    this.hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule) );
+                } else {
+                    this.hapiRecordIterator= source.getIterator(granule, TimeUtil.getStopTime(granule), this.parameters );
+                }
+                findNextRecord();
             }
-            findNextRecord();
         } else {
             this.granule= null;
         }
@@ -68,6 +77,10 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
                 granule= granuleIterator.next();
                 if ( granule.length!=14 ) {
                     throw new IllegalArgumentException("granule length should be 14");
+                }
+                if ( TimeUtil.gt( this.granule, this.stop ) ) {
+                    this.granule= null;
+                    break;
                 }
             }
             TimeUtil.isValidTimeRange(granule);
