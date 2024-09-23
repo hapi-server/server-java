@@ -1116,6 +1116,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     }
 
     // AC_OR_SSC isn't sending anything over for Bob's sample range.
+    // AC_OR_SSC should format using x_format.
     public static void mainCase8() {
         long t0 = System.currentTimeMillis();
         //http://localhost:8080/HapiServer/hapi/data?id=AC_H2_CRIS&parameters=flux_C&start=2022-12-14T22:00Z&stop=2023-02-12T23:00Z
@@ -1244,9 +1245,9 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         //mainCase5();
         //mainCase6();
         //mainCase7();
-        //mainCase8();
+        mainCase8();
         //mainCase9();
-        mainCase10();
+        //mainCase10();
     }
 
 }
