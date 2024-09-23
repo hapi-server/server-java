@@ -43,6 +43,11 @@ public class CsvDataFormatter implements DataFormatter {
     int[] lengths;
     String[] fill;
     
+    /**
+     * format style for each field for CSV
+     */
+    private String[] formats;
+    
     private static final Charset CHARSET_UTF8= Charset.forName("UTF-8");
     
     
@@ -118,6 +123,7 @@ public class CsvDataFormatter implements DataFormatter {
             fill= new String[record.length()];
             types= new int[record.length()];
             exampleTimes= new String[record.length()];
+            formats= new String[record.length()];
             
             int[] lens= getNumberOfElements(info);
             JSONArray parameters= info.getJSONArray("parameters");
@@ -127,6 +133,16 @@ public class CsvDataFormatter implements DataFormatter {
             for ( int i=0; i<record.length(); i++ ) {
                 JSONObject parameter= parameters.getJSONObject(i);
                 lengths[i]= parameter.has("length") ? parameter.getInt("length") : 1;
+                if ( parameter.has("x_format") ) {
+                    String f= parameter.getString("x_format");
+                    if ( !f.startsWith("%") ) {
+                        f= "%"+f;
+                    }
+                    formats[i]= f;
+                } else {
+                    formats[i]=null;
+                }
+                
                 switch ( parameter.getString("type") ) {
                     case "isotime": 
                         types[i]= TYPE_ISOTIME; 
@@ -228,14 +244,24 @@ public class CsvDataFormatter implements DataFormatter {
                     if ( quotes[i] ) build.append('"');
                     break;
                 case TYPE_DOUBLE:
-                    s= String.valueOf(record.getDouble(i) );
+                    if ( formats[i]==null ) {
+                        s= String.valueOf(record.getDouble(i) );
+                    } else {
+                        s= String.format( formats[i], record.getDouble(i) );
+                    }
                     build.append(s);
                     break;
                 case TYPE_DOUBLE_ARRAY:
                 	double[] dd= record.getDoubleArray(i);
+                    String f= formats[i];
                 	for ( int j=0; j<dd.length; j++ ) {
                 		if ( j>0 ) build.append(",");
-                		build.append(dd[j]);
+                		if ( f==null ) {
+                            build.append(dd[j]);
+                        } else {
+                            build.append(String.format( f,dd[j] ));
+                        }
+                        
                 	}
                     break;
                 case TYPE_INTEGER:
