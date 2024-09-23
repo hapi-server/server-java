@@ -52,9 +52,14 @@
             
             %>
 
-            <h1><%= about.optString("title","Basic HAPI Server") %></h1>  More information about this type of server is found at <a href="https://github.com/hapi-server/server-java" target="_blank">GitHub</a>.
-        This implementation of the HAPI server uses plug-in readers to load data.  Discussion and more about this 
-        server can be found <a href="https://github.com/hapi-server/server-java/blob/main/README.md">here</a>.
+            <h1><%= about.optString("title","Basic HAPI Server") %></h1>  
+            <%
+                String defaultDescription="More information about this type of server is found at "
+                    + "<a href=\"https://github.com/hapi-server/server-java\" target=\"_blank\">GitHub</a>."
+        + " This implementation of the HAPI server uses plug-in readers to load data.  Discussion and more about this "
+        + " server can be found <a href=\"https://github.com/hapi-server/server-java/blob/main/README.md\">here</a>.";
+        %>
+        <%= about.optString("description",defaultDescription) %> 
 
         <!-- <br>The HAPI server <a href="http://hapi-server.org/verify?url=">verifier</a> will test this HAPI server for correctness. -->
 
