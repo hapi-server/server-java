@@ -24,7 +24,7 @@ public class CsvDataFormatter implements DataFormatter {
     boolean[] unitsFormatter;
     int[] types;
     String[] exampleTimes;
-    
+
     private final int TYPE_ISOTIME=0;
     private final int TYPE_STRING=9;
     private final int TYPE_DOUBLE=1;
@@ -42,6 +42,7 @@ public class CsvDataFormatter implements DataFormatter {
      */
     int[] lengths;
     String[] fill;
+    double[] dfill;
     
     /**
      * format style for each field for CSV
@@ -121,6 +122,7 @@ public class CsvDataFormatter implements DataFormatter {
             quotes= new boolean[record.length()];
             lengths= new int[record.length()];
             fill= new String[record.length()];
+            dfill= new double[record.length()];
             types= new int[record.length()];
             exampleTimes= new String[record.length()];
             formats= new String[record.length()];
@@ -141,6 +143,9 @@ public class CsvDataFormatter implements DataFormatter {
                     formats[i]= f;
                 } else {
                     formats[i]=null;
+                }
+                if ( parameter.has("fill") ) {
+                    fill[i]= parameter.getString("fill");
                 }
                 
                 switch ( parameter.getString("type") ) {
@@ -168,6 +173,9 @@ public class CsvDataFormatter implements DataFormatter {
                             types[i]= TYPE_DOUBLE_ARRAY;
                         } else {
                             types[i]= TYPE_DOUBLE;
+                        }
+                        if ( fill[i]!=null ) {
+                            dfill[i]= Double.parseDouble(fill[i]);
                         }
                     } 
                     break;
@@ -244,10 +252,15 @@ public class CsvDataFormatter implements DataFormatter {
                     if ( quotes[i] ) build.append('"');
                     break;
                 case TYPE_DOUBLE:
-                    if ( formats[i]==null ) {
-                        s= String.valueOf(record.getDouble(i) );
+                    double d= record.getDouble(i);
+                    if ( d==dfill[i] ) { // there are multiple ways to format a double, use the canonical one.
+                        s= fill[i];
                     } else {
-                        s= String.format( formats[i], record.getDouble(i) );
+                        if ( formats[i]==null ) {
+                            s= String.valueOf(d);
+                        } else {
+                            s= String.format(formats[i], d);
+                        }
                     }
                     build.append(s);
                     break;
@@ -255,13 +268,17 @@ public class CsvDataFormatter implements DataFormatter {
                 	double[] dd= record.getDoubleArray(i);
                     String f= formats[i];
                 	for ( int j=0; j<dd.length; j++ ) {
+                        d= dd[j];
                 		if ( j>0 ) build.append(",");
-                		if ( f==null ) {
-                            build.append(dd[j]);
+                        if ( d==dfill[i] ) {
+                            build.append(fill[i]);
                         } else {
-                            build.append(String.format( f,dd[j] ));
+                    		if ( f==null ) {
+                                build.append(d);
+                            } else {
+                                build.append(String.format( f,d ));
+                            }
                         }
-                        
                 	}
                     break;
                 case TYPE_INTEGER:
