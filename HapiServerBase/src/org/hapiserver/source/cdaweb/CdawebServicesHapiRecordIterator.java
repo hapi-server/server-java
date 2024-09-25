@@ -68,20 +68,24 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
         switch ( param.getString("type") ) {
             case "double":
-                if ( size.length==1 ) {
+            switch (size.length) {
+                case 1: {
                     double[] aa= (double[])Array.newInstance( double.class, size );
                     Arrays.fill( aa, Double.NaN );
                     return aa;
-                } else if ( size.length==2 ) {
+                }
+                case 2: {
                     double[][] aa= (double[][])Array.newInstance( double.class, size );
                     for ( int i=0; i<nrec; i++ ) {
                         Arrays.fill( aa[i], Double.NaN );
                     }
                     return aa;
-                } else {
+                }
+                default:
                     throw new IllegalArgumentException("not supported: missing high-dimensional array.");
                     // return Array.newInstance( double.class, size );
-                }
+            }
+
                 
             case "int":
                 return Array.newInstance( int.class, size );
@@ -245,8 +249,10 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     private static class DoubleDoubleAdapter extends Adapter {
 
         double[] array;
-
-        private DoubleDoubleAdapter(double[] array) {
+        double fill; // numerical errors mean we need to make fill data canonical
+        
+        private DoubleDoubleAdapter(double[] array,double fill) {
+            this.fill= fill;
             this.array = array;
         }
 
@@ -255,7 +261,14 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             if (index >= this.array.length) {
                 throw new ArrayIndexOutOfBoundsException("can't find the double at position " + index);
             }
-            return this.array[index];
+            double d= this.array[index];
+            if ( fill!=0 ) {
+                double check= d/fill;
+                if ( check>0.999999 && check<1.000001 ) {
+                    return fill;
+                }
+            }
+            return d;
         }
     }
 
@@ -302,13 +315,21 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     private static class DoubleFloatAdapter extends Adapter {
 
         float[] array;
+        double fill;
 
-        private DoubleFloatAdapter(float[] array) {
+        private DoubleFloatAdapter(float[] array,double fill) {
             this.array = array;
         }
 
         @Override
         public double adaptDouble(int index) {
+            double d= this.array[index];
+            if ( fill!=0 ) {
+                double check= d/fill;
+                if ( check>0.999999 && check<1.000001 ) {
+                    return fill;
+                }
+            }
             return this.array[index];
         }
     }
@@ -857,7 +878,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             o= makeFillValues( info.getJSONArray("parameters").getJSONObject(i), nrec );
                             //throw new RuntimeException("didn't get array from reader: "+param+" file: "+tmpFile.toString());
                         } catch (JSONException ex) {
-                            logger.log(Level.SEVERE, null, ex);
+                            throw new RuntimeException(ex);
                         }
                     }
                     if (Array.getLength(o) != nrec) {
@@ -881,11 +902,12 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     }
                     String stype = nameForType(type);
                     Class c = o.getClass().getComponentType();
+                    double fill= param1.getDouble("fill"); //TODO: I think this is actually a string.
                     if (!c.isArray()) {
                         if (c == double.class) {
-                            adapters[i] = new DoubleDoubleAdapter((double[]) o);
+                            adapters[i] = new DoubleDoubleAdapter((double[]) o,fill);
                         } else if (c == float.class) {
-                            adapters[i] = new DoubleFloatAdapter((float[]) o);
+                            adapters[i] = new DoubleFloatAdapter((float[]) o,fill);
                         } else if (c == int.class) {
                             adapters[i] = new IntegerIntegerAdapter((int[]) o);
                         } else if (c == short.class) {
@@ -911,7 +933,6 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             for ( int k=1; k<size.length(); k++ ) {
                                 items*= size.getInt(k);
                             }
-                            double fill= param1.getDouble("fill"); //TODO: I think this is actually a string.
                             adapters[i] = new DoubleArrayDoubleAdapter((double[][]) o,items,fill);
                         } else if (c == int.class) {
                             adapters[i] = new IntegerArrayIntegerAdapter((int[][]) o);
@@ -921,7 +942,6 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             for ( int k=1; k<size.length(); k++ ) {
                                 items*= size.getInt(k);
                             }
-                            double fill= param1.getDouble("fill"); //TODO: I think this is actually a string.
                             o = flattenDoubleArray(o);
                             adapters[i] = new DoubleArrayDoubleAdapter((double[][]) o,items,fill);
                         } else {
