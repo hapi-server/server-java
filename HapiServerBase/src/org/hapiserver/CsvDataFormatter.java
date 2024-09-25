@@ -146,6 +146,8 @@ public class CsvDataFormatter implements DataFormatter {
                 }
                 if ( parameter.has("fill") ) {
                     fill[i]= parameter.getString("fill");
+                } else {
+                    fill[i]= null;
                 }
                 
                 switch ( parameter.getString("type") ) {
@@ -176,6 +178,8 @@ public class CsvDataFormatter implements DataFormatter {
                         }
                         if ( fill[i]!=null ) {
                             dfill[i]= Double.parseDouble(fill[i]);
+                        } else {
+                            dfill[i]= Double.NaN;
                         }
                     } 
                     break;
