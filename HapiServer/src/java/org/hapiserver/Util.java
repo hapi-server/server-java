@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Enumeration;
@@ -442,7 +443,7 @@ public final class Util {
      * @return the time this file was last modified.
      */
     public static String buildTime() {
-        String time= "last_modified_at: 2024-09-23T10:48:00";
+        String time= "last_modified_at: 2024-09-25T07:40:00";
         return time.substring(18);
     }
     
@@ -453,5 +454,9 @@ public final class Util {
      */
     public static String hapiVersion() {
         return (String)HapiServerSupport.HAPI_VERSION; 
+    }
+    
+    public static void main(String[] args ) throws ParseException {
+        TimeUtil.parseISO8601TimeRange( "2017-07-01T00:00Z/2024-09-14T23:59:56Z" );
     }
 }
