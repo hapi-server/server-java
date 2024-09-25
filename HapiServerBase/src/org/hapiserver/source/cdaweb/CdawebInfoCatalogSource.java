@@ -270,6 +270,9 @@ public class CdawebInfoCatalogSource {
         } else {
             throw new IllegalArgumentException("bad id: "+id);
         }
+        if ( id.equals("AC_H3_CRIS") ) { //TODO: remove
+            System.err.println("compareFill222");
+        }
         if ( srcid.equals("bw") ) {
             URL url = new URL( "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/info/"+id+".json" );
             String src= SourceUtil.getAllFileLines( url );
@@ -280,6 +283,16 @@ public class CdawebInfoCatalogSource {
                 }
                 jo.put("x_info_author", "bw");
                 jo.put("x_cdaweb_hapi_version", CDAWEB_HAPI_VERSION);
+                JSONArray ja= jo.getJSONArray("parameters");
+                for ( int ip= 0; ip<ja.length(); ip++ ) { //TODO: compareFill222 facilitate comparison 
+                    JSONObject p= ja.getJSONObject(ip);
+                    String sfill= p.getString("fill");
+                    if ( sfill!=null ) {
+                        sfill= String.valueOf(Double.parseDouble(sfill));
+                        p.put("fill",sfill);
+                        ja.put(ip,p);
+                    }
+                }
                 return jo.toString(4);
             } catch ( JSONException ex ) {
                 throw new IllegalArgumentException("bad thing that will never happen");
