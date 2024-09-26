@@ -189,10 +189,8 @@ public class CdawebInfoCatalogSource {
                 String name= attrs.getNamedItem("serviceprovider_ID").getTextContent();
                 String st= attrs.getNamedItem("timerange_start").getTextContent();
                 String en= attrs.getNamedItem("timerange_stop").getTextContent();
-                String nssdc_ID= attrs.getNamedItem("nssdc_ID").getTextContent();
                 if ( st.length()>1 && Character.isDigit(st.charAt(0))
-                        && en.length()>1 && Character.isDigit(en.charAt(0))
-                        && nssdc_ID.contains("None") ) {
+                        && en.length()>1 && Character.isDigit(en.charAt(0)) ) {
                     
                     if ( name.contains(" ") ) {
                         logger.log(Level.FINE, "skipping because space in name: {0}", name); //TODO: trailing spaces can probably be handled.
@@ -287,7 +285,8 @@ public class CdawebInfoCatalogSource {
                 for ( int ip= 0; ip<ja.length(); ip++ ) { //TODO: compareFill222 facilitate comparison 
                     JSONObject p= ja.getJSONObject(ip);
                     String sfill= p.getString("fill");
-                    if ( sfill!=null ) {
+                    String type= p.getString("type");
+                    if ( sfill!=null && type.equals("double") ) {
                         sfill= String.valueOf(Double.parseDouble(sfill));
                         p.put("fill",sfill);
                         ja.put(ip,p);
