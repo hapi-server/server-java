@@ -136,27 +136,27 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     private static abstract class Adapter {
 
         public String adaptString(int index) {
-            return null;
+            throw new IllegalArgumentException("incorrect adapter used");
         }
 
         public double adaptDouble(int index) {
-            return Double.NEGATIVE_INFINITY;
+            throw new IllegalArgumentException("incorrect adapter used");
         }
 
         public int adaptInteger(int index) {
-            return Integer.MIN_VALUE + 52;
+            throw new IllegalArgumentException("incorrect adapter used");
         }
 
         public double[] adaptDoubleArray(int index) {
-            return null;
+            throw new IllegalArgumentException("incorrect adapter used");
         }
 
         public int[] adaptIntegerArray(int index) {
-            return null;
+            throw new IllegalArgumentException("incorrect adapter used");
         }
 
         public String[] adaptStringArray(int index) {
-            return null;
+            throw new IllegalArgumentException("incorrect adapter used");
         }
     }
     private static class StringAdapter extends Adapter {
