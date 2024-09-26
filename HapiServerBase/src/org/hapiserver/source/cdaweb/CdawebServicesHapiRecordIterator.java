@@ -144,7 +144,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
 
         public int adaptInteger(int index) {
-            return Integer.MIN_VALUE;
+            return Integer.MIN_VALUE + 52;
         }
 
         public double[] adaptDoubleArray(int index) {
@@ -245,6 +245,53 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
 
     }
+    
+    /**
+     * Integers come out of the library as doubles.
+     * wget -O - 'http://localhost:8080/HapiServer/hapi/data?id=WI_OR_DEF&start=1997-07-01T23:00:00.000Z&stop=1997-07-01T23:50:00.000Z&parameters=Time,CRN_EARTH' 
+     */
+    private static class IntDoubleAdapter extends Adapter {
+
+        double[] array;
+        double fill; // numerical errors mean we need to make fill data canonical
+        
+        private IntDoubleAdapter(double[] array,double fill) {
+            this.fill= fill;
+            this.array = array;
+        }
+
+        @Override
+        public double adaptDouble(int index) {
+            if (index >= this.array.length) {
+                throw new ArrayIndexOutOfBoundsException("can't find the double at position " + index);
+            }
+            double d= this.array[index];
+            if ( fill!=0 ) {
+                double check= d/fill;
+                if ( check>0.999999 && check<1.000001 ) {
+                    return fill;
+                }
+            }
+            return d;
+        }
+
+        @Override
+        public int adaptInteger(int index) {
+            if (index >= this.array.length) {
+                throw new ArrayIndexOutOfBoundsException("can't find the double at position " + index);
+            }
+            double d= this.array[index];
+            if ( fill!=0 ) {
+                double check= d/fill;
+                if ( check>0.999999 && check<1.000001 ) {
+                    return (int)fill;
+                }
+            }
+            return (int)d;
+        }
+        
+    }
+    
 
     private static class DoubleDoubleAdapter extends Adapter {
 
@@ -905,7 +952,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     double fill= param1.getDouble("fill"); //TODO: I think this is actually a string.
                     if (!c.isArray()) {
                         if (c == double.class) {
-                            adapters[i] = new DoubleDoubleAdapter((double[]) o,fill);
+                            if ( stype.equals("CDF_INT4") ) {
+                                adapters[i] = new IntDoubleAdapter((double[]) o,fill);
+                            } else {
+                                adapters[i] = new DoubleDoubleAdapter((double[]) o,fill);
+                            }
                         } else if (c == float.class) {
                             adapters[i] = new DoubleFloatAdapter((float[]) o,fill);
                         } else if (c == int.class) {
@@ -1004,7 +1055,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
             @Override
             public int getInteger(int i) {
-                return adapters[i].adaptInteger(i);
+                return adapters[i].adaptInteger(j);
             }
 
             @Override
