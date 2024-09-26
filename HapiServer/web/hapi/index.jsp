@@ -28,11 +28,23 @@
 <%@page import="java.io.File"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
+
+    <%
+        String HAPI_HOME= Initialize.getHapiHome(getServletContext());                
+        JSONObject landingConfig= HapiServerSupport.getLandingConfig(HAPI_HOME);
+        JSONObject about= HapiServerSupport.getAbout(HAPI_HOME);
+    %>
 <html>
     <head>
-        <title>HAPI Server</title>
+        <title><%= about.optString("title","Basic HAPI Server") %></title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <%
+            if ( landingConfig.has("style") ) {
+                String styleUrl= landingConfig.getString("style");
+                out.println("<link rel=\"stylesheet\" href=\""+styleUrl+"\">");
+            }
+        %>
     </head>
     <body>
 
@@ -40,13 +52,7 @@
             final int MAX_PARAMETERS=10;
             final int MAX_DATASETS=10;
             
-            String HAPI_HOME= Initialize.getHapiHome(getServletContext());
-                
             Initialize.maybeInitialize( HAPI_HOME );
-
-            JSONObject about= HapiServerSupport.getAbout(HAPI_HOME);
-
-            JSONObject landingConfig= HapiServerSupport.getLandingConfig(HAPI_HOME);
             
             Logger logger= Util.getLogger();
             
