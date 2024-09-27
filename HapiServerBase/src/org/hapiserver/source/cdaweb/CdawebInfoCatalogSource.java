@@ -113,6 +113,8 @@ public class CdawebInfoCatalogSource {
         try (BufferedReader r = new BufferedReader(new InputStreamReader( skipsFile.openStream() ))) {
             String s = r.readLine();
             while ( s!=null ) {  
+                int i=s.indexOf("#");
+                if ( i>-1 ) s= s.substring(0,i).trim();
                 String[] ss= s.split(",",-2);
                 if ( ss.length==2 ) {
                     if ( ss[0].contains(".") ) {
@@ -187,6 +189,9 @@ public class CdawebInfoCatalogSource {
                 Node node= nodes.item(i);
                 NamedNodeMap attrs= node.getAttributes();
                 String name= attrs.getNamedItem("serviceprovider_ID").getTextContent();
+                if ( name.startsWith("APOLLO") ) {
+                    System.err.println("here stop");
+                }
                 String st= attrs.getNamedItem("timerange_start").getTextContent();
                 String en= attrs.getNamedItem("timerange_stop").getTextContent();
                 if ( st.length()>1 && Character.isDigit(st.charAt(0))
@@ -208,7 +213,9 @@ public class CdawebInfoCatalogSource {
                             logger.log(Level.FINE, "skipping {0} because of match", name);
                         }
                     }
-                    if ( doSkip ) continue;
+                    if ( doSkip ) {
+                        continue;
+                    }
 
                     JSONObject jo= new JSONObject();
                     jo.setEscapeForwardSlashAlways(false);

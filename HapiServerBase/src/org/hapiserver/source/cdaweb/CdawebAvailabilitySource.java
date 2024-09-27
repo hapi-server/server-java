@@ -46,7 +46,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
     
     public CdawebAvailabilitySource(  String hapiHome, String idavail, JSONObject info, JSONObject data ) {
         int i= idavail.indexOf("/");
-        spid= idavail.substring(i+1);
+        spid= idavail.substring(0,i);
         try {
             JSONArray array= info.getJSONArray("parameters");
             JSONObject p= array.getJSONObject(2); // the filename parameter
@@ -90,16 +90,14 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
                 JSONObject jo= catalog.getJSONObject(i);
                 jo.setEscapeForwardSlashAlways(false);
                 String id= jo.getString("id");
-                if ( id.contains(" ") ) {
-                    System.err.println("here stop");
-                }
-                jo.put( "id", "availability/" + id );
+                jo.put( "id", id + "/availability" );
                 if ( jo.has("title") ) {
                     jo.put("title","Availability of "+jo.getString("title") );
                 }
                 catalog.put( i, jo );
             }
             catalogContainer.put("catalog", catalog);
+            catalogContainer.setEscapeForwardSlashAlways(false);
             return catalogContainer.toString(4);
             
         } catch (JSONException ex) {
@@ -151,7 +149,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
     
     /**
      * get the info for the id.
-     * @param idavail the dataset id, ending in "/availability"
+     * @param idavail the dataset id, starting with "availability/"
      * @return 
      */
     public static String getInfo( String idavail ) {
@@ -167,7 +165,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         }
         
         int i= idavail.indexOf("/");
-        String id= idavail.substring(i+1);
+        String id= idavail.substring(0,i);
         String sampleTime= getSampleTime(id);
         String sampleStartDate, sampleStopDate;
         sampleStartDate= "2019-04-01T00:00:00.000Z";
