@@ -97,6 +97,28 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         throw new IllegalArgumentException("unsupported type: "+param.getString("type"));
     }
 
+    private static void performFuzzyFill(double[] dd, double fill ) {
+        for ( int i=0; i<dd.length; i++ ) {
+            double d= dd[i];            
+            if ( fill!=0 ) {
+                double check= d/fill;
+                if ( check>0.999999 && check<1.000001 ) {
+                    dd[i]= fill;
+                }
+            }
+        }
+    }
+    
+    private static double performFuzzyFill(double d, double fill ) {
+        if ( fill!=0 ) {
+            double check= d/fill;
+            if ( check>0.999999 && check<1.000001 ) {
+                return fill;
+            }
+        }
+        return d;
+    }
+    
     static class TimerFormatter extends Formatter {
 
         long t0 = System.currentTimeMillis();
@@ -281,12 +303,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 throw new ArrayIndexOutOfBoundsException("can't find the double at position " + index);
             }
             double d= this.array[index];
-            if ( fill!=0 ) {
-                double check= d/fill;
-                if ( check>0.999999 && check<1.000001 ) {
-                    return (int)fill;
-                }
-            }
+            d= performFuzzyFill(d, fill);
             return (int)d;
         }
         
@@ -309,12 +326,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 throw new ArrayIndexOutOfBoundsException("can't find the double at position " + index);
             }
             double d= this.array[index];
-            if ( fill!=0 ) {
-                double check= d/fill;
-                if ( check>0.999999 && check<1.000001 ) {
-                    return fill;
-                }
-            }
+            d= performFuzzyFill(d, fill);
             return d;
         }
     }
@@ -337,8 +349,10 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
         @Override
         public double[] adaptDoubleArray(int index) {
-            if ( this.array[index].length==items ) {
-                return this.array[index];
+            if ( this.array[index].length==items ) { // TODO: comment where this is not the case
+                double[] dd= this.array[index];
+                performFuzzyFill( dd, fill );
+                return dd;
             } else {
                 double[] result= new double[items];
                 System.arraycopy( this.array[index], 0, result, 0, n );
@@ -366,18 +380,14 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
         private DoubleFloatAdapter(float[] array,double fill) {
             this.array = array;
+            this.fill= fill;
         }
 
         @Override
         public double adaptDouble(int index) {
             double d= this.array[index];
-            if ( fill!=0 ) {
-                double check= d/fill;
-                if ( check>0.999999 && check<1.000001 ) {
-                    return fill;
-                }
-            }
-            return this.array[index];
+            d= performFuzzyFill( d, fill );
+            return d;
         }
     }
 
