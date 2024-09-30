@@ -282,7 +282,13 @@ public class CdawebInfoCatalogSource {
             URL url = new URL( "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/info/"+id+".json" );
             String src= SourceUtil.getAllFileLines( url );
             try {
-                JSONObject jo= new JSONObject(src);
+                JSONObject jo;
+                try {
+                    jo= new JSONObject(src);
+                } catch ( JSONException ex ) {
+                    JSONArray array= new JSONArray(src);  // Bob had everything in 1-element array 
+                    jo= array.getJSONObject(0);
+                }
                 if ( jo.has("info") ) {
                     jo= jo.getJSONObject("info");
                 }
