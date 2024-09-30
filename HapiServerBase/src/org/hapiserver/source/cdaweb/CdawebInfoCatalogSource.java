@@ -263,7 +263,7 @@ public class CdawebInfoCatalogSource {
      * responses are stored (presently) at http://mag.gmu.edu/git-data/cdaweb-hapi-metadata/hapi/bw/CDAWeb/info/.
      * @param id the dataset id.
      * @param srcid nl (to call the old server) or bw (to use Bob's info calculations) or "" to use new code.
-     * @return the info response.
+     * @return the info response. 
      * @throws MalformedURLException
      * @throws IOException 
      */
@@ -286,7 +286,7 @@ public class CdawebInfoCatalogSource {
                 try {
                     jo= new JSONObject(src);
                 } catch ( JSONException ex ) {
-                    JSONArray array= new JSONArray(src);  // Bob had everything in 1-element array 
+                    JSONArray array= new JSONArray(src);  // Bob had everything in 1-element array briefly
                     jo= array.getJSONObject(0);
                 }
                 if ( jo.has("info") ) {
