@@ -21,6 +21,10 @@
                 "type": "string"
             },
             "uniqueItems": true
+        },
+        "style" : {
+            "description" : "Link to style sheet for the landing page.",
+            "type" : "string"
         }
     }
 }
