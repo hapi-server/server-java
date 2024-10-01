@@ -962,7 +962,9 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     double fill= param1.getDouble("fill"); //TODO: I think this is actually a string.
                     if (!c.isArray()) {
                         if (c == double.class) {
-                            if ( stype.equals("CDF_INT4") ) {
+                            if ( stype.startsWith("CDF_INT") ) {
+                                adapters[i] = new IntDoubleAdapter((double[]) o,fill);
+                            } else if ( stype.startsWith("CDF_UINT") ) {
                                 adapters[i] = new IntDoubleAdapter((double[]) o,fill);
                             } else {
                                 adapters[i] = new DoubleDoubleAdapter((double[]) o,fill);
