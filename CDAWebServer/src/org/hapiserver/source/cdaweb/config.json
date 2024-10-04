@@ -6,13 +6,13 @@
              "_x_source": "spawn",
              "_x_command": "wget -O - https://cdaweb.gsfc.nasa.gov/hapi/catalog",
              "x_source": "classpath",
-             "x_classpath": "file:/home/jbf/temp/server-java/CDAWebServer/dist/CDAWebServer.jar",
+             "x_classpath": "CDAWebServer.jar",
              "x_class": "org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
              "x_method": "getCatalog20230629",
              "x_config": {
                  "info": {
                      "x_source":"classpath",
-                     "x_classpath": "file:/home/jbf/temp/server-java/CDAWebServer/dist/CDAWebServer.jar",
+                     "x_classpath": "CDAWebServer.jar",
                      "x_class":"org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
                      "x_method": "getInfo",
                      "x_args": [ "${id}", "bw" ]
@@ -23,7 +23,7 @@
                  },
                  "data": {                     
                      "source": "classpath",
-                     "x_classpath": "file:/home/jbf/temp/server-java/CDAWebServer/dist/CDAWebServer.jar",             
+                     "x_classpath": "CDAWebServer.jar",             
                      "class":"org.hapiserver.source.cdaweb.CdawebServicesHapiRecordSource"
                  }
              }
