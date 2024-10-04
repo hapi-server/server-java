@@ -1,0 +1,37 @@
+# see https://github.com/autoplot/dev/blob/master/demos/2023/20230516/unplotCdawebAvail.jy
+WI_SW_ION_DIST_SWE_FARADAY 1994-12-31T01:52:02.767Z 2023-05-03T00:18:40.461Z
+WI_STRAHL0_SWE 1995-02-05T09:26:27.320Z 2001-07-23T21:43:03.285Z
+WI_SOSP_3DP 1995-02-05T09:26:27.320Z 2023-06-08T07:53:05.014Z
+WI_SOSD_3DP 1995-02-05T09:26:27.320Z 2023-06-08T07:53:05.014Z
+# http://localhost:8080/HapiServer/hapi/data?id=A1_K0_MPA&time.min=2001-08-31T00:03:18Z&time.max=2001-09-01T00:03:18.000Z
+# http://localhost:8080/HapiServer/hapi/data?id=availability/A1_K0_MPA&time.min=2001-08-01T00:03:18Z&time.max=2001-09-01T00:00:00.000Z
+DE_UV_SAI double[][][]
+
+This crashes, maybe because it is integer data (DONE):
+http://localhost:8080/HapiServer/hapi/data?id=WI_OR_DEF&start=1997-06-30T23:50:00.000Z&stop=1997-07-01T23:50:00.000Z&parameters=Time,CRN_EARTH
+
+strange bug where fill is mishandled for some data:
+http://localhost:8080/HapiServer/hapi/data?id=AC_H3_MFI&parameters=&time.min=2024-06-11T00:00Z&time.max=2024-06-11T23:59:59Z
+
+But where type adapter is not correctly chosen:
+http://localhost:8080/HapiServer/hapi/data?id=WI_H0_SWE&parameters=&time.min=2001-05-30T00:00:20Z&time.max=2001-05-30T23:59:47Z
+
+Uses web services:
+* I8_H0_MITPLASMA0
+* http://localhost:8080/HapiServer/hapi/data?dataset=MMS4_FGM_SRVY_L2@0&parameters=Time,mms4_fgm_b_gse_srvy_l2_clean&start=2024-07-23&stop=2024-07-24 apply_esa_qflag 
+
+Doesn't use web services:
+* http://localhost:8080/HapiServer/hapi/data?dataset=A1_K0_MPA&start=2008-01-02T00:02:16Z&stop=2008-01-02T23:57:19Z
+
+Gets the type wrong:
+* http://localhost:8080/HapiServer/hapi/data?dataset=MMS1_EDI_SRVY_L2_EFIELD&start=2023-08-21T17:33:02Z&stop=2023-08-21T22:57:02Z
+* http://localhost:8080/HapiServer/hapi/data?dataset=MMS1_EDP_FAST_L2_DCE&start=2024-07-09T02:12:03Z&stop=2024-07-09T23:59:58Z
+* http://localhost:8080/HapiServer/hapi/data?id=MMS1_EPD-EIS_SRVY_L2_ELECTRONENERGY&parameters=&time.min=2024-06-26T10:22:21Z&time.max=2024-06-26T13:06Z
+* http://localhost:8080/HapiServer/hapi/data?id=MMS1_EPD-EIS_BRST_L2_PHXTOF&parameters=&time.min=2024-07-25T20:14:03Z&time.max=2024-07-25T20:16:22Z
+* http://localhost:8080/HapiServer/hapi/data?id=MMS1_EPD-EIS_BRST_L2_EXTOF&parameters=&time.min=2024-07-25T20:14:03Z&time.max=2024-07-25T20:16:22Z
+
+Timetags don't match:
+* http://localhost:8080/HapiServer/hapi/data?id=MMS1_EDI_SRVY_L2_AMB@0&parameters=&time.min=2015-12-26T00:00Z&time.max=2015-12-26T02:23:36Z
+
+Timetags repeat:
+* wget -O - -o /dev/null 'http://localhost:8080/HapiServer/hapi/data?id=MMS1_EDI_SRVY_L2_AMB@0&parameters=&time.min=2015-12-26T00:00Z&time.max=2015-12-26T00:01:00Z'
