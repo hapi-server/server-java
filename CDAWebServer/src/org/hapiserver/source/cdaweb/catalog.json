@@ -6,44 +6,28 @@
              "_x_source": "spawn",
              "_x_command": "wget -O - https://cdaweb.gsfc.nasa.gov/hapi/catalog",
              "x_source": "classpath",
+             "x_classpath": "file:/home/jbf/temp/server-java/CDAWebServer/dist/CDAWebServer.jar",
              "x_class": "org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
              "x_method": "getCatalog20230629",
              "x_config": {
                  "info": {
                      "x_source":"classpath",
+                     "x_classpath": "file:/home/jbf/temp/server-java/CDAWebServer/dist/CDAWebServer.jar",
                      "x_class":"org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
                      "x_method": "getInfo",
-                     "x_args": [ "${id}", "nl" ]
+                     "x_args": [ "${id}", "bw" ]
                  },
                  "_info": {
                     "source":"spawn",
                     "command":"wget -O - https://cdaweb.gsfc.nasa.gov/hapi/info?id=${id}"
                  },
-                 "data": {
+                 "data": {                     
                      "source": "classpath",
+                     "x_classpath": "file:/home/jbf/temp/server-java/CDAWebServer/dist/CDAWebServer.jar",             
                      "class":"org.hapiserver.source.cdaweb.CdawebServicesHapiRecordSource"
                  }
              }
-         },
-         {
-             "x_group_id": "cdaweb_availability", 
-             "x_source": "classpath",
-             "x_class": "org.hapiserver.source.cdaweb.CdawebAvailabilitySource",
-             "x_method": "getCatalog",
-             "x_config": {
-                 "info": {
-                     "x_source":"classpath",
-                     "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilitySource",
-                     "x_method": "getInfo",
-                     "x_args": [ "${id}" ]
-                 },
-                 "data": {
-                     "x_source": "classpath",
-                     "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilitySource"
-                 }
-             }
          }
-         
      ],
      "status": {
          "code": 1200,
