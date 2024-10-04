@@ -78,12 +78,7 @@ public class SourceRegistry {
                     try {
                         String s= dataConfig.optString("classpath",dataConfig.optString("x_classpath"));
                         s= SpawnRecordSource.doMacros( hapiHome, id, s );
-                        URL url;
-                        if ( s.startsWith("http://") || s.startsWith("https://") || s.startsWith("file:") ) { 
-                            url= new URL( s );
-                        } else {
-                            url= new File(s).toURI().toURL();
-                        }
+                        URL url= HapiServerSupport.getClasspath(hapiHome,s);
                         cl= new URLClassLoader( new URL[] { url }, SourceRegistry.class.getClassLoader());
                         cl.getParent();
                     } catch (MalformedURLException ex) {

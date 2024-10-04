@@ -135,7 +135,7 @@ public class HapiServerSupport {
 
     private static final Map<String,CatalogData> catalogCache= new HashMap<>();
 
-    private static JSONObject resolveCatalog(JSONObject jo) throws JSONException {
+    private static JSONObject resolveCatalog(String HAPI_HOME, JSONObject jo) throws JSONException {
         JSONArray catalog= jo.getJSONArray("catalog");
         JSONArray resolvedCatalog= new JSONArray();
         JSONObject groups= new JSONObject();
@@ -172,7 +172,7 @@ public class HapiServerSupport {
                     groups.put( groupId, config );
                 }
             } else if ( source.equals("classpath") ) {
-                String HAPI_HOME="";       
+                 
                 String groupId= item.optString("x_group_id","");
                 
                 try {
@@ -328,12 +328,7 @@ public class HapiServerSupport {
         if ( s.length()>0 ) {
             try {
                 s= SpawnRecordSource.doMacros( HAPI_HOME, "", s );
-                URL url;
-                if ( s.startsWith("http://") || s.startsWith("https://") || s.startsWith("file:") ) { 
-                    url= new URL( s );
-                } else {
-                    url= new File(s).toURI().toURL();
-                }
+                URL url= getClasspath(HAPI_HOME, s);
                 cl= new URLClassLoader( new URL[] { url }, SourceRegistry.class.getClassLoader());
                 cl.getParent();
             } catch (MalformedURLException ex) {
@@ -410,6 +405,27 @@ public class HapiServerSupport {
     }
     
     /**
+     * return the URL identified by s, which can be relative to the HAPI_HOME/config directory.
+     * @param HAPI_HOME home of config and resolved responses, often /tmp/hapi-server/.
+     * @param s the path for the jar file.
+     * @return the resolved URL.
+     * @throws MalformedURLException 
+     */
+    protected static URL getClasspath( String HAPI_HOME, String s ) throws MalformedURLException {
+        URL url;
+        if ( s.startsWith("http://") || s.startsWith("https://") || s.startsWith("file:") ) { 
+            url= new URL( s );
+        } else {
+            if ( s.contains("/") ) {
+                url= new File(s).toURI().toURL();
+            } else {
+                url= new File(HAPI_HOME + "/config/",s).toURI().toURL();
+            }
+        }    
+        return url;
+    }
+    
+    /**
      * Allow a java call to produce the info for a dataset id.  The JSONObject should 
      * have the tags "class" and "method" which identify a static method which takes the
      * id as an argument.
@@ -431,12 +447,7 @@ public class HapiServerSupport {
             try {
                 String s= classpath;
                 s= SpawnRecordSource.doMacros( HAPI_HOME, id, s );
-                URL url;
-                if ( s.startsWith("http://") || s.startsWith("https://") || s.startsWith("file:") ) { 
-                    url= new URL( s );
-                } else {
-                    url= new File(s).toURI().toURL();
-                }
+                URL url= getClasspath(HAPI_HOME, s);
                 cl= new URLClassLoader( new URL[] { url }, SourceRegistry.class.getClassLoader());
                 cl.getParent();
             } catch (MalformedURLException ex) {
@@ -723,7 +734,7 @@ public class HapiServerSupport {
                 JSONObject jo= Util.newJSONObject(s);
                 
                 logger.info("resolveCatalog");
-                jo= resolveCatalog( jo );
+                jo= resolveCatalog( HAPI_HOME, jo );
                 
                 try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
                     logger.log(Level.INFO, "write resolved catalog to {0}", catalogFile.getPath());
@@ -945,6 +956,19 @@ public class HapiServerSupport {
             
             
             try {
+                if ( !jo.has("data") ) {
+                    getInfo( HAPI_HOME, id );
+                    JSONObject jo1= cc.catalog.optJSONObject("x_dataset_to_group");
+                    String group= jo1.optString( id, null );
+                    if ( group!=null ) {
+                        config= cc.catalog.optJSONObject("x_groups");
+                        if ( config==null ) throw new BadRequestIdException( safeId );
+                        config= config.getJSONObject(group);
+                        jo= config;
+                    } else {
+                        throw new BadRequestIdException( safeId );
+                    }
+                }
                 jo= jo.getJSONObject("data");
                 String dataString= jo.toString(4);
                 if ( !file.getParentFile().exists() ) {
