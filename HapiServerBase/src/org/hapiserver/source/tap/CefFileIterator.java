@@ -65,6 +65,20 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
     private ReadableByteChannel lun;
 
+    /**
+     * Check to see if record contains just "END_DATA".
+     * C3_CQ_EDI_ANOMALY_AE has "   END_DATA"
+     * @param record
+     * @return true of the record contains just "END_DATA"
+     */
+    private boolean checkEndData(ByteBuffer record) {
+        byte[] bb= record.duplicate().array();
+        String buff= new String(bb,record.position(),record.limit());
+
+        buff= buff.trim();
+        return buff.startsWith("END_DATA");
+    }
+
     protected static class GlobalStruct {
 
         //String name;
@@ -674,10 +688,10 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
     private HapiRecord nextRecord;
 
-//    private static String peekWorkBuffer( ByteBuffer work_buffer ) {
-//        byte[] bb= work_buffer.duplicate().array();
-//        return new String(bb);
-//    }
+    private static String peekWorkBuffer( ByteBuffer work_buffer ) {
+        byte[] bb= work_buffer.duplicate().array();
+        return new String(bb);
+    }
     
     private void readNextRecord() throws IOException {
 
@@ -736,6 +750,12 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             int stringLength = delimeterPos;
             ByteBuffer record = work_buffer.slice();
             record.limit(stringLength);
+            //peekWorkBuffer(record);
+            if ( checkEndData(work_buffer) ) {
+                eof= true;
+                nextRecord= null;
+                return;
+            }
             nextRecord = parseRecord(record);
             logger.log(Level.FINER, "Read: {0}", nextRecord);
             if ( nextRecord.getIsoTime(0).compareTo("2100")>0 ) { // If it is appearently fill
