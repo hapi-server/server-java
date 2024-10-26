@@ -78,3 +78,6 @@ https://cottagesystems.com/server/debug/hapi/data?id=C3_CP_WHI_WAVE_FORM_ENERGY&
 
 # comment characters were not handled for some reason.  Testing with C3_CQ_EDI_ANOMALY_AE and C1_CP_FGM_SPIN shows the code works.
 https://csa.esac.esa.int/csa-sl-tap/data?RETRIEVAL_TYPE=product&RETRIEVAL_ACCESS=streamed&DATASET_ID=C3_CQ_EDI_ANOMALY_AE&START_DATE=2020-12-31T00:00:00Z&END_DATE=2021-01-01T00:00:00Z
+
+# the stream is terminated with "END_DATA" and no one was checking for this.
+vap+hapi:http://localhost:8080/HapiServer/hapi?id=C3_CQ_EDI_ANOMALY_AE&timerange=2020
