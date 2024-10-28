@@ -1239,6 +1239,9 @@ public class HapiServerSupport {
                 }
             }
         }
+        
+        JSONObject jo0= jo;
+        
         jo= resolveTimes(jo);
         
         JSONObject status= Util.newJSONObject();
@@ -1259,7 +1262,7 @@ public class HapiServerSupport {
                 throw new IllegalArgumentException("This should not happen");
             }
             long expiresTimeStamp= System.currentTimeMillis()+CONFIG_CACHE_FILE_MAX_LIFE_MILLIS;
-            infoData= new InfoData(jo,latestTimeStamp,expiresTimeStamp);
+            infoData= new InfoData(jo0,latestTimeStamp,expiresTimeStamp);
             cc.infoCache.put( safeId, infoData );
         }
         return jo;
