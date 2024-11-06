@@ -512,7 +512,9 @@ public class CefFileIterator implements Iterator<HapiRecord> {
             ParamStruct p = cef.parameters.get(key);
             int index= p.cefFieldPos[0];
             if (index==-1 ) { // Non-record-varying
-                //columnIndices.add(Collections.singletonList(-i));
+                if ( ((String[])p.entries.get("DATA")).length==1 ) {
+                    columnIndices.add(Collections.singletonList(-i));
+                }
                 String[] nonRecordVaryingValues= (String[])p.entries.get("DATA");
                 vfields.put( -i, nonRecordVaryingValues );
             } else {
