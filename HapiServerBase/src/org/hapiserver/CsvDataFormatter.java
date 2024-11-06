@@ -119,13 +119,14 @@ public class CsvDataFormatter implements DataFormatter {
     @Override
     public void initialize( JSONObject info, OutputStream out, HapiRecord record) {
         try {
-            quotes= new boolean[record.length()];
-            lengths= new int[record.length()];
-            fill= new String[record.length()];
-            dfill= new double[record.length()];
-            types= new int[record.length()];
-            exampleTimes= new String[record.length()];
-            formats= new String[record.length()];
+            int len= record.length();
+            quotes= new boolean[len];
+            lengths= new int[len];
+            fill= new String[len];
+            dfill= new double[len];
+            types= new int[len];
+            exampleTimes= new String[len];
+            formats= new String[len];
             
             int[] lens= getNumberOfElements(info);
             JSONArray parameters= info.getJSONArray("parameters");
