@@ -239,7 +239,7 @@ public class CsaInfoCatalogSource {
                         String sdata= c.getTextContent();
                         constantData[i]= sdata; 
                         String[] ss= constantData[i].trim().split("\\s+");
-                        if ( ss.length>1 ) {
+                        if ( ss.length>1 ) { // ytags vs constant like time_width.
                             JSONObject data= new JSONObject();
                             data.put( "name", name );
                             JSONArray ja= new JSONArray();
@@ -325,6 +325,13 @@ public class CsaInfoCatalogSource {
                     String nodeName= c.getNodeName();
                     String nodeValue= c.getTextContent();
                     switch (c.getNodeName()) {
+                        case "DATA":
+                            String sdata= c.getTextContent();
+                            String[] ss= sdata.trim().split("\\s+");
+                            if ( ss.length==1 ) { // ytags vs constant like time_width.
+                                parameter.put("x_constant", ss[0] );
+                            }
+                            break;
                         case "PARAMETER_ID":
                             if ( popLabel ) {
                                 nodeValue= nodeValue.substring(0,nodeValue.length()-2-id.length());
