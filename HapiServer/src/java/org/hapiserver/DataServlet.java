@@ -22,6 +22,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.exceptions.BadRequestIdException;
@@ -363,6 +364,15 @@ public class DataServlet extends HttpServlet {
             
                 logger.log(Level.FINER, "first record read from source: {0}", first.getIsoTime(0));
                 
+                try {
+                    JSONArray pp= jo.getJSONArray("parameters");
+                    if ( pp.length()!=first.length() ) {
+                        throw new IllegalStateException("Info parameters.length() does not equal the number of parameters in the HAPIRecord");
+                    }        
+                } catch (JSONException ex) {
+                    Logger.getLogger(DataServlet.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
                 dataFormatter.initialize( jo, out, first );
                 
                 doVerify(dataFormatter, first, jo);
