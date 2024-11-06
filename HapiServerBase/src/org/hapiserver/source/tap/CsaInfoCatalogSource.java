@@ -280,6 +280,7 @@ public class CsaInfoCatalogSource {
                 if ( name==null ) throw new IllegalArgumentException("unnamed parameter");
                
                 JSONObject parameter = new JSONObject();
+                JSONObject secondParameter= null;
                 for (int j = 0; j < n.getLength(); j++) {
                     Node c = n.item(j); // parameter
                     String nodeName= c.getNodeName();
@@ -294,6 +295,10 @@ public class CsaInfoCatalogSource {
                                 parameter.put("type", "isotime");
                                 parameter.put("x_type", "ISO_TIME_RANGE");
                                 parameter.put("units", "UTC" );
+                                secondParameter= new JSONObject();
+                                secondParameter.put("type","isotime");
+                                secondParameter.put("x_type", "ISO_TIME_RANGE");
+                                secondParameter.put("units", "UTC" );
                                 break;
                             case "FLOAT":
                             case "DOUBLE":
@@ -337,6 +342,9 @@ public class CsaInfoCatalogSource {
                                 nodeValue= nodeValue.substring(0,nodeValue.length()-2-id.length());
                             }
                             parameter.put("name", nodeValue);
+                            if ( secondParameter!=null ) {
+                                secondParameter.put("name",nodeValue+"_stop");
+                            }
                             break;
                         case "UNITS":
                             if ( isTime ) {
@@ -360,7 +368,8 @@ public class CsaInfoCatalogSource {
                             String type = parameter.optString("type", "");
                             if ( isTime || type.equals("string")) {
                                 if (parameter.optString("x_type", "").equals("ISO_TIME_RANGE")) {
-                                    parameter.put("length", 25);
+                                    parameter.put("length",25);
+                                    if ( secondParameter!=null ) secondParameter.put("length",25);
                                 } else {
                                     parameter.put("length", Integer.parseInt(nodeValue));
                                 }
@@ -381,6 +390,7 @@ public class CsaInfoCatalogSource {
                         case "FILLVAL":
                             if ( isTime ) {
                                 parameter.put("fill", JSONObject.NULL );
+                                if ( secondParameter!=null ) secondParameter.put("fill", JSONObject.NULL );
                             } else {
                                 parameter.put("fill", nodeValue);
                             }
@@ -429,6 +439,9 @@ public class CsaInfoCatalogSource {
                     
                 } else {                
                     parameters.put(parameters.length(), parameter);
+                    if (secondParameter!=null) {
+                        parameters.put(parameters.length(),secondParameter);
+                    }
 
                 }
             }

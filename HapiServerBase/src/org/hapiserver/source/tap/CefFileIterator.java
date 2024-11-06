@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 import org.hapiserver.AbstractHapiRecord;
 import org.hapiserver.HapiRecord;
@@ -38,13 +40,16 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         return cef;
     }
 
-    public CefFileIterator(ReadableByteChannel lun) throws IOException {
+    private JSONObject info;
+    
+    public CefFileIterator(ReadableByteChannel lun,JSONObject info) throws IOException {
 
         for (int i = 0; i < doParse.length; i++) {
             doParse[i] = true;
         }
 
         this.lun = lun;
+        this.info= info;
 
         CefReaderHeader readerh = new CefReaderHeader();
         cef = readerh.read(lun);
@@ -529,12 +534,23 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                     componentIndices.add(index+iComponent);
                     ffields.add(f1s[if1s++]);
                 }
+                
                 columnIndices.add(componentIndices);
+
+                if ( i==0 ) {
+                    try {
+                        if ( "ISO_TIME_RANGE".equals( info.getJSONArray("parameters").getJSONObject(0).getString("x_type") ) ) {
+                            columnIndices.add(componentIndices); // use the same twice
+                        }
+                    } catch (JSONException ex) {
+                        Logger.getLogger(CefFileIterator.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
             }
         }
         
         fields= ffields.toArray( new String[ffields.size()] );
-
+       
         // columnIndices maps from parameter number to CEF file column(s).  If it is
         // -1, it means the data is constant, and idx will refer to the column in the CEF file.
         return new AbstractHapiRecord() {
@@ -550,8 +566,15 @@ public class CefFileIterator implements Iterator<HapiRecord> {
                 if (field.length() > 45) { //TODO: kludge for time ranges.  See https://github.com/hapi-server/server-java/issues/22
                     int is1 = field.indexOf("/");
                     if (is1 > 0) {
-                        field = field.substring(0, 24);
-                        if ( !field.endsWith("Z") ) field=field+"Z";
+                        if ( i==0 ) {
+                            field = field.substring(0, 24);
+                            if ( !field.endsWith("Z") ) field=field+"Z";
+                        } else if ( i==1 ) {
+                            field = field.substring(is1+1).substring(0,24);
+                            if ( !field.endsWith("Z") ) field=field+"Z";
+                        } else {
+                            throw new IllegalArgumentException("time ranges only supported for first two fields");
+                        }
                     }
                 }
                 return field;
@@ -842,7 +865,7 @@ public class CefFileIterator implements Iterator<HapiRecord> {
         System.err.println("begin reading " + uu);
         long t0 = System.currentTimeMillis();
 
-        CefFileIterator iter = new CefFileIterator(lun);
+        CefFileIterator iter = new CefFileIterator(lun,null);
         Cef cefSample = iter.getCef();
         List<String> headerList = new ArrayList<>();
         headerList.add("Epoch");

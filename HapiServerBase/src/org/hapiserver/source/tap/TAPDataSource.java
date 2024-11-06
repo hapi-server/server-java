@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.AbstractHapiRecordSource;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
@@ -24,13 +25,18 @@ public class TAPDataSource extends AbstractHapiRecordSource {
 
     private final String tapServerURL;
     private final String id;
+    private final JSONObject info;
     
     private InputStream in=null;
 
-    public TAPDataSource(String tapServerURL, String id) {
+    public TAPDataSource(String tapServerURL, String id, JSONObject info) {
         this.tapServerURL = tapServerURL;
         this.id = id;
+        this.info= info;
+    }
 
+    public TAPDataSource(String tapServerURL, String id) {
+        this(tapServerURL,id,null);
     }
 
     @Override
@@ -66,7 +72,7 @@ public class TAPDataSource extends AbstractHapiRecordSource {
             URL uu = new URL(queryString);
             in = uu.openStream();
             ReadableByteChannel lun = Channels.newChannel(in);
-            CefFileIterator iter = new CefFileIterator(lun);
+            CefFileIterator iter = new CefFileIterator(lun,info);
 
             return iter;
         } catch (IOException e) {
