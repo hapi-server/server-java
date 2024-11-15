@@ -117,7 +117,7 @@ public class Initialize {
             }
 
             // copy catalog.json to config.  Note either config.json or catalog.json can be used.
-            File configFile= new File( configDir, "catalog.json" );
+            File configFile= new File( configDir, "config.json" );
             logger.log(Level.INFO, "copy catalog.json from internal templates to {0}", configFile);
             
             try {
