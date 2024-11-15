@@ -75,6 +75,11 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     private ReadableByteChannel lun;
 
     /**
+     * tri-state is null if not yet known, then either True or False.
+     */
+    Boolean isIsoRange= null; 
+    
+    /**
      * Check to see if record contains just "END_DATA".
      * C3_CQ_EDI_ANOMALY_AE has "   END_DATA"
      * @param record
@@ -543,7 +548,14 @@ public class CefFileIterator implements Iterator<HapiRecord> {
 
                 if ( i==0 ) {
                     try {
-                        if ( "ISO_TIME_RANGE".equals( info.getJSONArray("parameters").getJSONObject(0).getString("x_type") ) ) {
+                        if ( isIsoRange==null ) {
+                            if ( info.getJSONArray("parameters").getJSONObject(0).has("x_type") ) {
+                                isIsoRange= "ISO_TIME_RANGE".equals( info.getJSONArray("parameters").getJSONObject(0).getString("x_type") );
+                            } else {
+                                isIsoRange= false;
+                            }
+                        }
+                        if ( isIsoRange ) {
                             columnIndices.add(componentIndices); // use the same twice
                         }
                     } catch (JSONException ex) {
