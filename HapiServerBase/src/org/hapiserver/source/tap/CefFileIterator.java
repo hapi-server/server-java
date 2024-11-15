@@ -44,6 +44,10 @@ public class CefFileIterator implements Iterator<HapiRecord> {
     
     public CefFileIterator(ReadableByteChannel lun,JSONObject info) throws IOException {
 
+        if ( info==null ) {
+            throw new NullPointerException("info is null");
+        }
+        
         for (int i = 0; i < doParse.length; i++) {
             doParse[i] = true;
         }
