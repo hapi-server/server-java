@@ -16,7 +16,7 @@
                  "data": {
                      "source": "classpath",
                      "class":"org.hapiserver.source.tap.TAPDataSource",
-                     "args":["https://csa.esac.esa.int/csa-sl-tap/","${id}"]
+                     "args":["https://csa.esac.esa.int/csa-sl-tap/","${id}","${info}"]
                  }
              }
          }
