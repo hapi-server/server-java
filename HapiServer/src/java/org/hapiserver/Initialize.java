@@ -116,40 +116,64 @@ public class Initialize {
                 logger.log(Level.FINE, "wrote config capabilities file {0}", capabilitiesFile);
             }
 
-            // copy catalog.json to config
-            File catalogFile= new File( configDir, "catalog.json" );
-            logger.log(Level.INFO, "copy catalog.json from internal templates to {0}", catalogFile);
+            // copy catalog.json to config.  Note either config.json or catalog.json can be used.
+            File configFile= new File( configDir, "catalog.json" );
+            logger.log(Level.INFO, "copy catalog.json from internal templates to {0}", configFile);
             
-            in= Util.getTemplateAsStream("catalog.json");
-            tmpFile= new File( configDir, "_catalog.json" );
-            Util.transfer( in, new FileOutputStream(tmpFile), true );
-            if ( !tmpFile.renameTo(catalogFile) ) {
-                logger.log(Level.SEVERE, "Unable to write to {0}", catalogFile);
-                throw new IllegalArgumentException("unable to write catalog file");
+            try {
+                in= Util.getTemplateAsStream("config.json");
+            } catch ( NullPointerException ex ) {
+                logger.log(Level.INFO, "config.json not found, using catalog.json.");
+                in= null;
+            }
+            
+            if ( in!=null ) {
+                tmpFile= new File( configDir, "_config.json" );
+                Util.transfer( in, new FileOutputStream(tmpFile), true );
+                if ( !tmpFile.renameTo(configFile) ) {
+                    logger.log(Level.SEVERE, "Unable to write to {0}", configFile);
+                    throw new IllegalArgumentException("unable to write catalog file");
+                } else {
+                    logger.log(Level.FINE, "wrote config file {0}", configFile);
+                }
             } else {
-                logger.log(Level.FINE, "wrote config catalog file {0}", catalogFile);
+                // copy config.json to config.  Note either config.json or catalog.json can be used.
+                File catalogFile= new File( configDir, "catalog.json" );
+                logger.log(Level.INFO, "copy catalog.json from internal templates to {0}", catalogFile);
+
+                in= Util.getTemplateAsStream("catalog.json");
+                tmpFile= new File( configDir, "_catalog.json" );
+                Util.transfer( in, new FileOutputStream(tmpFile), true );
+                if ( !tmpFile.renameTo(catalogFile) ) {
+                    logger.log(Level.SEVERE, "Unable to write to {0}", catalogFile);
+                    throw new IllegalArgumentException("unable to write catalog file");
+                } else {
+                    logger.log(Level.FINE, "wrote config catalog file {0}", catalogFile);
+                }
+                configFile= catalogFile;
             }
             
             // load each of the template's info files.
             try {
-                byte[] bb= Files.readAllBytes( Paths.get( catalogFile.toURI() ) );        
+                byte[] bb= Files.readAllBytes( Paths.get( configFile.toURI() ) );        
                 JSONObject jo= new JSONObject( new String(bb,"UTF-8") );
-                JSONObject jo2= HapiServerSupport.getCatalog(hapiHome.toString());
                 JSONArray cat=  jo.getJSONArray("catalog");
                 for ( int i=0; i<cat.length(); i++ ) {
                     try {
                         JSONObject ds= cat.getJSONObject(i);
-                        String id= ds.getString("id");
-                        id= Util.fileSystemSafeName(id);
-                        in= Util.getTemplateAsStream(id + ".json");
-                        tmpFile= new File( configDir, "_" + id + ".json" );
-                        Util.transfer( in, new FileOutputStream(tmpFile), true );
-                        File infoConfigFile = new File( configDir, id + ".json" );
-                        if ( !tmpFile.renameTo( infoConfigFile ) ) {
-                            logger.log(Level.SEVERE, "Unable to write to {0}", infoConfigFile);
-                            throw new IllegalArgumentException("unable to write info file");
-                        } else {
-                            logger.log(Level.FINE, "wrote config info file {0}", infoConfigFile);
+                        if ( ds.has("id") ) { // this is the mode where each id is within the catalog json.
+                            String id= ds.getString("id");
+                            id= Util.fileSystemSafeName(id);
+                            in= Util.getTemplateAsStream(id + ".json");
+                            tmpFile= new File( configDir, "_" + id + ".json" );
+                            Util.transfer( in, new FileOutputStream(tmpFile), true );
+                            File infoConfigFile = new File( configDir, id + ".json" );
+                            if ( !tmpFile.renameTo( infoConfigFile ) ) {
+                                logger.log(Level.SEVERE, "Unable to write to {0}", infoConfigFile);
+                                throw new IllegalArgumentException("unable to write info file");
+                            } else {
+                                logger.log(Level.FINE, "wrote config info file {0}", infoConfigFile);
+                            }
                         }
                     } catch ( IOException ex2 ) {
                         logger.log(Level.SEVERE, "Unable to write to {0}",ex2);
