@@ -30,6 +30,9 @@ public class TAPDataSource extends AbstractHapiRecordSource {
     private InputStream in=null;
 
     public TAPDataSource(String tapServerURL, String id, JSONObject info) {
+        if ( info==null ) {
+            throw new NullPointerException("info is null, check configuration to make sure info is passed in.");
+        }
         this.tapServerURL = tapServerURL;
         this.id = id;
         this.info= info;
