@@ -30,9 +30,10 @@ import org.hapiserver.exceptions.BadRequestParameterException;
  *      "granuleSize": "P1D"
  *   }
  * </pre>
- * Here command is the command which is run on the command line, with start, stop, format, parameters, and HAPI_HOME macros.
- * And the control timeFormat is used to format the start and stop times.  "stepSize" will cause the calls to be broken up 
- * into separate calls for each step.  
+ * Here <code>command</code> is the command which is run on the command line, with <code>start</code>, <code>stop</code>, 
+ * <code>timeFormat</code>, <code>parameters</code>, and <code>HAPI_HOME</code> macros.  
+ * Where the control timeFormat is used to format the start and stop times.  <code>granuleSize</code>
+ * will cause the calls to be broken up into separate calls for each step.  
  * @author jbf
  */
 public class SpawnRecordSource implements HapiRecordSource {
@@ -69,7 +70,6 @@ public class SpawnRecordSource implements HapiRecordSource {
         String tf= dataConfig.optString("timeFormat","");
         if ( tf.length()>0 ) {
             this.timeFormat= tf;
-            this.uriTemplate= new URITemplate(this.timeFormat);
         } else {
             this.timeFormat= null;
         }
@@ -78,9 +78,19 @@ public class SpawnRecordSource implements HapiRecordSource {
         if ( granuleSize.length()>0 ) {
             try {
                 this.granuleSize= TimeUtil.parseISO8601Duration( granuleSize );
+                if ( this.timeFormat==null ) {
+                    if ( granuleSize.equals("P1Y") ) {
+                        this.timeFormat="$Y";
+                    } else {
+                        throw new IllegalArgumentException("timeFormat must be specified when granuleSize is not P1Y");
+                    }
+                }
             } catch (ParseException ex) {
                 throw new RuntimeException(ex);
             }
+        }
+        if ( this.timeFormat!=null ) {
+            this.uriTemplate= new URITemplate(this.timeFormat);
         }
     }
 
