@@ -30,21 +30,15 @@ public class HapiWrapperIterator implements Iterator<HapiRecord> {
     
     boolean initialized= false;
     
-    String server;
-    String id;
     JSONObject info;
     URL request;
     InputStream in;
     BufferedReader reader;
     String nextRecord;
-    String[] params;
     CsvHapiRecordConverter converter;
     
     public HapiWrapperIterator( String server, String id, JSONObject info, String[] params, int[] start, int[] stop) {
-        this.server= server;
-        this.id= id;
         this.info= info;
-        this.params= params;
         String surl;
         try {
             JSONArray parameters= info.getJSONArray("parameters");
