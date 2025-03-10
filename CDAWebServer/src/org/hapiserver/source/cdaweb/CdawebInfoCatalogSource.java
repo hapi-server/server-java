@@ -169,6 +169,97 @@ public class CdawebInfoCatalogSource {
         throw new IllegalArgumentException("unable to find child node named: "+childName);
     }
     
+    
+    /**
+     * I need the file naming to be kept, so I can know how to granularize the data request.
+     * @param location
+     * @return
+     * @throws IOException 
+     */
+    public static String getCatalogOld( String location )  throws IOException {
+        readSkips();
+        try {
+            URL url= new URL("https://cdaweb.gsfc.nasa.gov/pub/catalogs/all.xml");
+            Document doc= SourceUtil.readDocument(url);
+            XPathFactory factory = XPathFactory.newInstance();
+            XPath xpath = (XPath) factory.newXPath();
+            NodeList nodes = (NodeList) xpath.evaluate( "//sites/datasite/dataset", doc, XPathConstants.NODESET );
+
+            int ic= 0;
+            JSONArray catalog= new JSONArray();
+            for ( int i=0; i<nodes.getLength(); i++ ) {
+                Node node= nodes.item(i);
+                NamedNodeMap attrs= node.getAttributes();
+                String name= attrs.getNamedItem("serviceprovider_ID").getTextContent();
+                if ( name.startsWith("APOLLO") ) {
+                    System.err.println("here stop");
+                }
+                String st= attrs.getNamedItem("timerange_start").getTextContent();
+                String en= attrs.getNamedItem("timerange_stop").getTextContent();
+                if ( st.length()>1 && Character.isDigit(st.charAt(0))
+                        && en.length()>1 && Character.isDigit(en.charAt(0)) ) {
+                    
+                    if ( name.contains(" ") ) {
+                        logger.log(Level.FINE, "skipping because space in name: {0}", name); //TODO: trailing spaces can probably be handled.
+                        continue;
+                    }
+
+                    if ( skips.contains(name) ) {
+                        logger.log(Level.FINE, "skipping {0}", name);
+                        continue;
+                    }
+                    boolean doSkip= false;
+                    for ( Pattern p: skipsPatterns ) {
+                        if ( p.matcher(name).matches() ) {
+                            doSkip= true;
+                            logger.log(Level.FINE, "skipping {0} because of match", name);
+                        }
+                    }
+                    if ( doSkip ) {
+                        continue;
+                    }
+
+                    JSONObject jo= new JSONObject();
+                    jo.setEscapeForwardSlashAlways(false);
+                    
+                    jo.put( "id", name );
+                    
+                    String sourceurl;
+                    try {
+                        sourceurl = getURL(name,node,jo);
+                    } catch ( Exception ex ) {
+                        continue;
+                    }
+                    if ( sourceurl!=null && 
+                            ( sourceurl.startsWith( CDAWeb ) ||
+                            sourceurl.startsWith("ftp://cdaweb.gsfc.nasa.gov" ) ) && !sourceurl.startsWith("/tower3/private" ) ) {
+                        jo.put( "x_sourceUrl", sourceurl );
+                                                
+                        try {
+                            st = TimeUtil.formatIso8601TimeBrief( TimeUtil.parseISO8601Time(st) );
+                            en = TimeUtil.formatIso8601TimeBrief( TimeUtil.parseISO8601Time(en) );
+                            String range= st+"/"+en;
+                            jo.put( "x_range", range );
+                            CdawebInfoCatalogSource.coverage.put( name, range );
+                        } catch (ParseException ex) {
+                            logger.log(Level.SEVERE, null, ex);
+                        }
+
+                        catalog.put( ic++, jo );
+                    }
+                }
+
+            }
+
+            JSONObject result= new JSONObject();
+            result.put( "catalog", catalog );
+            return result.toString(4);
+        } catch (MalformedURLException | SAXException | ParserConfigurationException | XPathExpressionException | JSONException ex) {
+
+            throw new RuntimeException(ex);
+        }
+    }
+
     /**
      * return the catalog response by parsing all.xml.
      * @param location the URL of the catalog response.
@@ -185,6 +276,7 @@ public class CdawebInfoCatalogSource {
             JSONArray catalog= new JSONArray();
             for ( int i=0; i<readCatalog.length(); i++ ) {
                 catalog.put( i, readCatalog.get(i) );
+                //TODO: filenaming
             }
 
             JSONObject result= new JSONObject();
