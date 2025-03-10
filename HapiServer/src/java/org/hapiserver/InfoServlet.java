@@ -97,6 +97,9 @@ public class InfoServlet extends HttpServlet {
             if ( !jo.has("HAPI") ) {
                 jo.put("HAPI",Util.hapiVersion()); // TODO: this needs review.
             }
+            JSONObject status= new JSONObject("{ \"code\":1200, \"message\":\"OK\" }");
+            jo.put( "status", status );
+            
             String s= jo.toString(4);
             out.write(s.getBytes( HapiServerSupport.CHARSET ));
             
