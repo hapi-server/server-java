@@ -94,6 +94,9 @@ public class InfoServlet extends HttpServlet {
                 }
             }
             jo.remove("x_indexmap");
+            if ( !jo.has("HAPI") ) {
+                jo.put("HAPI",Util.hapiVersion()); // TODO: this needs review.
+            }
             String s= jo.toString(4);
             out.write(s.getBytes( HapiServerSupport.CHARSET ));
             
