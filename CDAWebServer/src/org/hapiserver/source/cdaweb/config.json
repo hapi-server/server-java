@@ -28,7 +28,28 @@
                     "class":"org.hapiserver.source.cdaweb.CdawebServicesHapiRecordSource"
                 }
             }
-        }
+        },
+        {
+            "x_group_id": "cdaweb_availability",
+            "x_source": "classpath",
+            "x_classpath": "CDAWebServer.jar",
+            "x_class": "org.hapiserver.source.cdaweb.CdawebAvailabilitySource",
+            "x_method": "getCatalog",
+            "x_config": {
+                "info": {
+                    "x_source":"classpath",
+                    "x_classpath": "CDAWebServer.jar",
+                    "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilitySource",
+                    "x_method": "getInfo",
+                    "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/info/${id}.json" ]
+                },
+                "data": {                     
+                    "source": "classpath",
+                    "x_classpath": "CDAWebServer.jar",             
+                    "class":"org.hapiserver.source.cdaweb.CdawebAvailabilitySource"
+                }
+            }
+        }        
     ],
     "status": {
         "code": 1200,
