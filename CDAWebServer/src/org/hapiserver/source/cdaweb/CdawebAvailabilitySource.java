@@ -149,10 +149,10 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
     
     /**
      * get the info for the id.
-     * @param idavail the dataset id, starting with "availability/"
+     * @param availUrl the dataset id, starting with "availability/"
      * @return 
      */
-    public static String getInfo( String idavail ) {
+    public static String getInfo( String availUrl ) {
         
         synchronized ( CdawebInfoCatalogSource.class ) {
             if ( CdawebInfoCatalogSource.filenaming==null || CdawebInfoCatalogSource.filenaming.isEmpty() ) {
@@ -164,8 +164,10 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             }
         }
         
-        int i= idavail.indexOf("/");
-        String id= idavail.substring(0,i);
+        int i2= availUrl.lastIndexOf("/");
+        int i1= availUrl.lastIndexOf("/",i2-1);
+        
+        String id= availUrl.substring(i1+1,i2);
         String sampleTime= getSampleTime(id);
         String sampleStartDate, sampleStopDate;
         sampleStartDate= "2019-04-01T00:00:00.000Z";
