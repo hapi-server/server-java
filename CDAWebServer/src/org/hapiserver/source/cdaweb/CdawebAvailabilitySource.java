@@ -82,7 +82,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
      */
     public static String getCatalog() throws IOException {
         try {
-            String catalogString= CdawebInfoCatalogSource.getCatalog();
+            String catalogString= CdawebInfoCatalogSource.getCatalog("http://mag.gmu.edu/git-data/cdawmeta/data/hapi/catalog.json");
             JSONObject catalogContainer= new JSONObject(catalogString);
             JSONArray catalog= catalogContainer.getJSONArray("catalog");
             int n= catalog.length();
@@ -116,7 +116,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         String range= CdawebInfoCatalogSource.coverage.get(id);
         if ( range==null ) {
             try {
-                CdawebInfoCatalogSource.getCatalog20230629();
+                CdawebInfoCatalogSource.getCatalog("http://mag.gmu.edu/git-data/cdawmeta/data/hapi/catalog.json");
                 range= CdawebInfoCatalogSource.coverage.get(id);
             } catch (IOException ex) {
                 logger.log(Level.SEVERE, null, ex);
@@ -157,7 +157,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         synchronized ( CdawebInfoCatalogSource.class ) {
             if ( CdawebInfoCatalogSource.filenaming==null || CdawebInfoCatalogSource.filenaming.isEmpty() ) {
                 try {
-                    CdawebInfoCatalogSource.getCatalog();
+                    CdawebInfoCatalogSource.getCatalog("http://mag.gmu.edu/git-data/cdawmeta/data/hapi/catalog.json");
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }

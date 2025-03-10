@@ -1,36 +1,37 @@
  {
-     "HAPI": "3.0",
-     "catalog": [
-         {
-            "x_group_id": "cdaweb",
-             "_x_source": "spawn",
-             "_x_command": "wget -O - https://cdaweb.gsfc.nasa.gov/hapi/catalog",
-             "x_source": "classpath",
-             "x_classpath": "CDAWebServer.jar",
-             "x_class": "org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
-             "x_method": "getCatalog20230629",
-             "x_config": {
-                 "info": {
-                     "x_source":"classpath",
-                     "x_classpath": "CDAWebServer.jar",
-                     "x_class":"org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
-                     "x_method": "getInfo",
-                     "x_args": [ "${id}", "bw" ]
-                 },
-                 "_info": {
-                    "source":"spawn",
-                    "command":"wget -O - https://cdaweb.gsfc.nasa.gov/hapi/info?id=${id}"
-                 },
-                 "data": {                     
-                     "source": "classpath",
-                     "x_classpath": "CDAWebServer.jar",             
-                     "class":"org.hapiserver.source.cdaweb.CdawebServicesHapiRecordSource"
-                 }
-             }
-         }
-     ],
-     "status": {
-         "code": 1200,
-         "message": "OK request successful"
-     }
- }
+    "HAPI": "3.0",
+    "catalog": [
+        {
+           "x_group_id": "cdaweb",
+            "_x_source": "spawn",
+            "_x_command": "wget -O - https://cdaweb.gsfc.nasa.gov/hapi/catalog",
+            "x_source": "classpath",
+            "x_classpath": "CDAWebServer.jar",
+            "x_class": "org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
+            "x_method": "getCatalog",
+            "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/catalog.json" ],
+            "x_config": {
+                "info": {
+                    "x_source":"classpath",
+                    "x_classpath": "CDAWebServer.jar",
+                    "x_class":"org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
+                    "x_method": "getInfo",
+                    "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/info/${id}.json" ]
+                },
+                "_info": {
+                   "source":"spawn",
+                   "command":"wget -O - https://cdaweb.gsfc.nasa.gov/hapi/info?id=${id}"
+                },
+                "data": {                     
+                    "source": "classpath",
+                    "x_classpath": "CDAWebServer.jar",             
+                    "class":"org.hapiserver.source.cdaweb.CdawebServicesHapiRecordSource"
+                }
+            }
+        }
+    ],
+    "status": {
+        "code": 1200,
+        "message": "OK request successful"
+    }
+}
