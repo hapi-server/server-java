@@ -81,7 +81,7 @@ experimental and proposed for 3.2</description>
     <servlet-mapping>
         <servlet-name>LandingServlet</servlet-name>
         <url-pattern>/hapi</url-pattern>
-    </servlet-mapping>    
+    </servlet-mapping>
     <servlet-mapping>
         <servlet-name>EmptyServlet</servlet-name>
         <url-pattern>/</url-pattern>
