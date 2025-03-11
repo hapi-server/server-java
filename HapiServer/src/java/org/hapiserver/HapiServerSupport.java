@@ -164,7 +164,7 @@ public class HapiServerSupport {
                         resolvedCatalog.put( resolvedCatalogLength, catalogItem );
                         resolvedCatalogLength++;
                     }
-                } catch (IOException ex) {
+                } catch (JSONException | IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
                 JSONObject config= item.optJSONObject("x_config");
@@ -187,7 +187,7 @@ public class HapiServerSupport {
                         resolvedCatalog.put( resolvedCatalogLength, catalogItem );
                         resolvedCatalogLength++;
                     }
-                } catch (IOException ex) {
+                } catch (JSONException | IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
                 JSONObject config= item.optJSONObject("x_config");
