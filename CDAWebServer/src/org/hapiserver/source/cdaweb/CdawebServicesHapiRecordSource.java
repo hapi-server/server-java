@@ -21,19 +21,21 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
     JSONObject info;
     JSONObject data;
     AvailabilityIterator availabilityIterator;
+    String roots;
     String root;
     
-    public CdawebServicesHapiRecordSource( String hapiHome, String id, JSONObject info, JSONObject data ) {
+    public CdawebServicesHapiRecordSource( String hapiHome, String roots, String id, String ff, JSONObject info, JSONObject data ) {
         logger.entering("CdawebServicesHapiRecordSource","constructor");
         this.id= id;
         this.info= info;
         this.data= data;
+        this.roots= roots;
         logger.exiting("CdawebServicesHapiRecordSource","constructor");
     }
     
     @Override
     public boolean hasGranuleIterator() {
-        return true;
+        return false;
     }
     
     @Override
@@ -43,7 +45,7 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
         int ia= id.indexOf("@");
         String availId= ia==-1 ? id : id.substring(0,ia);
                 
-        String availInfo= CdawebAvailabilitySource.getInfo( availId + "/availability" );
+        String availInfo= CdawebAvailabilitySource.getInfo( roots, id );
         JSONObject jsonObject;
         try {
             jsonObject = new JSONObject(availInfo);
@@ -51,6 +53,7 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
             throw new RuntimeException(ex);
         }
         CdawebAvailabilitySource source= new CdawebAvailabilitySource( "notUsed", availId + "/availability", jsonObject, new JSONObject() );
+        source.setRoots(roots);
         Iterator<HapiRecord> it = source.getIterator(start, stop);
         this.root= source.getRoot();
         
