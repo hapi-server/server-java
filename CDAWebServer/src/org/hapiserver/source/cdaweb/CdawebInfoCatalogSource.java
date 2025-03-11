@@ -109,23 +109,27 @@ public class CdawebInfoCatalogSource {
         logger.info("reading skips");
         skips= new HashSet<>();
         skipsPatterns= new HashSet<>();
-        URL skipsFile= CdawebInfoCatalogSource.class.getResource("skips.txt");
-        try (BufferedReader r = new BufferedReader(new InputStreamReader( skipsFile.openStream() ))) {
-            String s = r.readLine();
-            while ( s!=null ) {  
-                int i=s.indexOf("#");
-                if ( i>-1 ) s= s.substring(0,i).trim();
-                String[] ss= s.split(",",-2);
-                if ( ss.length==2 ) {
-                    if ( ss[0].contains(".") ) {
-                        skipsPatterns.add( Pattern.compile(ss[0]) );
-                    } else {
-                        skips.add(ss[0].trim());
-                    }
-                }
-                s = r.readLine();
-            }
-        }
+        
+        
+         
+//        URL skipsFile= new URL( "https://raw.githubusercontent.com/rweigel/cdawmeta/refs/heads/main/cdawmeta/config/hapi.json" );
+//        
+//        try (BufferedReader r = new BufferedReader(new InputStreamReader( skipsFile.openStream() ))) {
+//            String s = r.readLine();
+//            while ( s!=null ) {  
+//                int i=s.indexOf("#");
+//                if ( i>-1 ) s= s.substring(0,i).trim();
+//                String[] ss= s.split(",",-2);
+//                if ( ss.length==2 ) {
+//                    if ( ss[0].contains(".") ) {
+//                        skipsPatterns.add( Pattern.compile(ss[0]) );
+//                    } else {
+//                        skips.add(ss[0].trim());
+//                    }
+//                }
+//                s = r.readLine();
+//            }
+//        }
     }
     
     /**
