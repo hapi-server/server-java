@@ -195,13 +195,15 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
                 }
             }
                         
+            URL sourceURL;
+            
             String availString;
             try {
                 int i= availId.indexOf("/");
                 String id= availId.substring(0,i);
-                URL url= new URL( roots + id + ".json" );
+                sourceURL= new URL( roots + id + ".json" );
                 //File jsonfile= SourceUtil.downloadFile( url, File.createTempFile(id, ".json") );
-                availString= SourceUtil.getAllFileLines( url );
+                availString= SourceUtil.getAllFileLines( sourceURL );
             } catch (MalformedURLException ex) {
                 throw new RuntimeException(ex); //TODO
             } catch (IOException ex) {
@@ -245,6 +247,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             String stringType= "{ \"uri\": { \"base\": \"" + root + "\" } }";
             
             return "{\n" +
+                    "    \"x_sourceURL\": \""+sourceURL + "\", \n" +
                     "    \"HAPI\": \"3.1\",\n" +
                     "    \"modificationDate\": \"" + TimeUtil.previousDay( TimeUtil.isoTimeFromArray( TimeUtil.now() ) ) + "\",\n" +
                     "    \"parameters\": [\n" +
