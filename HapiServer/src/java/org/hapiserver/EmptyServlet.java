@@ -9,7 +9,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * redirect the browser to the hapi landing page.
+ * redirect the browser to the page without the slash.  So, <ul>
+ * <li>.../hapi/info/?dataset=AC_H0_SWE/availability &rarr; .../hapi/info?dataset=AC_H0_SWE/availability
+ * <li>.../hapi/ &rarr; .../hapi
+ * </ul>
  * @author jbf
  */
 @WebServlet(name = "EmptyServlet", urlPatterns = {"/"})
@@ -25,8 +28,12 @@ public class EmptyServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
-        response.sendRedirect( request.getContextPath() + "/hapi");
-
+        String url= request.getRequestURI();
+        if ( request.getQueryString()!=null ) {
+            response.sendRedirect( url.substring(0,url.length()-1) + "?" + request.getQueryString() );
+        } else {
+            response.sendRedirect( url.substring(0,url.length()-1) );
+        }
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
