@@ -127,6 +127,10 @@ public class SourceRegistry {
                                         cc[i]= JSONObject.class;
                                     } else if ( oo[i].equals("${data-config}") ) {
                                         oo[i]= dataConfig;
+                                        cc[i]= JSONObject.class;
+                                    } else if ( oo[i].equals("${data}") ) {
+                                        oo[i]= dataConfig;
+                                        cc[i]= JSONObject.class;
                                     } else {
                                         String s= SpawnRecordSource.doMacros( hapiHome, id, (String)oo[i] );
                                         oo[i]= s;
