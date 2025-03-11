@@ -1397,6 +1397,25 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
     }
 
+    public static void mainCase11() {
+//        CdawebServicesHapiRecordIterator dd= new CdawebServicesHapiRecordIterator( 
+//                "AC_H2_SWE", 
+//                new int[] { 2021, 3, 12, 0, 0, 0, 0 },
+//                new int[] { 2021, 3, 13, 0, 0, 0, 0 }, 
+//                new String[] { "Time", "Np", "Vp" } );
+      // http://localhost:8280/HapiServer/hapi/data?dataset=AC_OR_SSC&start=2023-01-01T00:00Z&stop=2024-01-01T00:00Z
+        CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
+            "AC_OR_SSC",
+            null,
+            new int[]{2023,01,01,00,00,0,0},
+            new int[]{2024,01,01,00,00,0,0},
+            new String[]{"Time", "Radius"}, null);
+        while (dd.hasNext()) {
+            HapiRecord rec = dd.next();
+            System.err.println(rec.getIsoTime(0));
+        }
+    }
+        
     public static void main(String[] args) throws Exception {
         //mainCase1();
         //mainCase2();
@@ -1405,9 +1424,10 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         //mainCase5();
         //mainCase6();
         //mainCase7();
-        mainCase8();
+        //mainCase8();
         //mainCase9();
         //mainCase10();
+        mainCase11();
     }
 
 }
