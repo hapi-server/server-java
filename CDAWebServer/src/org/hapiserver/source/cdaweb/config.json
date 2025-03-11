@@ -25,7 +25,8 @@
                 "data": {                     
                     "source": "classpath",
                     "x_classpath": "CDAWebServer.jar",             
-                    "class":"org.hapiserver.source.cdaweb.CdawebServicesHapiRecordSource"
+                    "class":"org.hapiserver.source.cdaweb.CdawebServicesHapiRecordSource",
+                    "x_args": [ "", "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/", "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/", "${id}", "", "${info}", "${data-config}" ]
                 }
             }
         },
@@ -41,7 +42,7 @@
                     "x_classpath": "CDAWebServer.jar",
                     "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilitySource",
                     "x_method": "getInfo",
-                    "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/info/${id}.json" ]
+                    "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/", "${id}" ]
                 },
                 "data": {                     
                     "source": "classpath",

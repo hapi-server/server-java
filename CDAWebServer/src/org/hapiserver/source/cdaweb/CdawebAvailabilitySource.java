@@ -178,6 +178,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
     
     /**
      * get the info for the id.
+     * @param roots root folder (website or file://...) containing "info" directory and "catalog.json"
      * @param availId the dataset id, starting with "availability/"
      * @return 
      */
@@ -188,7 +189,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             synchronized ( CdawebInfoCatalogSource.class ) {
                 if ( CdawebInfoCatalogSource.filenaming==null || CdawebInfoCatalogSource.filenaming.isEmpty() ) {
                     try {
-                        CdawebInfoCatalogSource.getCatalog("http://mag.gmu.edu/git-data/cdawmeta/data/hapi/catalog.json");
+                        CdawebInfoCatalogSource.getCatalog( roots + "catalog.json");
                     } catch (IOException ex) {
                         logger.log(Level.SEVERE, null, ex);
                     }
@@ -201,7 +202,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             try {
                 int i= availId.indexOf("/");
                 String id= availId.substring(0,i);
-                sourceURL= new URL( roots + id + ".json" );
+                sourceURL= new URL( roots + "info/" + id + ".json" );
                 //File jsonfile= SourceUtil.downloadFile( url, File.createTempFile(id, ".json") );
                 availString= SourceUtil.getAllFileLines( sourceURL );
             } catch (MalformedURLException ex) {

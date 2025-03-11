@@ -23,19 +23,21 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
     AvailabilityIterator availabilityIterator;
     String roots;
     String root;
+    String availRoot; // Root containing "info" and the data granule availability files.
     
-    public CdawebServicesHapiRecordSource( String hapiHome, String roots, String id, String ff, JSONObject info, JSONObject data ) {
+    public CdawebServicesHapiRecordSource( String hapiHome, String roots, String availRoot, String id, String ff, JSONObject info, JSONObject data ) {
         logger.entering("CdawebServicesHapiRecordSource","constructor");
         this.id= id;
         this.info= info;
         this.data= data;
         this.roots= roots;
+        this.availRoot= availRoot;
         logger.exiting("CdawebServicesHapiRecordSource","constructor");
     }
     
     @Override
     public boolean hasGranuleIterator() {
-        return false;
+        return true;
     }
     
     @Override
@@ -45,7 +47,7 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
         int ia= id.indexOf("@");
         String availId= ia==-1 ? id : id.substring(0,ia);
                 
-        String availInfo= CdawebAvailabilitySource.getInfo( roots, id );
+        String availInfo= CdawebAvailabilitySource.getInfo( availRoot, availId + "/availability" );
         JSONObject jsonObject;
         try {
             jsonObject = new JSONObject(availInfo);
@@ -53,7 +55,7 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
             throw new RuntimeException(ex);
         }
         CdawebAvailabilitySource source= new CdawebAvailabilitySource( "notUsed", availId + "/availability", jsonObject, new JSONObject() );
-        source.setRoots(roots);
+        source.setRoots(availRoot);
         Iterator<HapiRecord> it = source.getIterator(start, stop);
         this.root= source.getRoot();
         
