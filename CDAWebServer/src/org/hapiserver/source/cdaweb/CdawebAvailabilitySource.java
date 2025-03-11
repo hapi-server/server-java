@@ -1,7 +1,6 @@
 
 package org.hapiserver.source.cdaweb;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -9,11 +8,6 @@ import java.text.ParseException;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -24,9 +18,7 @@ import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.AggregationGranuleIterator;
 import org.hapiserver.source.SourceUtil;
-import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 /**
  * return availability, showing when file granules are found.
@@ -100,12 +92,13 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
      * @return
      * @throws IOException 
      */
-    public static String getCatalog() throws IOException {
+    public static String getAvailabilityCatalog() throws IOException {
         try {
             String catalogString= CdawebInfoCatalogSource.getCatalog("http://mag.gmu.edu/git-data/cdawmeta/data/hapi/catalog.json");
             JSONObject catalogContainer= new JSONObject(catalogString);
             JSONArray catalog= catalogContainer.getJSONArray("catalog");
             int n= catalog.length();
+            JSONArray newArray= new JSONArray();
             String last=null;
             for ( int i=0; i<n; i++ ) {
                 JSONObject jo= catalog.getJSONObject(i);
@@ -114,6 +107,9 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
                 if ( last!=null && id.startsWith(last) ) {
                     continue;
                 }
+                //if ( !( id.startsWith("AMPTE") || id.startsWith("AC_OR_SSC") ) ) {
+                //    continue;
+                //}
                 int ia= id.indexOf("@");
                 if ( ia>-1 ) {
                     id= id.substring(0,ia);
@@ -123,9 +119,9 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
                 if ( jo.has("title") ) {
                     jo.put("title","Availability of "+jo.getString("title") );
                 }
-                catalog.put( i, jo );
+                newArray.put( newArray.length(), jo );
             }
-            catalogContainer.put("catalog", catalog);
+            catalogContainer.put("catalog", newArray);
             catalogContainer.setEscapeForwardSlashAlways(false);
             return catalogContainer.toString(4);
             
@@ -182,7 +178,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
      * @param availId the dataset id, starting with "availability/"
      * @return 
      */
-    public static String getInfo( String roots, String availId ) {
+    public static String getInfoAvail( String roots, String availId ) {
         
         try {
             
@@ -460,26 +456,26 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
     
     public static void main( String[] args ) throws IOException, ParseException {
         
-        //args= new String[] { };
+        args= new String[] { };
         //args= new String[] { "availability/AC_K1_SWE" };
         //args= new String[] { "availability/BAR_1A_L2_SSPC" };
         //args= new String[] { "availability/AC_K1_SWE", "2022-01-01T00:00Z", "2023-05-01T00:00Z" };
         //args= new String[] { "availability/RBSP-A-RBSPICE_LEV-2_ESRHELT", "2014-01-01T00:00Z", "2014-02-01T00:00Z" };
         //args= new String[] { "availability/TSS-1R_M1_CSAA", "1996-02-28T02:00:00.000Z", "1996-02-28T05:59:46.000Z" };
         //args= new String[] { "availability/FORMOSAT5_AIP_IDN" };
-        args= new String[] { "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/info/", "RBSP-A-RBSPICE_LEV-2_ESRHELT" };
+        //args= new String[] { "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/info/", "RBSP-A-RBSPICE_LEV-2_ESRHELT" };
         switch (args.length) {
             case 0:
-                System.out.println( getCatalog() );
+                System.out.println(getAvailabilityCatalog() );
                 break;
             case 2:
-                System.out.println( getInfo(args[0],args[1]) );
+                System.out.println(getInfoAvail(args[0],args[1]) );
                 break;
             case 3:
                 JSONObject info;
                 String id= "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/info/";
                 try {
-                    info= new JSONObject( getInfo(id,args[1]) );
+                    info= new JSONObject( getInfoAvail(id,args[1]) );
                 } catch (JSONException ex) {
                     throw new RuntimeException(ex);
                 }

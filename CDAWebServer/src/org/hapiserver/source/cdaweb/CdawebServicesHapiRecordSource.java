@@ -47,7 +47,7 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
         int ia= id.indexOf("@");
         String availId= ia==-1 ? id : id.substring(0,ia);
                 
-        String availInfo= CdawebAvailabilitySource.getInfo( availRoot, availId + "/availability" );
+        String availInfo= CdawebAvailabilitySource.getInfoAvail( availRoot, availId + "/availability" );
         JSONObject jsonObject;
         try {
             jsonObject = new JSONObject(availInfo);

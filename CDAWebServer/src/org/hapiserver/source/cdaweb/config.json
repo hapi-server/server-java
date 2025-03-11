@@ -35,7 +35,7 @@
             "x_source": "classpath",
             "x_classpath": "CDAWebServer.jar",
             "x_class": "org.hapiserver.source.cdaweb.CdawebAvailabilitySource",
-            "x_method": "getCatalog",
+            "x_method": "getAvailabilityCatalog",
             "x_config": {
                 "info": {
                     "x_source":"classpath",

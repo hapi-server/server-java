@@ -279,7 +279,11 @@ public class CdawebInfoCatalogSource {
             
             JSONArray catalog= new JSONArray();
             for ( int i=0; i<readCatalog.length(); i++ ) {
-                catalog.put( i, readCatalog.get(i) );
+                //String n= readCatalog.getJSONObject(i).getString("id");
+                //if ( !( n.startsWith("AMPTE") || n.startsWith("AC_OR_SSC") ) ) {
+                //    continue;
+                //}
+                catalog.put( catalog.length(), readCatalog.get(i) );
                 //TODO: filenaming
             }
 
@@ -301,7 +305,7 @@ public class CdawebInfoCatalogSource {
      * @throws MalformedURLException
      * @throws IOException 
      */
-    public static String getInfo( String surl ) throws MalformedURLException, IOException {
+    public static String getInfo1( String surl ) throws MalformedURLException, IOException {
         URL url= new URL(surl);
         String src= SourceUtil.getAllFileLines( url );
         try {
@@ -338,7 +342,7 @@ public class CdawebInfoCatalogSource {
         if ( args.length==0 ) {
             System.out.println( CdawebInfoCatalogSource.getCatalog("http://mag.gmu.edu/git-data/cdawmeta/data/hapi/catalog.json") );
         } else if ( args.length==1 ) {
-            System.out.println( CdawebInfoCatalogSource.getInfo( "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/info/A1_K0_MPA.json" ) );
+            System.out.println( CdawebInfoCatalogSource.getInfo1( "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/info/A1_K0_MPA.json" ) );
         }
     }
     

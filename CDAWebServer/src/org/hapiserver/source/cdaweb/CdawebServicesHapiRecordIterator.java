@@ -1037,6 +1037,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         return new HapiRecord() {
             @Override
             public String getIsoTime(int i) {
+                if ( j==0 || j==1 ) {
+                    adapters[i].adaptString(j);
+                }
+                String s= adapters[i].adaptString(j);
+                System.err.println( "time="+s + " j=" + j);
                 return adapters[i].adaptString(j);
             }
 
@@ -1238,7 +1243,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         int[] start = new int[]{2022, 11, 23, 0, 54, 54, 0};
         int[] stop = new int[]{2022, 11, 23, 23, 58, 38, 0};
         
-        JSONObject info= new JSONObject( CdawebInfoCatalogSource.getInfo("http://mag.gmu.edu/git-data/cdawmeta/data/hapi/info/ICON_L2-5_FUV_NIGHT.json" ) );
+        JSONObject info= new JSONObject( CdawebInfoCatalogSource.getInfo1("http://mag.gmu.edu/git-data/cdawmeta/data/hapi/info/ICON_L2-5_FUV_NIGHT.json" ) );
         while (TimeUtil.gt(stop, start)) {
             int[] next = TimeUtil.add(start, new int[]{0, 0, 1, 0, 0, 0, 0});
             System.err.println("t: " + TimeUtil.formatIso8601Time(start));
