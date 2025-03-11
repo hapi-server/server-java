@@ -157,9 +157,12 @@ public class CsvDataFormatter implements DataFormatter {
                         if ( record.getIsoTime(i).charAt(8)=='T' ) {
                             exampleTimes[i]= trimExpandTime( "2000-001T00:00:00.000000000Z", lengths[i], false );
                         } else {
-                            exampleTimes[i]= trimExpandTime( "2000-01-01T00:00:00.000000000Z", lengths[i], false );
+                            if ( lengths[i]>30 ) { // CDF_EPOCH16
+                                exampleTimes[i]= trimExpandTime( "2000-01-01T00:00:00.000000000000Z", 30, false );
+                            } else {
+                                exampleTimes[i]= trimExpandTime( "2000-01-01T00:00:00.000000000Z", lengths[i], false );
+                            }
                         }
-                        
                         String field= TimeUtil.reformatIsoTime(exampleTimes[i],record.getIsoTime(i));
                         if ( field.charAt(field.length()-1)!='Z' ) throw new RuntimeException("isotime should end in Z");
                     break;
@@ -244,6 +247,9 @@ public class CsvDataFormatter implements DataFormatter {
                 case TYPE_ISOTIME:
                     try {
                         s= TimeUtil.reformatIsoTime(exampleTimes[i],record.getIsoTime(i));
+                        if ( lengths[i]>30 ) {
+                            s= s.substring(0,29)+"000".substring(33-lengths[i])+"Z";
+                        }
                         build.append(s);
                     } catch ( IllegalArgumentException ex ) {
                         s= TimeUtil.reformatIsoTime(exampleTimes[i],record.getIsoTime(i));
