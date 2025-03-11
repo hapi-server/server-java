@@ -268,6 +268,82 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
     }
     
+    private static class IsotimeEpoch16Adapter extends Adapter {
+
+        int julianDay;
+        long cdfTT2000 = Long.MAX_VALUE;
+
+        /**
+         * the time in milliseconds since year 1 for cdfEpoch.
+         */
+        double baseTime;
+
+        /**
+         * 1000000 for epoch, which is a milliseconds offset.
+         */
+        double baseUnitsFactor;
+        String baseYYYYmmddTHH;
+
+        double[][] array;
+
+        String format = ":%02d:%02d.%09d";
+        int formatFactor = 1; // number by which to round
+        private IsotimeEpoch16Adapter(double[][] array, int length) {
+            this.array = array;
+            double d = array[0][0];
+            double us2000 = (d - 6.3113904e+10 ) * 1e6; // ms -> microseconds
+            double day2000 = Math.floor(us2000 / 86400000000.); // days since 2000-01-01.
+            double usDay = us2000 - day2000 * 86400000000.; // microseconds within this day.
+            double ms1970 = day2000 * 86400000. + 946684800000.;
+            String baseDay = TimeUtil.fromMillisecondsSince1970((long) ms1970);
+            baseYYYYmmddTHH = baseDay.substring(0, 10) + "T00";
+            baseTime = (long) (d - usDay / 1000);
+            switch (length) { // YYYY4hh7mm0HH3MM6SS9NNNNNNNNNZ
+                case 24:
+                    format = ":%02d:%02d.%03dZ";
+                    formatFactor = 1000000;
+                    break;
+                case 27:
+                    format = ":%02d:%02d.%06dZ";
+                    formatFactor = 1000000;
+                    break;
+                case 30:
+                    format = ":%02d:%02d.%09dZ";
+                    break;
+                case 33:
+                    format = ":%02d:%02d.%09dZ";
+                    break;
+                default:
+                    throw new IllegalArgumentException("not supported");
+            }
+        }
+
+        private String formatTime(double t,double t1) {
+            double offset = t - baseTime + t1 / 1e6;  // milliseconds
+            while (offset >= 3600000.) {
+                double hours = Math.floor( offset / 3600000. ); 
+                baseTime = baseTime + hours * 3600000.;
+                int hour = Integer.parseInt(baseYYYYmmddTHH.substring(11, 13));
+                baseYYYYmmddTHH = baseYYYYmmddTHH.substring(0, 11) + String.format("%02d", (int) (hour + hours));
+                baseYYYYmmddTHH = TimeUtil.normalizeTimeString(baseYYYYmmddTHH).substring(0, 13);
+                offset = t - baseTime;
+            }
+            int nanos = (int) ((offset * 1000000) % 1000000000.);
+            offset = (int) (offset / 1000); // now it's in seconds.  Note offset must be positive for this to work.
+            int seconds = (int) (offset % 60);
+            int minutes = (int) (offset / 60); // now it's in minutes
+            return baseYYYYmmddTHH + String.format(format, minutes, seconds, nanos / formatFactor);
+        }
+
+        @Override
+        public String adaptString(int index) {
+            System.err.println("adaptString "+index);
+            return formatTime(array[index][0],array[index][1]);
+        }
+
+    }
+    
+    
     /**
      * Integers come out of the library as doubles.
      * wget -O - 'http://localhost:8080/HapiServer/hapi/data?id=WI_OR_DEF&start=1997-07-01T23:00:00.000Z&stop=1997-07-01T23:50:00.000Z&parameters=Time,CRN_EARTH' 
@@ -913,6 +989,9 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             case 31:
                                 adapters[i] = new IsotimeEpochAdapter((double[]) o, length);
                                 break;
+                            case 32:
+                                adapters[i] = new IsotimeEpoch16Adapter((double[][]) o, length);
+                                break;                                
                             case 33:
                                 adapters[i] = new IsotimeTT2000Adapter((long[]) o, length);
                                 break;
