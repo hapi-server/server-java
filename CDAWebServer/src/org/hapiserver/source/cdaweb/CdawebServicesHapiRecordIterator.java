@@ -12,6 +12,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.text.MessageFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -202,7 +203,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         long cdfTT2000 = Long.MAX_VALUE;
 
         /**
-         * the time in milliseconds since year 1 for cdfEpoch.
+         * the time in milliseconds since year 1 for cdfEpoch, and this
+         * marks the epoch value of the previous hour boundary.
          */
         double baseTime;
 
@@ -244,14 +246,38 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             }
         }
 
+        private String addTime( String baseYYYYmmddTHH, double hours ) {
+            int[] dc;
+            try {
+                dc = TimeUtil.parseISO8601Time(baseYYYYmmddTHH);
+                dc= TimeUtil.add( dc, new int[] { 0, 0, 0, (int)hours, 0, 0, 0, 0 } );
+                return String.format("%d-%02d-%02dT%02d", dc[0], dc[1], dc[2], dc[3] );
+            } catch ( ParseException ex ) {
+                throw new RuntimeException(ex);
+                    
+            }
+        }
+        
         private String formatTime(double t) {
             double offset = t - baseTime;  // milliseconds
+            while (offset < 0.) {
+                // Not sure why we need this, some sort of miscalculation of baseTime 
+                double hours = Math.floor( offset / 3600000. ); 
+                baseTime = baseTime + hours * 3600000.;
+                baseYYYYmmddTHH= addTime( baseYYYYmmddTHH, hours );
+                try {
+                    baseYYYYmmddTHH = TimeUtil.normalizeTimeString(baseYYYYmmddTHH).substring(0, 13);
+                } catch ( IllegalArgumentException ex ) {
+                    System.err.println("Here stop");
+                }
+                offset = t - baseTime;                
+            }
             while (offset >= 3600000.) {
                 double hours = Math.floor( offset / 3600000. ); 
                 baseTime = baseTime + hours * 3600000.;
                 int hour = Integer.parseInt(baseYYYYmmddTHH.substring(11, 13));
                 baseYYYYmmddTHH = baseYYYYmmddTHH.substring(0, 11) + String.format("%02d", (int) (hour + hours));
-                baseYYYYmmddTHH = TimeUtil.normalizeTimeString(baseYYYYmmddTHH).substring(0, 13);
+                baseYYYYmmddTHH = TimeUtil.normalizeTimeString(baseYYYYmmddTHH).substring(0, 13);             
                 offset = t - baseTime;
             }
             int nanos = (int) ((offset * 1000000) % 1000000000.);
@@ -1105,16 +1131,21 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     @Override
     public HapiRecord next() {
         final int j = index;
+        
         index++;
+        while ( index<nindex && ( adapters[0].adaptString(j).compareTo(adapters[0].adaptString(index))>=0 ) ) {
+            index++; // typically one increment.
+        }
+        
+        if ( index==nindex ) {
+            System.err.println("all done");
+        }
+            
         return new HapiRecord() {
             @Override
             public String getIsoTime(int i) {
-                if ( j==0 || j==1 ) {
-                    adapters[i].adaptString(j);
-                }
                 String s= adapters[i].adaptString(j);
-                System.err.println( "time="+s + " j=" + j);
-                return adapters[i].adaptString(j);
+                return s;
             }
 
             @Override
