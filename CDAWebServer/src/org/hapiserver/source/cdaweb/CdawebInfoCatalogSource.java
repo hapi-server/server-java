@@ -310,7 +310,11 @@ public class CdawebInfoCatalogSource {
         String src= SourceUtil.getAllFileLines( url );
         try {
             JSONObject jo;
-            jo= new JSONObject(src);
+            try {
+                jo= new JSONObject(src);
+            } catch ( JSONException ex ) {
+                throw new IllegalArgumentException("input file has JSON syntax issue: " +surl );
+            }
 
             if ( jo.has("info") ) {
                 jo= jo.getJSONObject("info");
@@ -330,7 +334,7 @@ public class CdawebInfoCatalogSource {
             }
             return jo.toString(4);
         } catch ( JSONException ex ) {
-            throw new IllegalArgumentException("bad thing that will never happen");
+            throw new IllegalArgumentException("input file has JSON schema issue (something required was missing, etc): " +surl );
         }
         
     }
