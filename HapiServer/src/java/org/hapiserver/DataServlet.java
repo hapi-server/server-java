@@ -159,7 +159,7 @@ public class DataServlet extends HttpServlet {
         String parameters= 
             getParam( params, "parameters", "", "The comma separated list of parameters to include in the response ", null );
         String include= getParam(params, "include", "", "include header at the top", PATTERN_INCLUDE);
-        String format= getParam(params, "format", "", "The desired format for the data stream.", PATTERN_FORMAT);
+        String format= getParam(params, "format", "csv", "The desired format for the data stream.", PATTERN_FORMAT);
         
         if ( !params.isEmpty() ) {
             Util.raiseError( 1401, "Bad request - unknown API parameter name", 
@@ -457,6 +457,8 @@ public class DataServlet extends HttpServlet {
         ByteArrayOutputStream boas= new ByteArrayOutputStream(10000);
         PrintWriter pw= new PrintWriter(boas);
         jo.put( "format", format ); // Thanks Bob's verifier for catching this.
+        JSONObject okayStatus= new JSONObject("{ \"code\": 1200, \"message\": \"OK\" }");
+        jo.put( "status", okayStatus );
         pw.write( jo.toString(4) );
         pw.close();
         boas.close();
