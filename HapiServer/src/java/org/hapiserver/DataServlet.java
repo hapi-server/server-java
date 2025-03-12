@@ -459,6 +459,7 @@ public class DataServlet extends HttpServlet {
         jo.put( "format", format ); // Thanks Bob's verifier for catching this.
         JSONObject okayStatus= new JSONObject("{ \"code\": 1200, \"message\": \"OK\" }");
         jo.put( "status", okayStatus );
+        jo.put( "HAPI", Util.hapiVersion() );
         pw.write( jo.toString(4) );
         pw.close();
         boas.close();
