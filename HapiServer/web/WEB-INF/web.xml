@@ -84,8 +84,31 @@ experimental and proposed for 3.2</description>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>EmptyServlet</servlet-name>
-        <url-pattern>/</url-pattern>
+        <url-pattern>/hapi/info/</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EmptyServlet</servlet-name>
+        <url-pattern>/hapi/data/</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EmptyServlet</servlet-name>
+        <url-pattern>/hapi/</url-pattern>
+    </servlet-mapping>
+    <servlet>
+        <servlet-name>DirectoryListing</servlet-name>
+        <servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
+        <init-param>
+            <param-name>listings</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>DirectoryListing</servlet-name>
+        <url-pattern>/d1/</url-pattern>
+    </servlet-mapping>   
+    
     <session-config>
         <session-timeout>
             30

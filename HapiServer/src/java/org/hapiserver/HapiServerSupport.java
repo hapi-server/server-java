@@ -716,6 +716,8 @@ public class HapiServerSupport {
         
         Initialize.maybeInitialize( HAPI_HOME );
         
+        boolean caching= true;
+        
         File catalogFile= new File( HAPI_HOME, "catalog.json" );
         CatalogData cc= catalogCache.get( HAPI_HOME );
 
@@ -727,7 +729,7 @@ public class HapiServerSupport {
             throw new IOException("config directory should contain config.json or catalog.json");
         }
         
-        if ( catalogConfigFile.lastModified() > latestTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
+        if ( !caching || ( catalogConfigFile.lastModified() > latestTimeStamp ) ) { // verify that it can be parsed and then copy it. //TODO: synchronized
             byte[] bb= Files.readAllBytes( Paths.get( catalogConfigFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
             try {
@@ -1085,6 +1087,8 @@ public class HapiServerSupport {
         
         Initialize.maybeInitialize( HAPI_HOME );
         
+        boolean caching= true;
+        
         File infoDir= new File( HAPI_HOME, "info" );
         String safeId= Util.fileSystemSafeName(id);
         File infoFile= new File( infoDir, safeId + ".json" );
@@ -1147,7 +1151,7 @@ public class HapiServerSupport {
         
         long configTimeStamp= config==null ? infoConfigFile.lastModified() : cc.catalogTimeStamp;
             
-        if ( configTimeStamp - latestTimeStamp > 0 ) { // verify that it can be parsed and then copy it.
+        if ( !caching || ( configTimeStamp - latestTimeStamp > 0 ) ) { // verify that it can be parsed and then copy it.
                 
             JSONObject jo;
             if ( config==null ) {
