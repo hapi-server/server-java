@@ -255,10 +255,10 @@ public class DataServlet extends HttpServlet {
         } catch ( HapiException ex ) {
             throw new RuntimeException(ex);
         }
-        
+         
         String ifModifiedSince= request.getHeader("If-Modified-Since");
         if ( ifModifiedSince!=null ) {
-            String ts= source.getTimeStamp( dr, TimeUtil.getStopTime(dr) );
+            String ts= source.getTimeStamp( TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr) );
             if ( ts!=null ) { // this will often be null.
                 try {
                     String clientModifiedTime= parseTime(ifModifiedSince);
