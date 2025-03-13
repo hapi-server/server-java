@@ -197,6 +197,18 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     
     }
     
+    private static String addTime( String baseYYYYmmddTHH, double hours ) {
+        int[] dc;
+        try {
+            dc = TimeUtil.parseISO8601Time(baseYYYYmmddTHH);
+            dc= TimeUtil.add( dc, new int[] { 0, 0, 0, (int)hours, 0, 0, 0, 0 } );
+            return String.format("%d-%02d-%02dT%02d", dc[0], dc[1], dc[2], dc[3] );
+        } catch ( ParseException ex ) {
+            throw new RuntimeException(ex);
+
+        }
+    }    
+    
     private static class IsotimeEpochAdapter extends Adapter {
 
         int julianDay;
@@ -243,18 +255,6 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     break;
                 default:
                     throw new IllegalArgumentException("not supported");
-            }
-        }
-
-        private String addTime( String baseYYYYmmddTHH, double hours ) {
-            int[] dc;
-            try {
-                dc = TimeUtil.parseISO8601Time(baseYYYYmmddTHH);
-                dc= TimeUtil.add( dc, new int[] { 0, 0, 0, (int)hours, 0, 0, 0, 0 } );
-                return String.format("%d-%02d-%02dT%02d", dc[0], dc[1], dc[2], dc[3] );
-            } catch ( ParseException ex ) {
-                throw new RuntimeException(ex);
-                    
             }
         }
         
@@ -339,6 +339,18 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
         private String formatTime(double t,double t1) {
             double offset = t - baseTime + t1 / 1e6;  // milliseconds
+            while (offset < 0.) {
+                // Not sure why we need this, some sort of miscalculation of baseTime 
+                double hours = Math.floor( offset / 3600000. ); 
+                baseTime = baseTime + hours * 3600000.;
+                baseYYYYmmddTHH= addTime( baseYYYYmmddTHH, hours );
+                try {
+                    baseYYYYmmddTHH = TimeUtil.normalizeTimeString(baseYYYYmmddTHH).substring(0, 13);
+                } catch ( IllegalArgumentException ex ) {
+                    System.err.println("Here stop");
+                }
+                offset = t - baseTime;                
+            }
             while (offset >= 3600000.) {
                 double hours = Math.floor( offset / 3600000. ); 
                 baseTime = baseTime + hours * 3600000.;
@@ -564,7 +576,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         /**
          * the time in milliseconds since year 1 for cdfEpoch, or nanoseconds for tt2000.
          */
-        double baseTime;
+        long baseTime;
         /**
          * 1 for tt2000, 1000000 for epoch.
          */
@@ -587,8 +599,20 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
         private String formatTime(double t) {
             long offset = (long) ((t - baseTime));  // This must not cross a leap second, will always be in nanos
+            while (offset < 0.) {
+                // Not sure why we need this, some sort of miscalculation of baseTime 
+                long hours = offset / 3600000000000L;
+                baseTime = baseTime + hours * 3600000000000L;
+                baseYYYYmmddTHH= addTime( baseYYYYmmddTHH, hours );
+                try {
+                    baseYYYYmmddTHH = TimeUtil.normalizeTimeString(baseYYYYmmddTHH).substring(0, 13);
+                } catch ( IllegalArgumentException ex ) {
+                    System.err.println("Here stop");
+                }
+                offset = (long)(t - baseTime);
+            }
             while (offset >= 3600000000000L) {
-                double hours = offset / 3600000000000L;
+                long hours = offset / 3600000000000L;
                 baseTime = baseTime + hours * 3600000000000L;
                 int hour = Integer.parseInt(baseYYYYmmddTHH.substring(11, 13));
                 baseYYYYmmddTHH = baseYYYYmmddTHH.substring(0, 11) + String.format("%02d", (int) (hour + hours));
