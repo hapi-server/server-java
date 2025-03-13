@@ -494,6 +494,7 @@ public class HapiServerSupport {
                     }
                 }
                 Method method= c.getMethod( methodString, cc );
+                logger.log(Level.FINER, "about to call into method to get info: {0}", method);
                 String infoString= (String)method.invoke( id, oo );
                 try {
                     return new JSONObject(infoString);
