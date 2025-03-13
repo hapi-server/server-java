@@ -15,7 +15,7 @@
                     "x_source":"classpath",
                     "x_classpath": "CDAWebServer.jar",
                     "x_class":"org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
-                    "x_method": "getInfo",
+                    "x_method": "getInfo1",
                     "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/info/${id}.json" ]
                 },
                 "_info": {
@@ -25,8 +25,12 @@
                 "data": {                     
                     "source": "classpath",
                     "x_classpath": "CDAWebServer.jar",             
-                    "class":"org.hapiserver.source.cdaweb.CdawebServicesHapiRecordSource",
-                    "x_args": [ "", "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/", "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/", "${id}", "", "${info}", "${data-config}" ]
+                    "x_class":"org.hapiserver.source.cdaweb.CdawebServicesHapiRecordSource",
+                    "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/", "${id}", "${info}", "${data-config}" ],
+                    "x_doc_arg1": "folder containing orig_data responses, with a file \"info/AC_AT_DEF.pkl\"",
+                    "x_doc_arg2": "the id, like \"AC_H0_EPM\"",
+                    "x_doc_arg3": "the info JSONObject",
+                    "x_doc_arg4": "the data configuration JSONObject"
                 }
             }
         },
@@ -41,13 +45,19 @@
                     "x_source":"classpath",
                     "x_classpath": "CDAWebServer.jar",
                     "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilitySource",
-                    "x_method": "getInfo",
-                    "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/", "${id}" ]
+                    "x_method": "getInfoAvail",
+                    "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/", "${id}" ],
+                    "x_doc_arg1": "root folder (website or file://...) containing \"info\" directory and \"catalog.json\"",
+                    "x_doc_arg2": "the dataset id, starting with \"availability/\"" 
                 },
                 "data": {                     
                     "source": "classpath",
                     "x_classpath": "CDAWebServer.jar",             
-                    "class":"org.hapiserver.source.cdaweb.CdawebAvailabilitySource"
+                    "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilitySource",
+                    "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/", "${id}", "${info}"],
+                    "x_doc_arg1": "availRoot folder containing orig_data responses, with a file \"info/AC_AT_DEF.pkl\"",
+                    "x_doc_arg2": "idavail the id for the availability set, like \"AC_OR_SSC/availability\"",
+                    "x_doc_arg3": "info the info for this availability set."
                 }
             }
         }        

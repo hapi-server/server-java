@@ -21,16 +21,21 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
     JSONObject info;
     JSONObject data;
     AvailabilityIterator availabilityIterator;
-    String roots;
     String root;
     String availRoot; // Root containing "info" and the data granule availability files.
     
-    public CdawebServicesHapiRecordSource( String hapiHome, String roots, String availRoot, String id, String ff, JSONObject info, JSONObject data ) {
+    /**
+     * Constructor for the record source.  This reads the CDF files needed from the availability files.
+     * @param availRoot folder containing orig_data responses, with a file "info/AC_AT_DEF.pkl"
+     * @param id the id, like "AC_H0_EPM"
+     * @param info the resolved info configuration object
+     * @param data the data configuration object
+     */
+    public CdawebServicesHapiRecordSource( String availRoot, String id, JSONObject info, JSONObject data ) {
         logger.entering("CdawebServicesHapiRecordSource","constructor");
         this.id= id;
         this.info= info;
         this.data= data;
-        this.roots= roots;
         this.availRoot= availRoot;
         logger.exiting("CdawebServicesHapiRecordSource","constructor");
     }
@@ -48,14 +53,14 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
         String availId= ia==-1 ? id : id.substring(0,ia);
                 
         String availInfo= CdawebAvailabilitySource.getInfoAvail( availRoot, availId + "/availability" );
-        JSONObject jsonObject;
+        JSONObject infoObject;
         try {
-            jsonObject = new JSONObject(availInfo);
+            infoObject = new JSONObject(availInfo);
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
         }
-        CdawebAvailabilitySource source= new CdawebAvailabilitySource( "notUsed", availId + "/availability", jsonObject, new JSONObject() );
-        source.setRoots(availRoot);
+        CdawebAvailabilitySource source= new CdawebAvailabilitySource( availRoot, availId + "/availability", infoObject );
+        
         Iterator<HapiRecord> it = source.getIterator(start, stop);
         this.root= source.getRoot();
         

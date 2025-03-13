@@ -35,19 +35,16 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
 
     String spid;
     int rootlen;
-    String roots;
     String root;
     String bobwurl;
     
     /**
-     * 
-     * @param hapiHome ignored.
-     * @param idavail the id for the availability set, like "availability/AC_OR_SSC"
+     * @param availRoot folder containing orig_data responses, with a file "info/AC_AT_DEF.pkl"
+     * @param idavail the id for the availability set, like "AC_OR_SSC/availability"
      * @param info the info for this availability set.
-     * @param data the data configuration
      */
-    public CdawebAvailabilitySource( String hapiHome, String idavail, JSONObject info, JSONObject data ) {
-        String roots= "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/info/";
+    public CdawebAvailabilitySource( String availRoot, String idavail, JSONObject info ) {
+        String roots= availRoot + "/" + "info/";
         spid= spidFor(idavail);
         bobwurl= roots + spid + ".json";
         try {
@@ -70,14 +67,6 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         
     }
     
-    /**
-     * set the location of the files containing coverage
-     * 
-     * @param roots the directory holding all the info responses computed by Bob's Python code, e.g. "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/info/"
-     */
-    public void setRoots( String roots ) {
-        this.roots= roots;
-    }
     
     /**
      * return the root for references in availability response
@@ -174,8 +163,8 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
     
     /**
      * get the info for the id.
-     * @param roots root folder (website or file://...) containing "info" directory and "catalog.json"
-     * @param availId the dataset id, starting with "availability/"
+     * @param roots root orig_data folder (website or file://...) containing the file "info/AC_H0_MFI.pkl" file
+     * @param availId the dataset id, like "AC_H0_SWE/availability"
      * @return 
      */
     public static String getInfoAvail( String roots, String availId ) {
@@ -461,9 +450,9 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         //args= new String[] { "availability/BAR_1A_L2_SSPC" };
         //args= new String[] { "availability/AC_K1_SWE", "2022-01-01T00:00Z", "2023-05-01T00:00Z" };
         //args= new String[] { "availability/RBSP-A-RBSPICE_LEV-2_ESRHELT", "2014-01-01T00:00Z", "2014-02-01T00:00Z" };
-        //args= new String[] { "availability/TSS-1R_M1_CSAA", "1996-02-28T02:00:00.000Z", "1996-02-28T05:59:46.000Z" };
+        args= new String[] { "TSS-1R_M1_CSAA/availability", "1996-02-28T02:00:00.000Z", "1996-02-28T05:59:46.000Z" };
         //args= new String[] { "availability/FORMOSAT5_AIP_IDN" };
-        //args= new String[] { "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/info/", "RBSP-A-RBSPICE_LEV-2_ESRHELT" };
+        //args= new String[] { "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/", "RBSP-A-RBSPICE_LEV-2_ESRHELT" };
         switch (args.length) {
             case 0:
                 System.out.println(getAvailabilityCatalog() );
@@ -473,14 +462,14 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
                 break;
             case 3:
                 JSONObject info;
-                String id= "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/info/";
+                String orig_data= "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/";
                 try {
-                    info= new JSONObject( getInfoAvail(id,args[1]) );
+                    info= new JSONObject( getInfoAvail(orig_data,args[0]) );
                 } catch (JSONException ex) {
                     throw new RuntimeException(ex);
                 }
                 Iterator<HapiRecord> iter = 
-                        new CdawebAvailabilitySource("",args[0],info,null).getIterator( 
+                        new CdawebAvailabilitySource( orig_data,args[0],info).getIterator( 
                                 TimeUtil.parseISO8601Time(args[1]), 
                                 TimeUtil.parseISO8601Time(args[2]) );
                 if ( iter.hasNext() ) {
