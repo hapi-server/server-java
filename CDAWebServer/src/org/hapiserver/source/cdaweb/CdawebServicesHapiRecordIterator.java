@@ -601,7 +601,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             long offset = (long) ((t - baseTime));  // This must not cross a leap second, will always be in nanos
             while (offset < 0.) {
                 // Not sure why we need this, some sort of miscalculation of baseTime 
-                long hours = offset / 3600000000000L;
+                long hours = Math.floorDiv( offset, 3600000000000L );
                 baseTime = baseTime + hours * 3600000000000L;
                 baseYYYYmmddTHH= addTime( baseYYYYmmddTHH, hours );
                 try {
