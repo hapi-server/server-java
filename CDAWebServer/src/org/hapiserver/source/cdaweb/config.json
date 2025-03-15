@@ -1,5 +1,5 @@
  {
-    "HAPI": "3.0",
+    "HAPI": "3.2",
     "catalog": [
         {
            "x_group_id": "cdaweb",
@@ -40,6 +40,7 @@
             "x_classpath": "CDAWebServer.jar",
             "x_class": "org.hapiserver.source.cdaweb.CdawebAvailabilitySource",
             "x_method": "getAvailabilityCatalog",
+            "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/catalog.json" ],
             "x_config": {
                 "info": {
                     "x_source":"classpath",
