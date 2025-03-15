@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletResponse;
  * redirect the browser to the page without the slash.  So, <ul>
  * <li>.../hapi/info/?dataset=AC_H0_SWE/availability &rarr; .../hapi/info?dataset=AC_H0_SWE/availability
  * <li>.../hapi/ &rarr; .../hapi
+ * <li>.../ &rarr; .../hapi
+ * <li>.../happy &rarr; .../hapi
  * </ul>
  * @author jbf
  */
@@ -32,7 +34,15 @@ public class EmptyServlet extends HttpServlet {
         if ( request.getQueryString()!=null ) {
             response.sendRedirect( url.substring(0,url.length()-1) + "?" + request.getQueryString() );
         } else {
-            response.sendRedirect( url.substring(0,url.length()-1) );
+            if ( !url.endsWith("/hapi") ) {
+                int lastSlash= url.lastIndexOf("/");
+                if ( lastSlash>-1 ) {
+                    url= url.substring(0,lastSlash+1);
+                }
+                response.sendRedirect( url + "hapi" );
+            } else {
+                response.sendRedirect( url.substring(0,url.length()-1) );
+            }
         }
     }
 
