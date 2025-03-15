@@ -371,7 +371,7 @@ public class TimeUtil {
     /**
      * count off the days between startTime and stopTime, but not including
      * stopTime.  For example, countOffDays("1999-12-31Z", "2000-01-03Z")
-     * will return [ "1999-12-31Z", "2000-01-01Z", "2000-01-02Z" ].
+     * will return [ "1999-12-31T00:00Z", "2000-01-01T00:00Z", "2000-01-02T00:00Z" ].
      *
      * @param startTime an iso time string
      * @param stopTime an iso time string
@@ -396,7 +396,7 @@ public class TimeUtil {
             result[i] = time;
             nn[2] = nn[2] + 1;
             if ( nn[2]>28 ) normalizeTime(nn);
-            time =  String.format("%04d-%02d-%02dZ", nn[0], nn[1], nn[2]);
+            time =  String.format("%04d-%02d-%02dT00:00Z", nn[0], nn[1], nn[2]);
             i += 1;
         }
         return result;
@@ -407,7 +407,7 @@ public class TimeUtil {
      * nanoseconds are ignored.
      *
      * @param day any isoTime format string.
-     * @return the next day in $Y-$m-$dZ
+     * @return the next day in $Y-$m-$dT00:00Z
      * @see #ceil(java.lang.String)
      * @see #previousDay(java.lang.String)
      */
@@ -415,7 +415,7 @@ public class TimeUtil {
         int[] nn = isoTimeToArray(day);
         nn[2] = nn[2] + 1;
         normalizeTime(nn);
-        return String.format("%04d-%02d-%02dZ", nn[0], nn[1], nn[2]);
+        return String.format("%04d-%02d-%02dT00:00Z", nn[0], nn[1], nn[2]);
     }
 
     /**
@@ -423,7 +423,7 @@ public class TimeUtil {
      * nanoseconds are ignored.
      *
      * @param day any isoTime format string.
-     * @return the next day in $Y-$m-$dZ
+     * @return the next day in $Y-$m-$dT00:00Z
      * @see #floor(java.lang.String)
      * @see #nextDay(java.lang.String)
      */
@@ -431,7 +431,7 @@ public class TimeUtil {
         int[] nn = isoTimeToArray(day);
         nn[2] = nn[2] - 1;
         normalizeTime(nn);
-        return String.format("%04d-%02d-%02dZ", nn[0], nn[1], nn[2]);
+        return String.format("%04d-%02d-%02dT00:00Z", nn[0], nn[1], nn[2]);
     }
 
     /**
@@ -908,10 +908,10 @@ public class TimeUtil {
             case 'Z':
                 nn[2] = TimeUtil.dayOfYear(nn[0], nn[1], nn[2]);
                 nn[1] = 1;
-                time = String.format("%d-%03dZ", nn[0], nn[2]);
+                time = String.format("%d-%03dZ", nn[0], nn[2]); // Note this is not valid ISO8601
                 break;
             default:
-                if (exampleForm.length() == 10) {
+                if (exampleForm.length() == 10) { // $Y-$m-$d
                     c = 'Z';
                 } else {
                     c = exampleForm.charAt(10);
@@ -920,7 +920,7 @@ public class TimeUtil {
                     // $Y-$jT
                     time = String.format("%d-%02d-%02dT%02d:%02d:%02d.%09dZ", nn[0], nn[1], nn[2], nn[3], nn[4], nn[5], nn[6]);
                 } else if (c == 'Z') {
-                    time = String.format("%d-%02d-%02dZ", nn[0], nn[1], nn[2]);
+                    time = String.format("%d-%02d-%02dZ", nn[0], nn[1], nn[2]); // Note this is not valid ISO8601
                 }
                 break;
         }
