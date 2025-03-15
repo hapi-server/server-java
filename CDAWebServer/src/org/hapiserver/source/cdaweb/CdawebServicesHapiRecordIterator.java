@@ -740,6 +740,10 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             File f= new File( "/var/www/cdaweb/htdocs/" + url.getFile() );
             return f;
         }
+        if ( url.getHost().equals("cdaweb.gsfc.nasa.gov") && url.getFile().startsWith("/sp_phys/data/") ) {
+            File f= new File( "/var/www/cdaweb/htdocs/" + url.getFile() );
+            return f;
+        }
         return null;
     }
     
