@@ -933,10 +933,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 } else {
                     tmpFile = SourceUtil.downloadFile(cdfUrl, tmpFile);
                     if ( maybeLocalFile!=null && !mustUseWebServices(id) ) {
-                        if ( maybeLocalFile.getParentFile().mkdirs() ) {
+                        if ( maybeLocalFile.getParentFile().exists() || maybeLocalFile.getParentFile().mkdirs() ) {
                             Files.copy( tmpFile.toPath(), maybeLocalFile.toPath() );
                             file= maybeLocalFile.toString();
                         } else {
+                            logger.info("unable to mkdir -p "+ maybeLocalFile.getParentFile() );
                             file= tmpFile.toString();
                         }
                     } else {
