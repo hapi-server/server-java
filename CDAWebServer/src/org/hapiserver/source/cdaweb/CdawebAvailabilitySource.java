@@ -17,7 +17,6 @@ import org.hapiserver.AbstractHapiRecordSource;
 import org.hapiserver.CsvDataFormatter;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
-import org.hapiserver.source.AggregationGranuleIterator;
 import org.hapiserver.source.SourceUtil;
 import org.w3c.dom.NodeList;
 
@@ -41,7 +40,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
     
     /**
      * @param availRoot folder containing orig_data responses, with a file "info/AC_AT_DEF.pkl"
-     * @param idavail the id for the availability set, like "AC_OR_SSC/availability"
+     * @param idavail the id for the availability set, like "AC_OR_SSC/source"
      * @param info the info for this availability set.
      */
     public CdawebAvailabilitySource( String availRoot, String idavail, JSONObject info ) {
@@ -51,7 +50,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         try {
             JSONArray array= info.getJSONArray("parameters");
             JSONObject p= array.getJSONObject(2); // the filename parameter
-            JSONObject stringType= p.getJSONObject("x_stringType");
+            JSONObject stringType= p.getJSONObject("stringType");
             JSONObject urin= stringType.getJSONObject("uri");
             rootlen= urin.getString("base").length();
             if ( !urin.getString("base").contains("sp_phys/") ) {
@@ -78,13 +77,14 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
     }
     
     /**
-     * get the catalog
+     * get the catalog of the source files.
+     * @param url the catalog of the datasets.  Note foo@1 will be just "foo" in this result
      * @return
      * @throws IOException 
      */
-    public static String getAvailabilityCatalog() throws IOException {
+    public static String getAvailabilityCatalog(String url) throws IOException {
         try {
-            String catalogString= CdawebInfoCatalogSource.getCatalog("http://mag.gmu.edu/git-data/cdawmeta/data/hapi/catalog.json");
+            String catalogString= CdawebInfoCatalogSource.getCatalog(url);
             JSONObject catalogContainer= new JSONObject(catalogString);
             JSONArray catalog= catalogContainer.getJSONArray("catalog");
             int n= catalog.length();
@@ -105,9 +105,9 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
                     id= id.substring(0,ia);
                 }
                 last= id;
-                jo.put( "id", id + "/availability" );
+                jo.put( "id", id + "/source" );
                 if ( jo.has("title") ) {
-                    jo.put("title","Availability of "+jo.getString("title") );
+                    jo.put("title","Source of "+jo.getString("title") );
                 }
                 newArray.put( newArray.length(), jo );
             }
@@ -208,7 +208,6 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             
             
             String root;
-            int filenameLen=0;
             
             JSONObject filesJson= new JSONObject(availString);
             
@@ -239,6 +238,14 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             
             i= startFile.lastIndexOf("/",i);
             root= startFile.substring(0,i+1);
+            
+            int maxLen=0;
+            for ( i=0; i<array.length(); i++ ) {
+                JSONObject file= array.getJSONObject(i);
+                String name= file.getString("Name");
+                if ( maxLen<name.length() ) maxLen= name.length();
+            }
+            int filenameLen= maxLen-root.length();
             
             String stringType= "{ \"uri\": { \"mediaType\": \"application/x-cdf\", \"base\": \"" + root + "\" } }";
             
@@ -471,12 +478,12 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
         //args= new String[] { "availability/BAR_1A_L2_SSPC" };
         //args= new String[] { "availability/AC_K1_SWE", "2022-01-01T00:00Z", "2023-05-01T00:00Z" };
         //args= new String[] { "availability/RBSP-A-RBSPICE_LEV-2_ESRHELT", "2014-01-01T00:00Z", "2014-02-01T00:00Z" };
-        args= new String[] { "TSS-1R_M1_CSAA/availability", "1996-02-28T02:00:00.000Z", "1996-02-28T05:59:46.000Z" };
+        args= new String[] { "TSS-1R_M1_CSAA/source", "1996-02-28T02:00:00.000Z", "1996-02-28T05:59:46.000Z" };
         //args= new String[] { "availability/FORMOSAT5_AIP_IDN" };
         //args= new String[] { "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/", "RBSP-A-RBSPICE_LEV-2_ESRHELT" };
         switch (args.length) {
             case 0:
-                System.out.println(getAvailabilityCatalog() );
+                System.out.println(getAvailabilityCatalog("http://mag.gmu.edu/git-data/cdawmeta/data/hapi/catalog.json") );
                 break;
             case 2:
                 System.out.println(getInfoAvail(args[0],args[1]) );
