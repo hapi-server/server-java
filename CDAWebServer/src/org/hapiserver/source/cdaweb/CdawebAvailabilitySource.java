@@ -1,6 +1,7 @@
 
 package org.hapiserver.source.cdaweb;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -182,14 +183,23 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             }
                         
             URL sourceURL;
+            String lastModified= null;
             
             String availString;
             try {
                 int i= availId.indexOf("/");
                 String id= availId.substring(0,i);
-                sourceURL= new URL( roots + "info/" + id + ".json" );
+                String surl= roots + "info/" + id + ".json";
+                sourceURL= new URL(surl);
                 //File jsonfile= SourceUtil.downloadFile( url, File.createTempFile(id, ".json") );
                 availString= SourceUtil.getAllFileLines( sourceURL );
+                if ( roots.startsWith("file:") ) {
+                    File file= new File( surl.substring(5) );
+                    lastModified= TimeUtil.reformatIsoTime("2000-01-01T00:00:00Z", 
+                            TimeUtil.fromMillisecondsSince1970( file.lastModified() ) );
+                } else {
+                    lastModified= TimeUtil.previousDay( TimeUtil.isoTimeFromArray( TimeUtil.now() ) );
+                }
             } catch (MalformedURLException ex) {
                 throw new RuntimeException(ex); //TODO
             } catch (IOException ex) {
@@ -230,12 +240,12 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             i= startFile.lastIndexOf("/",i);
             root= startFile.substring(0,i+1);
             
-            String stringType= "{ \"uri\": { \"base\": \"" + root + "\" } }";
+            String stringType= "{ \"uri\": { \"mediaType\": \"application/x-cdf\", \"base\": \"" + root + "\" } }";
             
             return "{\n" +
                     "    \"x_sourceURL\": \""+sourceURL + "\", \n" +
                     "    \"HAPI\": \"3.1\",\n" +
-                    "    \"modificationDate\": \"" + TimeUtil.previousDay( TimeUtil.isoTimeFromArray( TimeUtil.now() ) ) + "\",\n" +
+                    "    \"modificationDate\": \"" + lastModified + "\",\n" +
                     "    \"parameters\": [\n" +
                     "        {\n" +
                     "            \"fill\": null,\n" +
@@ -255,7 +265,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
                     "            \"fill\": null,\n" +
                     "            \"name\": \"filename\",\n" +
                     "            \"type\": \"string\",\n" +
-                    "            \"x_stringType\":" + stringType + ",\n" +
+                    "            \"stringType\":" + stringType + ",\n" +
                     "            \"length\": "+filenameLen + ",\n" +
                     "            \"units\": null\n" +
                     "        }\n" +
@@ -281,7 +291,7 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
     
     @Override
     public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
-        return new AggregationGranuleIterator( "$Y-$m", start, stop );
+        return null; //not used
     }
 
     @Override
@@ -424,6 +434,17 @@ public class CdawebAvailabilitySource extends AbstractHapiRecordSource {
             }
         };
     }
+
+    @Override
+    public String getTimeStamp(int[] start, int[] stop) {
+        if ( bobwurl.startsWith("file:") ) {
+            File file= new File( bobwurl.substring(5) );
+            return TimeUtil.fromMillisecondsSince1970( file.lastModified() );
+        }
+        return null;
+    }
+    
+    
     
     private static void printHelp() {
         System.err.println("CdawevAvailabilitySource [id] [start] [stop]");
