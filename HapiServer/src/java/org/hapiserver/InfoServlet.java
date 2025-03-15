@@ -3,6 +3,10 @@ package org.hapiserver;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -68,6 +72,12 @@ public class InfoServlet extends HttpServlet {
         try {
             
             jo = HapiServerSupport.getInfo( HAPI_HOME, dataset );
+            if ( jo.has( "x_lastModified" ) ) {
+                SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+                sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+                String rfc2616= sdf.format( new Date( TimeUtil.toMillisecondsSince1970(jo.getString("x_lastModified")) ) );
+                response.setHeader("Last-Modified", rfc2616 );
+            }
             
         } catch ( BadRequestIdException ex ) {
             OutputStream outs= response.getOutputStream();
