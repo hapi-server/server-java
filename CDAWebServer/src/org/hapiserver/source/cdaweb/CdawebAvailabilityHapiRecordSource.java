@@ -24,7 +24,7 @@ import org.w3c.dom.NodeList;
  * return availability, showing when file granules are found.
  * @author jbf
  */ 
-public class CdawebAvailabilityRecordSource extends AbstractHapiRecordSource {
+public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource {
 
     private static final Logger logger= Logger.getLogger("hapi.cdaweb");
     
@@ -43,7 +43,7 @@ public class CdawebAvailabilityRecordSource extends AbstractHapiRecordSource {
      * @param idavail the id for the availability set, like "AC_OR_SSC/source"
      * @param info the info for this availability set.
      */
-    public CdawebAvailabilityRecordSource( String availRoot, String idavail, JSONObject info ) {
+    public CdawebAvailabilityHapiRecordSource( String availRoot, String idavail, JSONObject info ) {
         String roots= availRoot + "/" + "info/";
         spid= spidFor(idavail);
         bobwurl= roots + spid + ".json";
@@ -497,7 +497,7 @@ public class CdawebAvailabilityRecordSource extends AbstractHapiRecordSource {
                     throw new RuntimeException(ex);
                 }
                 Iterator<HapiRecord> iter = 
-                        new CdawebAvailabilityRecordSource( orig_data,args[0],info).getIterator( 
+                        new CdawebAvailabilityHapiRecordSource( orig_data,args[0],info).getIterator( 
                                 TimeUtil.parseISO8601Time(args[1]), 
                                 TimeUtil.parseISO8601Time(args[2]) );
                 if ( iter.hasNext() ) {

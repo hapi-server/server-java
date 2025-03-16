@@ -52,14 +52,14 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
         int ia= id.indexOf("@");
         String availId= ia==-1 ? id : id.substring(0,ia);
                 
-        String availInfo= CdawebAvailabilityRecordSource.getInfoAvail( availRoot, availId + "/availability" );
+        String availInfo= CdawebAvailabilityHapiRecordSource.getInfoAvail( availRoot, availId + "/availability" );
         JSONObject infoObject;
         try {
             infoObject = new JSONObject(availInfo);
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
         }
-        CdawebAvailabilityRecordSource source= new CdawebAvailabilityRecordSource( availRoot, availId + "/availability", infoObject );
+        CdawebAvailabilityHapiRecordSource source= new CdawebAvailabilityHapiRecordSource( availRoot, availId + "/availability", infoObject );
         
         Iterator<HapiRecord> it = source.getIterator(start, stop);
         this.root= source.getRoot();
