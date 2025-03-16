@@ -1223,7 +1223,6 @@ public class HapiServerSupport {
             if ( infoData.infoTimeStamp==latestTimeStamp ) {
                 JSONObject jo= infoData.info;
                 jo= resolveTimes(jo);
-                jo.put("x_lastModified", TimeUtil.fromMillisecondsSince1970(infoData.infoTimeStamp) );
                 return jo;
             }
         }
@@ -1268,7 +1267,6 @@ public class HapiServerSupport {
                 throw new IllegalArgumentException("This should not happen");
             }
             long expiresTimeStamp= System.currentTimeMillis()+CONFIG_CACHE_FILE_MAX_LIFE_MILLIS;
-            jo0.put( "x_lastModified", TimeUtil.fromMillisecondsSince1970(latestTimeStamp) );
             infoData= new InfoData(jo0,latestTimeStamp,expiresTimeStamp);
             cc.infoCache.put( safeId, infoData );
         }

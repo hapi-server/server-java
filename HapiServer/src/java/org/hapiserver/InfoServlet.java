@@ -72,10 +72,10 @@ public class InfoServlet extends HttpServlet {
         try {
             
             jo = HapiServerSupport.getInfo( HAPI_HOME, dataset );
-            if ( jo.has( "x_lastModified" ) ) {
+            if ( jo.has( "modificationDate" ) ) {
                 SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
                 sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-                String rfc2616= sdf.format( new Date( TimeUtil.toMillisecondsSince1970(jo.getString("x_lastModified")) ) );
+                String rfc2616= sdf.format( new Date( TimeUtil.toMillisecondsSince1970(jo.getString( "modificationDate" )) ) );
                 response.setHeader("Last-Modified", rfc2616 );
             }
             
