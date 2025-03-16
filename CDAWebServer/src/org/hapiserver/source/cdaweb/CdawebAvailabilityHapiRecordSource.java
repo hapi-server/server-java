@@ -337,7 +337,7 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
     private static Iterator<HapiRecord> fromJSONArray( JSONArray array, final String root, final int rootlen ) {
         final int len=  array.length();
         
-        logger.fine("creating "+len+" record iterator");
+        logger.log(Level.FINE, "creating {0} record iterator", len);
         
         return new Iterator<HapiRecord>() {
             int irec=0;
