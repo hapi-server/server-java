@@ -128,6 +128,31 @@ public class DataServlet extends HttpServlet {
     }
     
     /**
+     * throw exception when parameter is not found
+     * @param info info for the parameter, which contains parameter list
+     * @param parameters "" or the parameters
+     * @return true if everything is okay, throw HapiException otherwise
+     */
+    private boolean check1407Parameters( JSONObject info, String sparameters ) throws HapiException, JSONException {
+        JSONArray parameters= info.getJSONArray("parameters");
+        if ( sparameters.trim().length()>0 ) {
+            String[] pps= sparameters.split(",");
+            for ( String p : pps ) {
+                boolean found=false;
+                for ( int i=0; found==false && i<parameters.length(); i++ ) {
+                    if ( parameters.getJSONObject(i).getString("name").equals(p) ) {
+                        found=true;
+                    }
+                }
+                if ( !found ) {
+                    throw new HapiException( 1407, "unknown dataset parameter", "parameter name not found: "+p );
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      *
      * @param request servlet request
@@ -226,6 +251,17 @@ public class DataServlet extends HttpServlet {
                 Util.raiseError( ex.getCode(), ex.getMessage(), response, out );
                 return;
             }
+        }
+        
+        try {
+            check1407Parameters( jo, parameters );
+        } catch ( HapiException ex ) {
+            try (ServletOutputStream out = response.getOutputStream()) {
+                Util.raiseError( ex.getCode(), ex.getMessage(), response, out );
+                return;
+            }
+        } catch ( JSONException ex ) {
+            throw new ServletException(ex);
         }
 
         OutputStream out = response.getOutputStream();
