@@ -956,11 +956,12 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
     /**
      * CDF files coming from CDAWeb will not contain characters which 
-     * are not allowed in IDL tag names.
+     * are not allowed in IDL tag names.  # was removed from list, see DE1_2SEC_OA "Orbit_#_9"
+     * 
      */
     private static String mungeParameterName( String paramName ) {
-        //['\','/','.','%','!','@','#','^','&','*','(',')','-','+','=', $ , '`','~','|','?','<','>',' ']
-        String result= paramName.replaceAll("\\/|\\.|\\%|\\!|\\@|\\#|\\^|\\&|\\*|\\(|\\)|\\-|\\+|\\=|\\`|\\~|\\?|\\<|\\>|\\ ", "\\$");
+        //['\','/','.','%','!','@','^','&','*','(',')','-','+','=', $ , '`','~','|','?','<','>',' ']
+        String result= paramName.replaceAll("\\/|\\.|\\%|\\!|\\@|\\^|\\&|\\*|\\(|\\)|\\-|\\+|\\=|\\`|\\~|\\?|\\<|\\>|\\ ", "\\$");
         return result;
     }
     
@@ -982,10 +983,16 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 JSONObject param1=null;
                 try {
                     pp = info.getJSONArray("parameters");
-                    for ( int j=0; j<pp.length(); j++ ) {
-                        JSONObject p= pp.getJSONObject(j);
-                        if ( p.getString("name").equals(params[i]) ) {
-                            param1= p;
+                    JSONObject p= null;
+                    p= pp.getJSONObject( Math.min(i,pp.length() ) );
+                    if ( p.getString("name").equals(params[i]) ) { // check for "all" response, otherwise this is N^2 code.
+                        param1= p;
+                    } else {
+                        for ( int j=0; j<pp.length(); j++ ) {
+                            p= pp.getJSONObject(j);
+                            if ( p.getString("name").equals(params[i]) ) {
+                                param1= p;
+                            }
                         }
                     }
                     if ( param1==null ) {
