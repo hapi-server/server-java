@@ -6,10 +6,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.text.ParseException;
@@ -748,8 +750,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     }
     
     private static String escapeParameters( String s ) {
-        s= s.replaceAll("#", "%23");
-        return s;
+        try {
+            return URLEncoder.encode(s,"US-ASCII");
+        } catch ( UnsupportedEncodingException ex ) {
+            throw new RuntimeException(ex);
+        }
     }
     
     /**
@@ -911,7 +916,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             String sstart = String.format("%04d%02d%02dT%02d%02d%02dZ", start[0], start[1], start[2], start[3], start[4], start[5]);
             String sstop = String.format("%04d%02d%02dT%02d%02d%02dZ", stop[0], stop[1], stop[2], stop[3], stop[4], stop[5]);
 
-            String name = String.format("%s_%s_%s_%s", id, sstart, sstop, ss);
+            String name = String.format("%s_%s_%s_%s", id, sstart, sstop, escapeParameters(ss) );
 
             String u = System.getProperty("user.name"); // getProcessId("000");
             File p = new File("/home/tomcat/tmp/" + u + "/");
@@ -1034,7 +1039,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             throw new RuntimeException(ex);
                         }
                     } else {
-                        String p= mungeParameterName(params[1]);
+                        String p= params[1];
                         String[] deps = reader.getDependent(p);
                         if ( deps.length==0 ) {
                             throw new IllegalArgumentException("unable to find dependences for "+p+" in "+tmpFile);
@@ -1066,7 +1071,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
                 } else {
                     
-                    String param = mungeParameterName(params[i]);
+                    String param = params[i];
                     int type = reader.getType(param);
                     Object o = reader.get(param);
                     if ( o==null || !o.getClass().isArray() ) {
