@@ -317,13 +317,13 @@ public class CdawebInfoCatalogSource {
         }
         try {
 
-            JSONArray data= jo.getJSONObject("data").getJSONArray("FileDescription");
-            String lastModified= "0000-00-00T00:00:00.000Z";
-        
-            for ( int i=0; i<data.length(); i++ ) {
-                String lm= data.getJSONObject(i).getString("LastModified");
-                if ( lm.compareTo(lastModified)>0 ) lastModified=lm;
-            }
+//            JSONArray data= jo.getJSONObject("data").getJSONArray("FileDescription");
+//            String lastModified= "0000-00-00T00:00:00.000Z";
+//        
+//            for ( int i=0; i<data.length(); i++ ) {
+//                String lm= data.getJSONObject(i).getString("LastModified");
+//                if ( lm.compareTo(lastModified)>0 ) lastModified=lm;
+//            }
 
             URL url= new URL(surl);
             String src= SourceUtil.getAllFileLines( url );
@@ -350,9 +350,9 @@ public class CdawebInfoCatalogSource {
                     ja.put(ip,p);
                 }
             }
-            if ( !lastModified.startsWith("00") ) {
-                jo.put("lastModified",lastModified);
-            }
+            //if ( !lastModified.startsWith("00") ) {
+            //    jo.put("lastModified",lastModified);
+            //}
             return jo.toString(4);
         } catch ( JSONException ex ) {
             throw new IllegalArgumentException("input file has JSON schema issue (something required was missing, etc): " +surl );
