@@ -426,8 +426,10 @@ public class SourceUtil {
             // Copy the contents of the input stream to the output stream.
             byte[] buffer = new byte[10240];
             int bytesRead;
+            long totalBytesRead=0;
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 outputStream.write(buffer, 0, bytesRead);
+                totalBytesRead+=bytesRead;
             }
         }
         return file;
