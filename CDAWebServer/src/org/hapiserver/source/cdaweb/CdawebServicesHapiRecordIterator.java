@@ -1071,7 +1071,12 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
                 } else {
                     
-                    String param = params[i];
+                    String param = params[i]; 
+                    // BB_xyz_xyz_sr2__C1_CP_STA_SM is crash
+                    //if ( param.equals("BB_xyz_xyz_sr2__C1_CP_STA_SM") ) {
+                    //    System.err.println("stop here");
+                    //}
+                            
                     int type = reader.getType(param);
                     Object o = reader.get(param);
                     if ( o==null || !o.getClass().isArray() ) {
