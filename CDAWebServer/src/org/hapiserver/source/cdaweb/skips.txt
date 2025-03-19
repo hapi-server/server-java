@@ -1,1 +1,2 @@
-# For testing only, make sure "https://raw.githubusercontent.com/rweigel/cdawmeta/refs/heads/main/cdawmeta/config/hapi.json" stays in sync.
+# This should include a list of patterns which when the dataset id matches, the id will be skipped.
+C[1-4]_CP_STA_SM

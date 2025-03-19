@@ -109,57 +109,24 @@ public class CdawebInfoCatalogSource {
         logger.info("reading skips");
         skips= new HashSet<>();
         skipsPatterns= new HashSet<>();
+        URL skipsFile= CdawebAvailabilityHapiRecordSource.class.getResource("skips.txt");
         
-        
-         
-//        URL skipsFile= new URL( "https://raw.githubusercontent.com/rweigel/cdawmeta/refs/heads/main/cdawmeta/config/hapi.json" );
-//        
-//        try (BufferedReader r = new BufferedReader(new InputStreamReader( skipsFile.openStream() ))) {
-//            String s = r.readLine();
-//            while ( s!=null ) {  
-//                int i=s.indexOf("#");
-//                if ( i>-1 ) s= s.substring(0,i).trim();
-//                String[] ss= s.split(",",-2);
-//                if ( ss.length==2 ) {
-//                    if ( ss[0].contains(".") ) {
-//                        skipsPatterns.add( Pattern.compile(ss[0]) );
-//                    } else {
-//                        skips.add(ss[0].trim());
-//                    }
-//                }
-//                s = r.readLine();
-//            }
-//        }
-    }
-    
-    /**
-     * read all available cached infos and form a catalog.
-     * @return
-     * @throws IOException 
-     */
-    public static String getCatalog20230629() throws IOException {
-        File cache= new File("/home/jbf/ct/autoplot/project/cdf/2023/bobw/nl/");
-        File[] ff= cache.listFiles((File dir, String name) -> name.endsWith(".json"));
-
-        ArrayList<File> catalog= new ArrayList<>( Arrays.asList(ff) );
-        Collections.sort(catalog, (File o1, File o2) -> o1.getName().compareTo(o2.getName()));
-        
-        JSONObject result= new JSONObject();
-        JSONArray jscat= new JSONArray();
-
-        try {
-            for ( File f : catalog ) {
-                JSONObject item= new JSONObject();
-                String n= f.getName();
-                item.put("id",n.substring(0,n.length()-5));
-                jscat.put( jscat.length(), item);            
+        try (BufferedReader r = new BufferedReader(new InputStreamReader( skipsFile.openStream() ))) {
+            String line = r.readLine();
+            while ( line!=null ) {  
+                int i=line.indexOf("#");
+                if ( i>-1 ) line= line.substring(0,i).trim();
+                String[] ss= line.split(",",-2);
+                if ( line.length()>0 && ss.length==1 ) {
+                    if ( ss[0].contains(".") || ss[0].contains("[") ) {
+                        skipsPatterns.add( Pattern.compile(ss[0]) );
+                    } else {
+                        skips.add(ss[0].trim());
+                    }
+                }
+                line = r.readLine();
             }
-            result.put( "catalog", jscat );
-        } catch (JSONException ex) {
-            throw new RuntimeException(ex);
         }
-        
-        return result.toString();
     }
     
     private static Node getNodeByName( Node parent, String childName ) {
@@ -174,96 +141,6 @@ public class CdawebInfoCatalogSource {
     }
     
     
-    /**
-     * I need the file naming to be kept, so I can know how to granularize the data request.
-     * @param location
-     * @return
-     * @throws IOException 
-     */
-    public static String getCatalogOld( String location )  throws IOException {
-        readSkips();
-        try {
-            URL url= new URL("https://cdaweb.gsfc.nasa.gov/pub/catalogs/all.xml");
-            Document doc= SourceUtil.readDocument(url);
-            XPathFactory factory = XPathFactory.newInstance();
-            XPath xpath = (XPath) factory.newXPath();
-            NodeList nodes = (NodeList) xpath.evaluate( "//sites/datasite/dataset", doc, XPathConstants.NODESET );
-
-            int ic= 0;
-            JSONArray catalog= new JSONArray();
-            for ( int i=0; i<nodes.getLength(); i++ ) {
-                Node node= nodes.item(i);
-                NamedNodeMap attrs= node.getAttributes();
-                String name= attrs.getNamedItem("serviceprovider_ID").getTextContent();
-                if ( name.startsWith("APOLLO") ) {
-                    System.err.println("here stop");
-                }
-                String st= attrs.getNamedItem("timerange_start").getTextContent();
-                String en= attrs.getNamedItem("timerange_stop").getTextContent();
-                if ( st.length()>1 && Character.isDigit(st.charAt(0))
-                        && en.length()>1 && Character.isDigit(en.charAt(0)) ) {
-                    
-                    if ( name.contains(" ") ) {
-                        logger.log(Level.FINE, "skipping because space in name: {0}", name); //TODO: trailing spaces can probably be handled.
-                        continue;
-                    }
-
-                    if ( skips.contains(name) ) {
-                        logger.log(Level.FINE, "skipping {0}", name);
-                        continue;
-                    }
-                    boolean doSkip= false;
-                    for ( Pattern p: skipsPatterns ) {
-                        if ( p.matcher(name).matches() ) {
-                            doSkip= true;
-                            logger.log(Level.FINE, "skipping {0} because of match", name);
-                        }
-                    }
-                    if ( doSkip ) {
-                        continue;
-                    }
-
-                    JSONObject jo= new JSONObject();
-                    jo.setEscapeForwardSlashAlways(false);
-                    
-                    jo.put( "id", name );
-                    
-                    String sourceurl;
-                    try {
-                        sourceurl = getURL(name,node,jo);
-                    } catch ( Exception ex ) {
-                        continue;
-                    }
-                    if ( sourceurl!=null && 
-                            ( sourceurl.startsWith( CDAWeb ) ||
-                            sourceurl.startsWith("ftp://cdaweb.gsfc.nasa.gov" ) ) && !sourceurl.startsWith("/tower3/private" ) ) {
-                        jo.put( "x_sourceUrl", sourceurl );
-                                                
-                        try {
-                            st = TimeUtil.formatIso8601TimeBrief( TimeUtil.parseISO8601Time(st) );
-                            en = TimeUtil.formatIso8601TimeBrief( TimeUtil.parseISO8601Time(en) );
-                            String range= st+"/"+en;
-                            jo.put( "x_range", range );
-                            CdawebInfoCatalogSource.coverage.put( name, range );
-                        } catch (ParseException ex) {
-                            logger.log(Level.SEVERE, null, ex);
-                        }
-
-                        catalog.put( ic++, jo );
-                    }
-                }
-
-            }
-
-            JSONObject result= new JSONObject();
-            result.put( "catalog", catalog );
-            return result.toString(4);
-        } catch (MalformedURLException | SAXException | ParserConfigurationException | XPathExpressionException | JSONException ex) {
-
-            throw new RuntimeException(ex);
-        }
-    }
-
     /**
      * return the catalog response by parsing all.xml.
      * @param location the URL of the catalog response.
@@ -283,6 +160,12 @@ public class CdawebInfoCatalogSource {
                 //if ( !( n.startsWith("AMPTE") || n.startsWith("AC_OR_SSC") ) ) {
                 //    continue;
                 //}
+                String id= readCatalog.getJSONObject(i).getString("id");
+                for ( Pattern p: skipsPatterns ) {
+                    if ( p.matcher(id).matches() ) {
+                        continue;
+                    }
+                }
                 catalog.put( catalog.length(), readCatalog.get(i) );
                 //TODO: filenaming
             }
