@@ -279,7 +279,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 baseTime = baseTime + hours * 3600000.;
                 int hour = Integer.parseInt(baseYYYYmmddTHH.substring(11, 13));
                 baseYYYYmmddTHH = baseYYYYmmddTHH.substring(0, 11) + String.format("%02d", (int) (hour + hours));
-                baseYYYYmmddTHH = TimeUtil.normalizeTimeString(baseYYYYmmddTHH).substring(0, 13);             
+                baseYYYYmmddTHH = TimeUtil.normalizeTimeString(baseYYYYmmddTHH).substring(0, 13);
                 offset = t - baseTime;
             }
             int nanos = (int) ((offset * 1000000) % 1000000000.);
