@@ -1002,19 +1002,19 @@ public class TimeUtil {
             time[2] += 1;
             time[3] -= 24;
         }
-        if (time[6] < 0) {
+        while (time[6] < 0) {
             time[5] -= 1;
             time[6] += 1000000000;
         }
-        if (time[5] < 0) {
+        while (time[5] < 0) {
             time[4] -= 1; // take a minute
-            time[5] += 60; // add 60 seconds.
+            time[5] += 60; // add 60 seconds. TODO: leap seconds?
         }
-        if (time[4] < 0) {
+        while (time[4] < 0) {
             time[3] -= 1; // take an hour
             time[4] += 60; // add 60 minutes
         }
-        if (time[3] < 0) {
+        while (time[3] < 0) {
             time[2] -= 1; // take a day
             time[3] += 24; // add 24 hours
         }
@@ -1031,10 +1031,12 @@ public class TimeUtil {
                 }
             }
             time[2] += daysInMonth; // add 24 hours
+            if ( time[2]<1 ) throw new IllegalArgumentException("unable to normalize time because of negative days being more than the number of days in the previous month");
         }
         if (time[1] < 1) {
             time[0] -= 1; // take a year
             time[1] += 12; // add 12 months
+            if ( time[1]<1 ) throw new IllegalArgumentException("unable to normalize time because of negative months being less than -11");
         }
         if (time[3] > 24) {
             throw new IllegalArgumentException("time[3] is greater than 24 (hours)");
