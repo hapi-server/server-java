@@ -119,49 +119,7 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
             throw new RuntimeException(ex);
         }
     }
-    
-    /**
-     * return a sample time for the id.  This will be the last full month containing data.  If all
-     * data is contained within just one month, then this is that month.
-     * 
-     * @param id the data id, such as AC_H1_EPM
-     * @return null or an iso8601 range.
-     */
-    public static String getSampleTime(String id) {
-        String range= CdawebInfoCatalogSource.coverage.get(id);
-        if ( range==null ) {
-            try {
-                CdawebInfoCatalogSource.getCatalog("http://mag.gmu.edu/git-data/cdawmeta/data/hapi/catalog.json");
-                range= CdawebInfoCatalogSource.coverage.get(id);
-            } catch (IOException ex) {
-                logger.log(Level.SEVERE, null, ex);
-            }
-            if ( range==null ) {
-                logger.fine("Expect sample times in catalog");
-                return null;
-            }
-        }
-        try {
-            int[] irange= TimeUtil.parseISO8601TimeRange(range);
-            int[] startTime= TimeUtil.getStartTime(irange);
-            int[] stopTime= TimeUtil.getStopTime(irange);
-            stopTime[2]=1;
-            stopTime[3]=0;
-            stopTime[4]=0;
-            stopTime[5]=0;
-            stopTime[6]=0;
-            if ( TimeUtil.gt( startTime, stopTime ) ) { // whoops, went back too far
-                stopTime[1]= stopTime[1]+1;
-                TimeUtil.normalizeTime(stopTime);
-            }
-            startTime= TimeUtil.subtract( stopTime, new int[] { 0, 1, 0, 0, 0, 0, 0 } );
-            return TimeUtil.formatIso8601TimeBrief( startTime ) + "/" +  TimeUtil.formatIso8601TimeBrief( stopTime );
-        } catch (ParseException ex) {
-            logger.log(Level.SEVERE, null, ex);
-            return null;
-        }
-    }
-    
+        
     /**
      * get the info for the id.
      * @param roots root orig_data folder (website or file://...) containing the file "info/AC_H0_MFI.pkl" file
@@ -171,16 +129,6 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
     public static String getInfoAvail( String roots, String availId ) {
         
         try {
-            
-            synchronized ( CdawebInfoCatalogSource.class ) {
-                if ( CdawebInfoCatalogSource.filenaming==null || CdawebInfoCatalogSource.filenaming.isEmpty() ) {
-                    try {
-                        CdawebInfoCatalogSource.getCatalog( roots + "catalog.json");
-                    } catch (IOException ex) {
-                        logger.log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
                         
             URL sourceURL;
             String lastModified= null;
