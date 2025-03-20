@@ -1,2 +1,2 @@
 # This should include a list of patterns which when the dataset id matches, the id will be skipped.
-C[1-4]_CP_STA_SM
+C[1-4]_CP_STA_SM  # includes rank 5 data which is not supported by CDFJ library.
