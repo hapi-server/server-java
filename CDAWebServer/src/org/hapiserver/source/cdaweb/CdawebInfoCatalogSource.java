@@ -237,7 +237,7 @@ public class CdawebInfoCatalogSource {
             
             if ( url.getProtocol().equals("file") ) {
                 long lastModified= new File( url.getFile() ).lastModified();
-                jo.put( "lastModified", TimeUtil.fromMillisecondsSince1970(lastModified) );
+                jo.put( "modificationDate", TimeUtil.fromMillisecondsSince1970(lastModified) );
             }
             //if ( !lastModified.startsWith("00") ) {
             //    jo.put("lastModified",lastModified);
