@@ -1040,11 +1040,15 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                         }
                     } else {
                         String p= params[1];
-                        String[] deps = reader.getDependent(p);
+                        String[] deps = reader.getDependent(p); 
                         if ( deps.length==0 ) {
                             throw new IllegalArgumentException("unable to find dependences for "+p+" in "+tmpFile);
                         }
-                        dep0 = deps[0];
+                        if ( deps.length>1 && deps[deps.length-1].equals("Epoch") ) { // ENDURANCE_EPHEMERIS_DEF deps come out backwards
+                            dep0= deps[deps.length-1];
+                        } else {
+                            dep0 = deps[0];
+                        }
                     }
                     int type = reader.getType(dep0); // 31=Epoch
                     Object o = reader.get(dep0);
@@ -1062,7 +1066,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                                 break;
                             default:
                                 //TODO: epoch16.
-                                throw new IllegalArgumentException("type not supported for column 0 time (cdf_epoch16");
+                                throw new IllegalArgumentException("type not supported for column 0 time: "+ nameForType(type) );
                         }
                         nindex = Array.getLength(o);
                     } else {
