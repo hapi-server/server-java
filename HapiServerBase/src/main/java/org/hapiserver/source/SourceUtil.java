@@ -20,6 +20,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
@@ -411,6 +413,51 @@ public class SourceUtil {
         }
     }
 
+    private static final ConcurrentHashMap<String, ReentrantLock> lockMap = new ConcurrentHashMap<>();
+    
+    /**
+     * Download the file, but if another thread is loading the same URL to the same
+     * File, then wait for it to complete.  
+     * @param url the URL to load
+     * @param file the file accepting the result.
+     * @param tmpFile the file accepting the data as the file is downloaded.
+     * @return the downloaded file.
+     */
+    public static File downloadFileLocking( URL url, File file, String tmpFile ) {
+        String surl= url.toString();
+        String key = surl + "::" + file.toString();
+        ReentrantLock lock = lockMap.computeIfAbsent(key, k -> new ReentrantLock());
+
+        lock.lock();
+        try {
+            
+            if (file.exists()) {                
+                logger.log(Level.WARNING, "File exists!  Someone else must have loaded it! {0}", new Object[]{file});
+                return file;
+            }
+
+            logger.log(Level.FINE, "Downloading {0} to {1}", new Object[]{surl, file});
+            try (InputStream in = url.openStream();
+                 FileOutputStream out = new FileOutputStream(tmpFile)) {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = in.read(buffer)) != -1) {
+                    out.write(buffer, 0, bytesRead);
+                }
+                logger.log(Level.FINE, "Download complete: {0}", file);
+            } catch (IOException e) {
+                logger.log(Level.FINE, "Download failed: {0}", e.getMessage());
+            }
+            new File(tmpFile).renameTo( file );
+            
+            return file;
+        } finally {
+            lock.unlock();
+            // Optional: remove lock if no other threads are using it
+            lockMap.remove(key, lock);
+        }
+    }
+    
     /**
      * download the resource to the given file
      * @param url the URL to load
@@ -420,7 +467,7 @@ public class SourceUtil {
      */
     public static File downloadFile( URL url, File file ) throws IOException {
         // Get the URL of the file to download.
-
+        
         // Open a connection to the URL.
         try ( InputStream inputStream = url.openStream(); OutputStream outputStream = new FileOutputStream(file) ) {
             // Copy the contents of the input stream to the output stream.
