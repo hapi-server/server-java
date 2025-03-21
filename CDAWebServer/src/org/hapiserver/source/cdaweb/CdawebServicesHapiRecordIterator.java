@@ -370,7 +370,6 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
         @Override
         public String adaptString(int index) {
-            System.err.println("adaptString "+index);
             return formatTime(array[index][0],array[index][1]);
         }
 
