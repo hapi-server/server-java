@@ -940,13 +940,13 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     file= maybeLocalFile.toString();
                     logger.log(Level.FINER, "using local file {0}", file);
                 } else {
-                    tmpFile = SourceUtil.downloadFile(cdfUrl, tmpFile);
+                    tmpFile = SourceUtil.downloadFileLocking(cdfUrl, tmpFile, tmpFile.toString()+".tmp" );
                     if ( maybeLocalFile!=null && !mustUseWebServices(id) ) {
                         if ( maybeLocalFile.getParentFile().exists() || maybeLocalFile.getParentFile().mkdirs() ) {
                             Files.copy( tmpFile.toPath(), maybeLocalFile.toPath() );
                             file= maybeLocalFile.toString();
                         } else {
-                            logger.info("unable to mkdir -p "+ maybeLocalFile.getParentFile() );
+                            logger.log(Level.INFO, "unable to mkdir -p {0}", maybeLocalFile.getParentFile());
                             file= tmpFile.toString();
                         }
                     } else {
