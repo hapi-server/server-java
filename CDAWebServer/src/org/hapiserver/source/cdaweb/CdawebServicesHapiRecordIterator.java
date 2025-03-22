@@ -1038,13 +1038,19 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             throw new RuntimeException(ex);
                         }
                     } else {
-                        String p= params[1];
+                        String p= params[params.length-1];
                         String[] deps = reader.getDependent(p); 
                         if ( deps.length==0 ) {
                             throw new IllegalArgumentException("unable to find dependences for "+p+" in "+tmpFile);
                         }
-                        if ( deps.length>1 && deps[deps.length-1].equals("Epoch") ) { // ENDURANCE_EPHEMERIS_DEF deps come out backwards
-                            dep0= deps[deps.length-1];
+                        if ( deps.length>1 ) {
+                            dep0= null;
+                            for ( int k=0; k<deps.length; k++ ) { // ENDURANCE_EPHEMERIS_DEF deps come out backwards FA_ESA_L2_IEB
+                                if ( deps[k].equalsIgnoreCase("Epoch") ) {
+                                    dep0= deps[k];
+                                }
+                            }
+                            if ( dep0==null ) dep0= deps[deps.length-1];
                         } else {
                             dep0 = deps[0];
                         }
