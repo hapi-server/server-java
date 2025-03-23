@@ -90,7 +90,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             }
 
                 
-            case "int":
+            case "integer":
                 return Array.newInstance( int.class, size );
             case "isotime":
                 return Array.newInstance( char.class, size );
@@ -1002,6 +1002,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             p= pp.getJSONObject(j);
                             if ( p.getString("name").equals(params[i]) ) {
                                 param1= p;
+                                break;
                             }
                         }
                     }
@@ -1051,7 +1052,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     Object o = reader.get(param);
                     if ( o==null || !o.getClass().isArray() ) {
                         try {
-                            o= makeFillValues( info.getJSONArray("parameters").getJSONObject(i), nrec );
+                            o= makeFillValues( param1, nrec );
                             //throw new RuntimeException("didn't get array from reader: "+param+" file: "+tmpFile.toString());
                         } catch (JSONException ex) {
                             throw new RuntimeException(ex);
