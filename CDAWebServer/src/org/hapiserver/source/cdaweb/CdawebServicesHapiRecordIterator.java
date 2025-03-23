@@ -993,7 +993,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 JSONObject param1=null;
                 try {
                     pp = info.getJSONArray("parameters");
-                    JSONObject p= null;
+                    JSONObject p;
                     p= pp.getJSONObject( Math.min(i,pp.length() ) );
                     if ( p.getString("name").equals(params[i]) ) { // check for "all" response, otherwise this is N^2 code.
                         param1= p;
@@ -1014,48 +1014,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 if (i == 0) {
                     int length = param1.optInt("length",24);
                     
-                    String dep0;
-                    if (params.length == 1) {
-                        try {
-                            // this is stupid, why must we rename it Time and then have to figure out the original name again?
-                            JSONArray parameters = info.getJSONArray("parameters");
-                            String dependent = parameters.getJSONObject(parameters.length() - 1).getString("name");
-                            String[] deps = reader.getDependent(dependent);
-                            if ( deps.length==0 ) {
-                                //throw new IllegalArgumentException("data has no dep 0");
-                                String[] ss= reader.getVariableNames();
-                                List<String> candidates= new ArrayList<>();
-                                for ( String s: ss ) {
-                                    if ( s.toLowerCase().endsWith("epoch") ) {
-                                        candidates.add(s);
-                                    }
-                                }
-                                if ( candidates.size()==1 ) {
-                                    deps= candidates.toArray( new String[candidates.size()] );
-                                }
-                            }
-                            dep0 = deps[0];
-                        } catch (JSONException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    } else {
-                        String p= params[params.length-1];
-                        String[] deps = reader.getDependent(p); 
-                        if ( deps.length==0 ) {
-                            throw new IllegalArgumentException("unable to find dependences for "+p+" in "+tmpFile);
-                        }
-                        if ( deps.length>1 ) {
-                            dep0= null;
-                            for ( int k=0; k<deps.length; k++ ) { // ENDURANCE_EPHEMERIS_DEF deps come out backwards FA_ESA_L2_IEB
-                                if ( deps[k].equalsIgnoreCase("Epoch") ) {
-                                    dep0= deps[k];
-                                }
-                            }
-                            if ( dep0==null ) dep0= deps[deps.length-1];
-                        } else {
-                            dep0 = deps[0];
-                        }
-                    }
+                    String dep0= param1.getString("x_cdf_NAME"); // Just use Bob's metadata!
+                    
                     int type = reader.getType(dep0); // 31=Epoch
                     Object o = reader.get(dep0);
                     nrec = Array.getLength(o);
