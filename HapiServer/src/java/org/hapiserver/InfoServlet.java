@@ -103,9 +103,8 @@ public class InfoServlet extends HttpServlet {
                 }
             }
             jo.remove("x_indexmap");
-            if ( !jo.has("HAPI") ) {
-                jo.put("HAPI",Util.hapiVersion()); // TODO: this needs review.
-            }
+            jo.put("HAPI",Util.hapiVersion()); 
+            
             JSONObject status= new JSONObject("{ \"code\":1200, \"message\":\"OK\" }");
             jo.put( "status", status );
             
