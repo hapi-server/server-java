@@ -34,7 +34,11 @@ public class EmptyServlet extends HttpServlet {
         if ( request.getQueryString()!=null ) {
             response.sendRedirect( url.substring(0,url.length()-1) + "?" + request.getQueryString() );
         } else {
-            if ( !url.endsWith("/hapi") ) {
+            if ( url.endsWith("/hapi/") ) {
+                response.sendRedirect( url.substring(0,url.length()-1) );
+            } else if ( url.endsWith("/hapi/hapi") ) {
+                response.sendRedirect( url.substring(0,url.length()-5) );
+            } else if ( !url.endsWith("/hapi") ) {
                 int lastSlash= url.lastIndexOf("/");
                 if ( lastSlash>-1 ) {
                     url= url.substring(0,lastSlash+1);
