@@ -222,6 +222,11 @@ public class CdawebInfoCatalogSource {
                     ja.put(ip,p);
                 }
             }
+            String sampleStartDate= jo.optString("sampleStartDate","");
+            String sampleStopDate=  jo.optString("sampleStopDate","");
+            if ( sampleStopDate.length()>0 && sampleStartDate.equals(sampleStopDate) ) { //C3_PP_CIS has start and stop times equal for each granule.
+                jo.put("sampleStopDate",jo.getString("stopDate") );
+            }
             
             if ( url.getProtocol().equals("file") ) {
                 long lastModified= new File( url.getFile() ).lastModified();
