@@ -537,6 +537,7 @@ public class HapiServerSupport {
         
         JSONObject result= loadAndCheckConfig( HAPI_HOME, "about.json" );
         result.put( "x_buildTime", Util.buildTime() );
+        result.put( "HAPI", Util.hapiVersion() );
                 
         return result;
     }
