@@ -423,7 +423,7 @@ public class SourceUtil {
      * @param tmpFile the file accepting the data as the file is downloaded.
      * @return the downloaded file.
      */
-    public static File downloadFileLocking( URL url, File file, String tmpFile ) {
+    public static File downloadFileLocking( URL url, File file, String tmpFile ) throws IOException {
         String surl= url.toString();
         String key = surl + "::" + file.toString();
         ReentrantLock lock = lockMap.computeIfAbsent(key, k -> new ReentrantLock());
@@ -445,8 +445,6 @@ public class SourceUtil {
                     out.write(buffer, 0, bytesRead);
                 }
                 logger.log(Level.FINE, "Download complete: {0}", file);
-            } catch (IOException e) {
-                logger.log(Level.FINE, "Download failed: {0}", e.getMessage());
             }
             new File(tmpFile).renameTo( file );
             
