@@ -940,6 +940,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     file= maybeLocalFile.toString();
                     logger.log(Level.FINER, "using local file {0}", file);
                 } else {
+                    logger.log(Level.INFO, "Downloading {0}", cdfUrl);
                     tmpFile = SourceUtil.downloadFileLocking(cdfUrl, tmpFile, tmpFile.toString()+".tmp" );
                     if ( maybeLocalFile!=null && !mustUseWebServices(id) ) {
                         if ( maybeLocalFile.getParentFile().exists() || maybeLocalFile.getParentFile().mkdirs() ) {
