@@ -177,10 +177,16 @@ public class DataServlet extends HttpServlet {
         start= getParam( params, "time.min", "", "The earliest value of time to include in the response.", null );
         stop= getParam( params, "time.max", "", "Include values of time up to but not including this time in the response.", null );
         if ( start.length()==0 ) {
-            start= getParam( params, "start", null, "The earliest value of time to include in the response.", null );
-            stop= getParam( params, "stop", null, "Include values of time up to but not including this time in the response.", null );
+            start= getParam( params, "start", "", "The earliest value of time to include in the response.", null );
+            stop= getParam( params, "stop", "", "Include values of time up to but not including this time in the response.", null );
         }
 
+        if ( start.equals("") || stop.equals("") ) {
+            Util.raiseError( 1400, "Bad request - user input error (start or stop is missing)", 
+                response, response.getOutputStream() );
+            return;
+        }
+        
         String parameters= 
             getParam( params, "parameters", "", "The comma separated list of parameters to include in the response ", null );
         String include= getParam(params, "include", "", "include header at the top", PATTERN_INCLUDE);
