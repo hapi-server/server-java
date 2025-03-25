@@ -183,7 +183,10 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         public String[] adaptStringArray(int index) {
             throw new IllegalArgumentException("incorrect adapter used");
         }
+        
+        public abstract String getString(int index);
     }
+    
     private static class StringAdapter extends Adapter {
 
         String[] array; 
@@ -194,6 +197,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         
         @Override
         public String adaptString(int index) {
+            return this.array[index];
+        }
+
+        @Override
+        public String getString(int index) {
             return this.array[index];
         }
     
@@ -294,6 +302,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             return formatTime(array[index]);
         }
 
+        @Override
+        public String getString(int index) {
+            return adaptString(index);
+        }
+
     }
     
     private static class IsotimeEpoch16Adapter extends Adapter {
@@ -373,6 +386,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             return formatTime(array[index][0],array[index][1]);
         }
 
+        @Override
+        public String getString(int index) {
+            return adaptString(index);
+        }
+
     }
     
     
@@ -414,7 +432,12 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             d= performFuzzyFill(d, fill);
             return (int)d;
         }
-        
+
+        @Override
+        public String getString(int index) {
+            return String.valueOf(adaptInteger(index));
+        }
+
     }
     
 
@@ -436,6 +459,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             double d= this.array[index];
             d= performFuzzyFill(d, fill);
             return d;
+        }
+
+        @Override
+        public String getString(int index) {
+            return String.valueOf(adaptDouble(index));
         }
     }
 
@@ -479,6 +507,18 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             return adapt;
         }
 
+        @Override
+        public String getString(int index) {
+            double[] dd= adaptDoubleArray(index);
+            if ( dd.length>2 ) {
+                return "["+dd[0]+","+dd[1]+",...]";
+            } else if ( dd.length==2 ) {
+                return "["+dd[0]+","+dd[1]+"]";
+            } else {
+                return "["+dd[0]+"]";
+            }
+        }
+
     }
 
     private static class DoubleFloatAdapter extends Adapter {
@@ -497,6 +537,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             d= performFuzzyFill( d, fill );
             return d;
         }
+
+        @Override
+        public String getString(int index) {
+            return String.valueOf(adaptDouble(index));
+        }
     }
 
     private static class IntegerLongAdapter extends Adapter {
@@ -510,6 +555,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         @Override
         public int adaptInteger(int index) {
             return (int) this.array[index];
+        }
+
+        @Override
+        public String getString(int index) {
+            return String.valueOf(adaptInteger(index));
         }
     }
 
@@ -525,6 +575,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         public int adaptInteger(int index) {
             return this.array[index];
         }
+        
+        @Override
+        public String getString(int index) {
+            return String.valueOf(adaptInteger(index));
+        }        
     }
 
     private static class IntegerShortAdapter extends Adapter {
@@ -539,6 +594,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         public int adaptInteger(int index) {
             return this.array[index];
         }
+        
+        @Override
+        public String getString(int index) {
+            return String.valueOf(adaptInteger(index));
+        }        
     }
 
     private static class IntegerByteAdapter extends Adapter {
@@ -553,6 +613,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         public int adaptInteger(int index) {
             return this.array[index];
         }
+        
+        @Override
+        public String getString(int index) {
+            return String.valueOf(adaptInteger(index));
+        }        
     }
 
     private static class IntegerArrayIntegerAdapter extends Adapter {
@@ -567,6 +632,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         public int[] adaptIntegerArray(int index) {
             return this.array[index];
         }
+        
+        @Override
+        public String getString(int index) {
+            return String.valueOf(adaptInteger(index));
+        }        
 
     }
 
@@ -631,6 +701,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         public String adaptString(int index) {
             return formatTime(array[index]);
         }
+        
+        @Override
+        public String getString(int index) {
+            return adaptString(index);
+        }        
     }
 
     /**
@@ -728,6 +803,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         if (iat > 0) {
             id = id.substring(0, iat);
         }
+        if ( id.equals("AMPTECCE_H0_MEPA") ) return false;
         return !readDirect.contains(id);
     }
 
@@ -1207,7 +1283,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
             @Override
             public String getAsString(int i) {
-                return null;
+                return adapters[i].getString(j);
             }
 
             @Override
@@ -1472,6 +1548,30 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
     }
         
+    /**
+     * see if we can implement alt_view and Themis quality without web services
+     * @throws java.io.IOException
+     * @throws org.codehaus.jettison.json.JSONException
+     */
+    public static void mainCase12() throws IOException, JSONException {
+        // http://localhost:8280/HapiServer/hapi/data?dataset=AC_OR_SSC&start=2023-01-01T00:00Z&stop=2024-01-01T00:00Z
+        String id= "AMPTECCE_H0_MEPA@0";
+        String urlorig= "file:/net/spot10/hd1_8t/home/weigel/cdawmeta/data/orig_data/info/"+id+".json";
+        String surl= "file:/net/spot10/hd1_8t/home/weigel/cdawmeta/data/hapi/info/"+id+".json";
+        
+        JSONObject info = new JSONObject( CdawebInfoCatalogSource.getInfo(urlorig, surl) );
+        CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
+            id,
+            info,
+            new int[]{1988,12,22,0,0,0,0},
+            new int[]{1988,12,22,16,19,0,0},
+            new String[]{"Time", "ION_protons_COUNTS_stack"}, null);
+        while (dd.hasNext()) {
+            HapiRecord rec = dd.next();
+            System.err.println(rec.getIsoTime(0)+","+rec.getAsString(1));
+        }
+    }
+        
     public static void main(String[] args) throws Exception {
         //mainCase1();
         //mainCase2();
@@ -1483,7 +1583,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         //mainCase8();
         //mainCase9();
         //mainCase10();
-        mainCase11();
+        //mainCase11();
+        mainCase12();
     }
 
 }
