@@ -129,6 +129,10 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
     public static String getInfoAvail( String roots, String availId ) {
         
         try {
+            
+            if ( roots.endsWith(".json") ) {
+                throw new IllegalArgumentException("should end with / not json");
+            }
                         
             URL sourceURL;
             String lastModified= null;
