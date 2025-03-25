@@ -388,16 +388,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     
     private static class IsotimeTT2000Adapter extends Adapter {
 
-        int julianDay;
-        long cdfTT2000 = Long.MAX_VALUE;
         /**
          * the time in milliseconds since year 1 for cdfEpoch, or nanoseconds for tt2000.
          */
         long baseTime;
-        /**
-         * 1 for tt2000, 1000000 for epoch.
-         */
-        double baseUnitsFactor;
+
         String baseYYYYmmddTHH;
 
         long[] array;
