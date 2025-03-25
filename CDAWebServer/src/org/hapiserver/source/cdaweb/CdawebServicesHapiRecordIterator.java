@@ -221,19 +221,12 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     
     private static class IsotimeEpochAdapter extends Adapter {
 
-        int julianDay;
-        long cdfTT2000 = Long.MAX_VALUE;
-
         /**
          * the time in milliseconds since year 1 for cdfEpoch, and this
          * marks the epoch value of the previous hour boundary.
          */
         double baseTime;
 
-        /**
-         * 1000000 for epoch, which is a milliseconds offset.
-         */
-        double baseUnitsFactor;
         String baseYYYYmmddTHH;
 
         double[] array;
@@ -393,6 +386,73 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
     }
     
+    private static class IsotimeTT2000Adapter extends Adapter {
+
+        int julianDay;
+        long cdfTT2000 = Long.MAX_VALUE;
+        /**
+         * the time in milliseconds since year 1 for cdfEpoch, or nanoseconds for tt2000.
+         */
+        long baseTime;
+        /**
+         * 1 for tt2000, 1000000 for epoch.
+         */
+        double baseUnitsFactor;
+        String baseYYYYmmddTHH;
+
+        long[] array;
+
+        private IsotimeTT2000Adapter(long[] array, int width) {
+            this.array = array;
+            double d = Array.getDouble(array, 0);
+            double us2000 = new LeapSecondsConverter(false).convert(d);
+            double day2000 = Math.floor(us2000 / 86400000000.); // days since 2000-01-01.
+            double usDay = us2000 - day2000 * 86400000000.; // seconds within this day.
+            double ms1970 = day2000 * 86400000. + 946684800000.;
+            String baseDay = TimeUtil.fromMillisecondsSince1970((long) ms1970);
+            baseYYYYmmddTHH = baseDay.substring(0, 10) + "T00";
+            baseTime = (long) (d - usDay * 1000);
+        }
+
+        private String formatTime(double t) {
+            long offset = (long) ((t - baseTime));  // This must not cross a leap second, will always be in nanos
+            while (offset < 0.) {
+                // Not sure why we need this, some sort of miscalculation of baseTime 
+                long hours = Math.floorDiv( offset, 3600000000000L );
+                baseTime = baseTime + hours * 3600000000000L;
+                baseYYYYmmddTHH= addTime( baseYYYYmmddTHH, hours );
+                try {
+                    baseYYYYmmddTHH = TimeUtil.normalizeTimeString(baseYYYYmmddTHH).substring(0, 13);
+                } catch ( IllegalArgumentException ex ) {
+                    System.err.println("Here stop");
+                }
+                offset = (long)(t - baseTime);
+            }
+            while (offset >= 3600000000000L) {
+                long hours = offset / 3600000000000L;
+                baseTime = baseTime + hours * 3600000000000L;
+                int hour = Integer.parseInt(baseYYYYmmddTHH.substring(11, 13));
+                baseYYYYmmddTHH = baseYYYYmmddTHH.substring(0, 11) + String.format("%02d", (int) (hour + hours));
+                baseYYYYmmddTHH = TimeUtil.normalizeTimeString(baseYYYYmmddTHH).substring(0, 13);
+                offset = (long) ((t - baseTime));
+            }
+            int nanos = (int) ((offset) % 1000000000.);
+            offset = offset / 1000000000; // now it's in seconds
+            int seconds = (int) (offset % 60);
+            int minutes = (int) (offset / 60); // now it's in minutes
+            return baseYYYYmmddTHH + String.format(":%02d:%02d.%09dZ", minutes, seconds, nanos);
+        }
+
+        @Override
+        public String adaptString(int index) {
+            return formatTime(array[index]);
+        }
+        
+        @Override
+        public String getString(int index) {
+            return adaptString(index);
+        }        
+    }
     
     /**
      * Integers come out of the library as doubles.
@@ -640,73 +700,6 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
     }
 
-    private static class IsotimeTT2000Adapter extends Adapter {
-
-        int julianDay;
-        long cdfTT2000 = Long.MAX_VALUE;
-        /**
-         * the time in milliseconds since year 1 for cdfEpoch, or nanoseconds for tt2000.
-         */
-        long baseTime;
-        /**
-         * 1 for tt2000, 1000000 for epoch.
-         */
-        double baseUnitsFactor;
-        String baseYYYYmmddTHH;
-
-        long[] array;
-
-        private IsotimeTT2000Adapter(long[] array, int width) {
-            this.array = array;
-            double d = Array.getDouble(array, 0);
-            double us2000 = new LeapSecondsConverter(false).convert(d);
-            double day2000 = Math.floor(us2000 / 86400000000.); // days since 2000-01-01.
-            double usDay = us2000 - day2000 * 86400000000.; // seconds within this day.
-            double ms1970 = day2000 * 86400000. + 946684800000.;
-            String baseDay = TimeUtil.fromMillisecondsSince1970((long) ms1970);
-            baseYYYYmmddTHH = baseDay.substring(0, 10) + "T00";
-            baseTime = (long) (d - usDay * 1000);
-        }
-
-        private String formatTime(double t) {
-            long offset = (long) ((t - baseTime));  // This must not cross a leap second, will always be in nanos
-            while (offset < 0.) {
-                // Not sure why we need this, some sort of miscalculation of baseTime 
-                long hours = Math.floorDiv( offset, 3600000000000L );
-                baseTime = baseTime + hours * 3600000000000L;
-                baseYYYYmmddTHH= addTime( baseYYYYmmddTHH, hours );
-                try {
-                    baseYYYYmmddTHH = TimeUtil.normalizeTimeString(baseYYYYmmddTHH).substring(0, 13);
-                } catch ( IllegalArgumentException ex ) {
-                    System.err.println("Here stop");
-                }
-                offset = (long)(t - baseTime);
-            }
-            while (offset >= 3600000000000L) {
-                long hours = offset / 3600000000000L;
-                baseTime = baseTime + hours * 3600000000000L;
-                int hour = Integer.parseInt(baseYYYYmmddTHH.substring(11, 13));
-                baseYYYYmmddTHH = baseYYYYmmddTHH.substring(0, 11) + String.format("%02d", (int) (hour + hours));
-                baseYYYYmmddTHH = TimeUtil.normalizeTimeString(baseYYYYmmddTHH).substring(0, 13);
-                offset = (long) ((t - baseTime));
-            }
-            int nanos = (int) ((offset) % 1000000000.);
-            offset = offset / 1000000000; // now it's in seconds
-            int seconds = (int) (offset % 60);
-            int minutes = (int) (offset / 60); // now it's in minutes
-            return baseYYYYmmddTHH + String.format(":%02d:%02d.%09dZ", minutes, seconds, nanos);
-        }
-
-        @Override
-        public String adaptString(int index) {
-            return formatTime(array[index]);
-        }
-        
-        @Override
-        public String getString(int index) {
-            return adaptString(index);
-        }        
-    }
 
     /**
      * Returns the name of the integer data type, for example, 8 is type 8-byte integer (a.k.a. Java long), and 33 is CDF_TT2000.
