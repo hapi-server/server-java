@@ -1,12 +1,14 @@
 
 package org.hapiserver.source.cdaweb;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.AbstractHapiRecordSource;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.TimeUtil;
 
 /**
  * CdawebServicesHapiRecordSource creates a HapiRecord iterator from CDF files,
@@ -85,4 +87,33 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
         return result;
     }    
  
+    public static void main( String[] args ) throws IOException, JSONException {
+        String origRoot= "file:/net/spot10/hd1_8t/home/weigel/cdawmeta/data/orig_data/";
+        String hapiRoot= "file:/net/spot10/hd1_8t/home/weigel/cdawmeta/data/hapi/info/AMPTECCE_H0_MEPA@0.json";
+        String id= "AMPTECCE_H0_MEPA@0";
+        JSONObject info= new JSONObject( CdawebInfoCatalogSource.getInfo( origRoot, hapiRoot ) );
+        CdawebServicesHapiRecordSource crs= new CdawebServicesHapiRecordSource( origRoot, id, info, null );
+        
+        System.err.println("crs: "+ crs);
+        
+        int[] start=  new int[]{1988,12,22,0,0,0,0};
+        int[] stop= new int[]{1988,12,22,16,19,0,0};
+        
+        // This is the "alternate_view" one
+        //String[] params= new String[]{"Time", "ION_protons_COUNTS_stack"};
+        
+        // This is the a non-virtual one
+        String[] params= new String[]{"Time", "ION_protons_COUNTS"};
+        
+        Iterator<int[]> granules= crs.getGranuleIterator( start, stop );
+        if ( granules.hasNext() ) {
+            int[] tr= granules.next();
+            Iterator<HapiRecord> records= crs.getIterator( TimeUtil.getStartTime(tr), TimeUtil.getStopTime(tr), params);
+            while ( records.hasNext() ) {
+                HapiRecord rec= records.next();
+                System.err.println( "next: "+ rec.getIsoTime(0)+" " +rec.getAsString(1) );
+            }
+        }
+
+    }
 }
