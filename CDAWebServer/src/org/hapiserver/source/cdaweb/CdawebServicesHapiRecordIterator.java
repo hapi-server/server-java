@@ -15,11 +15,9 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
@@ -40,6 +38,12 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 /**
+ * Implement the CDAWeb HAPI server by calculating a set of adapters which go from CDF variables
+ * in a file to the Strings, ints, and doubles which implement the HapiRecord.  This will download
+ * and cache CDF files when the server is running remotely, and will call web services and
+ * cache the response when virtual variables must be calculated.  One relatively simple virtual
+ * variable is resolved, alternate_view, so that the web services are not needed.
+ * 
  * This uses CDAWeb Web Services described at https://cdaweb.gsfc.nasa.gov/WebServices/REST/.
  *
  * @author jbf
@@ -791,12 +795,25 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         if (iat > 0) {
             id = id.substring(0, iat);
         }
-        if ( id.equals("AMPTECCE_H0_MEPA") ) return false;
+        if ( hapiServerResolvesId(id) ) return false;
         return !readDirect.contains(id);
+    }
+    
+    /**
+     * some virtual variables are easily implemented, so we resolve those within the server
+     * and data files can be cached.
+     * @param id the id, for example "AMPTECCE_H0_MEPA" which has only "alternate_view"
+     * @return true if the id can be resolved.
+     */
+    private static boolean hapiServerResolvesId(String id) {
+        if ( id.equals("AMPTECCE_H0_MEPA") ) return true;
+        return false;
     }
 
     /**
-     * return null or the file if cached locally, or if the backend of the https server is available (at Goddard).
+     * return null or the file which should be used locally.  When the server is at Goddard/CDAWeb, 
+     * this is the file in their database.  When running the server remotely, this is a mirror
+     * of their data (in /var/www/cdaweb/htdocs/).
      * @param url the file URL
      * @return null or the file.
      */
@@ -996,7 +1013,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 logger.fine("no need to download file I already have loaded within the last 5 days!");
                 file= tmpFile.toString();
             } else {
-                URL cdfUrl = getCdfDownloadURL(id, info, start, stop, params, file);
+                URL cdfUrl = getCdfDownloadURL(id, info, start, stop, params, file); //TODO: must there be a download here?
                 logger.log(Level.FINER, "request {0}", cdfUrl);
                 
                 File maybeLocalFile= getCdfLocalFile( cdfUrl );
@@ -1006,6 +1023,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 } else {
                     logger.log(Level.INFO, "Downloading {0}", cdfUrl);
                     tmpFile = SourceUtil.downloadFileLocking(cdfUrl, tmpFile, tmpFile.toString()+".tmp" );
+                    
                     if ( maybeLocalFile!=null && !mustUseWebServices(id) ) {
                         if ( maybeLocalFile.getParentFile().exists() || maybeLocalFile.getParentFile().mkdirs() ) {
                             Files.copy( tmpFile.toPath(), maybeLocalFile.toPath() );
@@ -1038,11 +1056,40 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         String result= paramName.replaceAll("\\/|\\.|\\%|\\!|\\@|\\^|\\&|\\*|\\(|\\)|\\-|\\+|\\=|\\`|\\~|\\?|\\<|\\>|\\ ", "\\$");
         return result;
     }
+
+    /**
+     * return true if one of the parameters is virtual.  A virtual parameter is one like "alternate_view" where
+     * a different variable is used (with different display, which is not relavant in HAPI), or "filter"
+     * @param info
+     * @param params
+     * @return
+     * @throws JSONException 
+     */
+    private static boolean isVirtual( JSONObject info, String[] params ) throws JSONException {
+        JSONArray parameters= info.getJSONArray("parameters");
+        int ip=0;
+        int np= parameters.length();
+        for ( String s: params ) {
+            while ( ip<np && !parameters.getJSONObject(ip).getString("name").equals(s) ) {
+                ip++;
+            }
+            if ( parameters.getJSONObject(ip).optBoolean( "x_cdf_VIRTUAL", false ) ) return true;
+        }
+        return false;
+    }
     
     public CdawebServicesHapiRecordIterator(JSONObject info, int[] start, int[] stop, String[] params, String tmpFile) throws CDFException.ReaderError, JSONException {
 
         if ( tmpFile==null ) {
             throw new NullPointerException("tmpFile is null");
+        }
+
+        if ( isVirtual(info,params) ) {
+            for ( int i=0; i<params.length; i++ ) {
+                if ( params[i].endsWith("_stack") ) {
+                    params[i]= params[i].substring(0,params[i].length()-6);
+                }
+            }
         }
         
         try {
@@ -1052,30 +1099,31 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
             logger.log(Level.FINE, "opening CDF file {0}", tmpFile);
             CDFReader reader = new CDFReader(tmpFile);
+            JSONArray pp;
+            try {
+                pp = info.getJSONArray("parameters");
+            } catch (JSONException ex) {
+                throw new RuntimeException("info has wrong form, expecting parameters");
+            }
             for (int i = 0; i < params.length; i++) {
-                JSONArray pp;
                 JSONObject param1=null;
-                try {
-                    pp = info.getJSONArray("parameters");
-                    JSONObject p;
-                    p= pp.getJSONObject( Math.min(i,pp.length() ) );
-                    if ( p.getString("name").equals(params[i]) ) { // check for "all" response, otherwise this is N^2 code.
-                        param1= p;
-                    } else {
-                        for ( int j=0; j<pp.length(); j++ ) {
-                            p= pp.getJSONObject(j);
-                            if ( p.getString("name").equals(params[i]) ) {
-                                param1= p;
-                                break;
-                            }
+                JSONObject p;
+                p= pp.getJSONObject( Math.min(i,pp.length() ) );
+                if ( p.getString("name").equals(params[i]) ) { // check for "all" response, otherwise this is N^2 code.
+                    param1= p;
+                } else {
+                    for ( int j=0; j<pp.length(); j++ ) {
+                        p= pp.getJSONObject(j);
+                        if ( p.getString("name").equals(params[i]) ) {
+                            param1= p;
+                            break;
                         }
                     }
-                    if ( param1==null ) {
-                        throw new IllegalArgumentException("didn't find parameter named \""+params[i]+"\"");
-                    }
-                } catch (JSONException ex) {
-                    throw new RuntimeException("info has wrong form, expecting parameters");
                 }
+                if ( param1==null ) {
+                    throw new IllegalArgumentException("didn't find parameter named \""+params[i]+"\"");
+                }
+
                 if (i == 0) {
                     int length = param1.optInt("length",24);
                     
