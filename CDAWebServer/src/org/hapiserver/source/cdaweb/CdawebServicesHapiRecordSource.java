@@ -100,10 +100,10 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
         int[] stop= new int[]{1988,12,22,16,19,0,0};
         
         // This is the "alternate_view" one
-        //String[] params= new String[]{"Time", "ION_protons_COUNTS_stack"};
+        String[] params= new String[]{"Time", "ION_protons_COUNTS_stack"};
         
         // This is the a non-virtual one
-        String[] params= new String[]{"Time", "ION_protons_COUNTS"};
+        //String[] params= new String[]{"Time", "ION_protons_COUNTS"};
         
         Iterator<int[]> granules= crs.getGranuleIterator( start, stop );
         if ( granules.hasNext() ) {
