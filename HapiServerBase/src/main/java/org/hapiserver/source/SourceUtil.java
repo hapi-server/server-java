@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.HapiRecord;
@@ -394,6 +395,28 @@ public class SourceUtil {
         InputSource source = new InputSource( reader );
         Document document = builder.parse(source);
         return document;
+    }
+    
+    /**
+     * retrieve the parameter from the info.
+     * @param info info JSON.
+     * @param name name of the parameter
+     * @return parameter JSONObject.
+     * @throws IllegalArgumentException when the name is not found or JSON object does not follow schema.
+     */
+    public static JSONObject getParam( JSONObject info, String name ) {
+        try {
+            JSONArray array= info.getJSONArray("parameters");
+            for ( int i=0; i<array.length(); i++ ) {
+                JSONObject p= array.getJSONObject(i);
+                if ( p.getString("name").equals(name) ) {
+                    return p;
+                }
+            }
+        } catch ( JSONException e ) {
+            throw new IllegalArgumentException(e);
+        }
+        throw new IllegalArgumentException("name is not found: "+name);
     }
     
     /**
