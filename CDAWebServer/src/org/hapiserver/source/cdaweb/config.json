@@ -21,7 +21,8 @@
                 "data": {                     
                     "source": "classpath",
                     "x_classpath": "CDAWebServer.jar",             
-                    "x_class":"org.hapiserver.source.cdaweb.CdawebServicesHapiRecordSource",
+                    "x_class":"org.hapiserver.source.cdaweb.CdawebHapiRecordSource",
+                    "x_method": "create",
                     "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/", "${id}", "${info}", "${data-config}" ],
                     "x_doc_arg1": "folder containing orig_data responses, with a file \"info/AC_AT_DEF.pkl\"",
                     "x_doc_arg2": "the id, like \"AC_H0_EPM\"",
