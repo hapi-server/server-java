@@ -1026,7 +1026,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     
                     if ( maybeLocalFile!=null && !mustUseWebServices(id) ) {
                         if ( maybeLocalFile.getParentFile().exists() || maybeLocalFile.getParentFile().mkdirs() ) {
-                            Files.copy( tmpFile.toPath(), maybeLocalFile.toPath() );
+                            Files.move( tmpFile.toPath(), maybeLocalFile.toPath() );
                             file= maybeLocalFile.toString();
                         } else {
                             logger.log(Level.INFO, "unable to mkdir -p {0}", maybeLocalFile.getParentFile());
