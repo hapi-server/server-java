@@ -13,6 +13,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.Arrays;
@@ -1059,7 +1060,9 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
     /**
      * return true if one of the parameters is virtual.  A virtual parameter is one like "alternate_view" where
-     * a different variable is used (with different display, which is not relavant in HAPI), or "filter"
+     * a different variable is used (with different display, which is not relevant in HAPI), or "apply_esa_qflag"
+     * where another variable is used to filter.  While most virtual data is resolved using CDAWeb web
+     * services, some are easily implemented here within the HAPI server.
      * @param info
      * @param params
      * @return
@@ -1067,13 +1070,9 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
      */
     private static boolean isVirtual( JSONObject info, String[] params ) throws JSONException {
         JSONArray parameters= info.getJSONArray("parameters");
-        int ip=0;
-        int np= parameters.length();
         for ( String s: params ) {
-            while ( ip<np && !parameters.getJSONObject(ip).getString("name").equals(s) ) {
-                ip++;
-            }
-            if ( parameters.getJSONObject(ip).optBoolean( "x_cdf_VIRTUAL", false ) ) return true;
+            JSONObject param= SourceUtil.getParam( info, s );
+            if ( param.optBoolean( "x_cdf_VIRTUAL", false ) ) return true;
         }
         return false;
     }
@@ -1086,8 +1085,13 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
         if ( isVirtual(info,params) ) {
             for ( int i=0; i<params.length; i++ ) {
-                if ( params[i].endsWith("_stack") ) {
-                    params[i]= params[i].substring(0,params[i].length()-6);
+                JSONObject param= SourceUtil.getParam( info, params[i] );
+                if ( param.optBoolean("x_cdf_VIRTUAL",false) ) {
+                    String funct= param.getString("x_cdf_FUNCT");
+                    JSONArray components= param.getJSONArray("x_cdf_COMPONENTS");
+                    if ( funct.equals("alternate_view") ) {
+                        params[i]= components.getString(0);
+                    }
                 }
             }
         }
