@@ -175,6 +175,7 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
             
             String stopFile=  array.getJSONObject(array.length()-1).getString("Name");
             
+            // the last four files
             int n2= array.length()-1;
             int n1= Math.max( 0, n2-4 );
             
