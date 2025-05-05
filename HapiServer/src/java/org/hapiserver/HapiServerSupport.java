@@ -1152,9 +1152,22 @@ public class HapiServerSupport {
         }
         
         long configTimeStamp= config==null ? infoConfigFile.lastModified() : cc.catalogTimeStamp;
+        
+        // read infoFile (HAPI_HOME/info/ID.json) to see if it contains an expiration.
+        JSONObject cachedInfoJsonObject=null;
+        if ( infoFile.exists() ) {
+            byte[] bb= Files.readAllBytes( Paths.get( infoFile.toURI() ) );
+            String s= new String( bb, Charset.forName("UTF-8") );
+            cachedInfoJsonObject= Util.newJSONObject(s);
+            if ( !cachedInfoJsonObject.optBoolean("x_info_caching",true) ) {
+                caching= false;
+            }
+        }
             
         if ( !caching || ( configTimeStamp - latestTimeStamp > 0 ) ) { // verify that it can be parsed and then copy it.
                 
+            cachedInfoJsonObject= null;
+            
             JSONObject jo;
             if ( config==null ) {
                 byte[] bb= Files.readAllBytes( Paths.get( infoConfigFile.toURI() ) );
@@ -1228,9 +1241,15 @@ public class HapiServerSupport {
             }
         }
 
-        byte[] bb= Files.readAllBytes( Paths.get( infoFile.toURI() ) );
-        String s= new String( bb, Charset.forName("UTF-8") );
-        JSONObject jo= Util.newJSONObject(s);
+        JSONObject jo;
+        if ( cachedInfoJsonObject!=null ) {
+            jo= cachedInfoJsonObject;
+        } else {
+            byte[] bb= Files.readAllBytes( Paths.get( infoFile.toURI() ) );
+            String s= new String( bb, Charset.forName("UTF-8") );
+            jo= Util.newJSONObject(s);
+        }
+        
         if ( jo.has("modificationDate") ) {
             String modificationDate= jo.getString("modificationDate");
             if ( modificationDate.length()==0 ) {
