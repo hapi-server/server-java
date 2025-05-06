@@ -1,0 +1,27 @@
+ {
+    "HAPI": "3.2",
+    "catalog": [
+        {
+            "x_group_id": "dart",
+            "x_source": "classpath",
+            "x_classpath": "tilde-geonet.jar",
+            "x_class": "org.hapiserver.source.tilde.geonet.DartCatalog",
+            "x_method": "getCatalog",
+            "x_config": {
+                "info": {
+                    "x_source":"classpath",
+                    "x_classpath": "tilde-geonet.jar",
+                    "x_class":"org.hapiserver.source.tilde.geonet.DartCatalog",
+                    "x_method": "getInfo"
+                },
+                "data": {                     
+                    "source": "classpath",
+                    "x_classpath": "tilde-geonet.jar",             
+                    "x_class":"org.hapiserver.source.tilde.geonet.DartDataHapiRecordSource",
+                    "x_args": [ "${id}" ],
+                    "x_doc_arg1": "the id, like \"NZB\""
+                }
+            }
+        }        
+    ]
+}
