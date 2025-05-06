@@ -34,7 +34,7 @@ public class CdawebInfoCatalogSource {
     
     public static final String CDAWeb = "https://cdaweb.gsfc.nasa.gov/";
 
-    private static final String CDAWEB_HAPI_VERSION = "20250310.1404";
+    private static final String CDAWEB_HAPI_VERSION = "20250506.0545";
     
     protected static Map<String,String> coverage= new HashMap<>();
     protected static Map<String,String> filenaming= new HashMap<>();
@@ -233,9 +233,10 @@ public class CdawebInfoCatalogSource {
             
             if ( url.getProtocol().equals("file") ) {
                 long lastModified= new File( url.getFile() ).lastModified();
-                jo.put( "modificationDate", TimeUtil.fromMillisecondsSince1970(lastModified) );
+                jo.put( "x_info_modificationDate", TimeUtil.fromMillisecondsSince1970(lastModified) );
             }
             
+            // communicate to the server that it should not use cached info responses.
             jo.put( "x_info_caching", false );
                     
             //if ( !lastModified.startsWith("00") ) {
