@@ -1267,6 +1267,7 @@ public class HapiServerSupport {
                 }
                 if ( caching ) {
                     latestTimeStamp= infoFile.lastModified();
+                    cachedInfoJsonObject= jo;
                 } else {
                     latestTimeStamp= new Date().getTime();
                     cachedInfoJsonObject= jo;
