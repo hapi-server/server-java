@@ -1077,13 +1077,25 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         return false;
     }
     
+    
+    /**
+     * 
+     * @param info info for the dataset
+     * @param start start time [Y,m,D,H,M,S,N]
+     * @param stop stop time [Y,m,D,H,M,S,N]
+     * @param params list of parameters to send
+     * @param tmpFile the file returned from NASA/GSFC/CDAWeb web services, or the downloaded file location, or location on the local storage.
+     * @throws gov.nasa.gsfc.spdf.cdfj.CDFException.ReaderError
+     * @throws JSONException 
+     */
     public CdawebServicesHapiRecordIterator(JSONObject info, int[] start, int[] stop, String[] params, String tmpFile) throws CDFException.ReaderError, JSONException {
 
         if ( tmpFile==null ) {
             throw new NullPointerException("tmpFile is null");
         }
 
-        if ( isVirtual(info,params) ) {
+        // We implement just one trivial virtual variable, alternate_view.  TODO: filters etc.
+        if ( isVirtual(info,params) ) { 
             for ( int i=0; i<params.length; i++ ) {
                 JSONObject param= SourceUtil.getParam( info, params[i] );
                 if ( param.optBoolean("x_cdf_VIRTUAL",false) ) {
