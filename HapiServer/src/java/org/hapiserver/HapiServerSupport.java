@@ -10,15 +10,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -470,7 +473,12 @@ public class HapiServerSupport {
                 if ( method.getReturnType()!=String.class ) {
                     throw new IllegalArgumentException("method should return String: " + clas + "."+ methodString );
                 }
-                String infoString= (String)method.invoke( id );
+                String infoString;
+                if ( Modifier.isStatic(method.getModifiers()) ) {
+                    infoString= (String)method.invoke( null, id );
+                } else {
+                    infoString= (String)method.invoke( id );
+                }
                 try {
                     return new JSONObject(infoString);
                 } catch ( JSONException ex ) {
@@ -1072,6 +1080,40 @@ public class HapiServerSupport {
     private static final long CONFIG_CACHE_FILE_MAX_LIFE_MILLIS=10000;
     
     /**
+     * copy the stream into a temporary file, then move it into position once it is downloaded.  This will
+     * create the directory for the file as well.
+     * 
+     * @param ins the input stream
+     * @param infoFile the destination
+     * @throws IOException 
+     */
+    private static void copyStreamSafely( InputStream ins, File infoFile ) throws IOException {
+        File parentFile= infoFile.getParentFile();
+        if ( !parentFile.exists() ) {
+            synchronized ( HapiServerSupport.class ) {
+                if ( !parentFile.exists() ) {
+                    if ( !parentFile.mkdirs() ) {
+                        throw new IllegalArgumentException("unable to make directory for info");
+                    }
+                }
+            }
+        }
+        Path tmpFile= Files.createTempFile( parentFile.toPath(), infoFile.getName(), "--" + Thread.currentThread().getName() );
+        try {
+            Files.copy( ins, tmpFile, StandardCopyOption.REPLACE_EXISTING );
+            synchronized ( HapiServerSupport.class ) {
+                Files.move( tmpFile, infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+            }
+        } catch ( Exception ex ) {
+            throw ex;
+        } finally {
+            if ( tmpFile.toFile().exists() ) {
+                tmpFile.toFile().delete();
+            }
+        }
+    }
+    
+    /**
      * keep and monitor a cached version of the info in memory.  If not in memory,
      * it will be read from the "info" folder, and if not there it will be read from
      * the config folder.  If the config folder timestamp is newer than what's loaded
@@ -1183,50 +1225,52 @@ public class HapiServerSupport {
                 if ( t instanceof JSONObject ) {
                     jo= (JSONObject)t;
                 } else {
-                    throw new IllegalArgumentException("info node is not JSONObject it is "+t.getClass());
+                    throw new IllegalArgumentException("info node is not JSONObject, it is "+t.getClass());
                 }
                 String source= jo.optString("source",jo.optString("x_source","") );
                 if ( source.length()>0 ) {
                     switch (source) {
                         case "spawn":
                             jo= getInfoFromSpawnCommand( jo, HAPI_HOME, id );
-                            try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
-                                File parentFile= infoFile.getParentFile();
-                                if ( !parentFile.exists() ) {
-                                    if ( !parentFile.mkdirs() ) {
-                                        throw new IllegalArgumentException("unable to make directory for info");
-                                    }
+                            caching= jo.optBoolean("x_info_caching",true);
+                            if ( caching ) {
+                                try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                                    copyStreamSafely( ins, infoFile );
+                                } catch ( Exception ex ) {
+                                    throw ex;
                                 }
-                                Files.copy( ins,
-                                        infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
-                            }   break;
+                            }
+                            break;
                         case "classpath":
                             jo= getInfoFromClasspath( jo, HAPI_HOME, id );
-                            try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
-                                File parentFile= infoFile.getParentFile();
-                                if ( !parentFile.exists() ) {
-                                    if ( !parentFile.mkdirs() ) {
-                                        throw new IllegalArgumentException("unable to make directory for info");
-                                    }
+                            caching= jo.optBoolean("x_info_caching",true);
+                            if ( caching ) {
+                                try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                                    copyStreamSafely( ins, infoFile );
+                                } catch ( Exception ex ) {
+                                    throw ex;
                                 }
-                                Files.copy( ins,
-                                        infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
-                            }   break;
+                            }
+                            break;
                         default:
                             warnWebMaster(new RuntimeException("catalog source can only be spawn or classpath") );
                             break;
                     }
                 } else {
                     validInfoObject(jo);
-                    String infoString= jo.toString(4);
-                    if ( !infoFile.getParentFile().exists() ) {
-                        if ( !infoFile.getParentFile().mkdirs() ) {
-                            throw new RuntimeException("unable to create folder for dataset id: " + id );
+                    caching= jo.optBoolean("x_info_caching",true);
+                    if ( caching ) {
+                        try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
+                            copyStreamSafely( ins, infoFile );
                         }
                     }
-                    Files.copy( new ByteArrayInputStream( infoString.getBytes(CHARSET) ), infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
                 }
-                latestTimeStamp= infoFile.lastModified();
+                if ( caching ) {
+                    latestTimeStamp= infoFile.lastModified();
+                } else {
+                    latestTimeStamp= new Date().getTime();
+                    cachedInfoJsonObject= jo;
+                }
             } catch ( JSONException | IllegalArgumentException ex ) {
                 warnWebMaster(ex);
             }
@@ -1245,6 +1289,7 @@ public class HapiServerSupport {
         if ( cachedInfoJsonObject!=null ) {
             jo= cachedInfoJsonObject;
         } else {
+            if ( caching==false ) throw new IllegalArgumentException("caching is disabled yet we have no object loaded, this is a server implementation error");
             byte[] bb= Files.readAllBytes( Paths.get( infoFile.toURI() ) );
             String s= new String( bb, Charset.forName("UTF-8") );
             jo= Util.newJSONObject(s);
