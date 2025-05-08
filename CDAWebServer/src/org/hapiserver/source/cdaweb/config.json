@@ -58,6 +58,15 @@
                     "x_doc_arg3": "info the info for this availability set."
                 }
             }
-        }        
-    ]
+        }
+    ],
+    "x_about": {
+        "_": "This is not used, see ticket https://github.com/hapi-server/server-java/issues/64",
+        "HAPI": "3.2",
+        "id":"cdaweb",
+        "title":"CDAWeb HAPI Server",
+        "contact":"Jeremy Faden <faden@cottagesystems.com>",
+        "description":"CDF data sets from CDAWeb.",
+        "x_server_version": "2025-05-06T05:48"
+    }
 }
