@@ -989,7 +989,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             String hostname= addr.getCanonicalHostName();
             if ( hostname.equals("spot9") || hostname.equals("spot10") ) {
                 if ( maybeLocalFile!=null && maybeLocalFile.exists() ) {
-                    if ( maybeLocalFile.lastModified()-System.currentTimeMillis() > 3600000 ) {
+                    if ( ( System.currentTimeMillis() - maybeLocalFile.lastModified() ) > 3600000 ) {
                         logger.log(Level.INFO, "Removing stale copy of {0} on {1}", new Object[]{maybeLocalFile.getName(), hostname});
                         maybeLocalFile.delete();
                     }
