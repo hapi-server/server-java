@@ -7,14 +7,14 @@
             "x_classpath": "CDAWebServer.jar",
             "x_class": "org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
             "x_method": "getCatalog",
-            "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/catalog.json" ],
+            "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/hapi/catalog.json" ],
             "x_config": {
                 "info": {
                     "x_source":"classpath",
                     "x_classpath": "CDAWebServer.jar",
                     "x_class":"org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
                     "x_method": "getInfo",
-                    "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/info/${id}.json", "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/info/${id}.json" ],
+                    "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/hapi/info/${id}.json", "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/hapi/info/${id}.json" ],
                     "x_doc_arg1": "the orig_data for the info, used to calculate lastModified.",
                     "x_doc_arg2": "root folder (website or file://...) containing \"info\" directory and \"catalog.json\""
                 },
@@ -23,7 +23,7 @@
                     "x_classpath": "CDAWebServer.jar",             
                     "x_class":"org.hapiserver.source.cdaweb.CdawebHapiRecordSource",
                     "x_method": "create",
-                    "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/", "${id}", "${info}", "${data-config}" ],
+                    "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/cdfmetafile/", "${id}", "${info}", "${data-config}" ],
                     "x_doc_arg1": "folder containing orig_data responses, with a file \"info/AC_AT_DEF.pkl\"",
                     "x_doc_arg2": "the id, like \"AC_H0_EPM\"",
                     "x_doc_arg3": "the info JSONObject",
@@ -37,14 +37,14 @@
             "x_classpath": "CDAWebServer.jar",
             "x_class": "org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
             "x_method": "getAvailabilityCatalog",
-            "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/hapi/catalog.json" ],
+            "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/hapi/catalog.json" ],
             "x_config": {
                 "info": {
                     "x_source":"classpath",
                     "x_classpath": "CDAWebServer.jar",
                     "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
                     "x_method": "getInfoAvail",
-                    "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/", "${id}" ],
+                    "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/cdfmetafile/", "${id}" ],
                     "x_doc_arg1": "root folder (website or file://...) containing \"info\" directory and \"catalog.json\"",
                     "x_doc_arg2": "the dataset id, starting with \"availability/\"" 
                 },
@@ -52,7 +52,7 @@
                     "source": "classpath",
                     "x_classpath": "CDAWebServer.jar",             
                     "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
-                    "x_args": [ "http://mag.gmu.edu/git-data/cdawmeta/data/orig_data/", "${id}", "${info}"],
+                    "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/cdfmetafile/", "${id}", "${info}"],
                     "x_doc_arg1": "availRoot folder containing orig_data responses, with a file \"info/AC_AT_DEF.pkl\"",
                     "x_doc_arg2": "idavail the id for the availability set, like \"AC_OR_SSC/availability\"",
                     "x_doc_arg3": "info the info for this availability set."
