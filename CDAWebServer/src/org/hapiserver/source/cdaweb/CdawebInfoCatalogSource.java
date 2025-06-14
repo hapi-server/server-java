@@ -34,7 +34,7 @@ public class CdawebInfoCatalogSource {
     
     public static final String CDAWeb = "https://cdaweb.gsfc.nasa.gov/";
 
-    private static final String CDAWEB_HAPI_VERSION = "20250506.0545";
+    private static final String CDAWEB_HAPI_VERSION = "20250614.0743";
     
     protected static Map<String,String> coverage= new HashMap<>();
     protected static Map<String,String> filenaming= new HashMap<>();
