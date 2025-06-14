@@ -9,16 +9,20 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Array;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
@@ -810,7 +814,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         if ( id.equals("AMPTECCE_H0_MEPA") ) return true;
         return false;
     }
-
+                
     /**
      * return null or the file which should be used locally.  When the server is at Goddard/CDAWeb, 
      * this is the file in their database.  When running the server remotely, this is a mirror
@@ -970,6 +974,34 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     }
 
     /**
+     * limit the lifespan of locally cached copies of data on spot9 and spot10, Jeremy's
+     * computers which are used to model the environment at Goddard.  Presently these
+     * just limit the file to one hour, but a future implementation may check URL last modified
+     * and make better decisions.
+     * 
+     * @param cdfUrl
+     * @param maybeLocalFile
+     * @return the file
+     */
+    private static File checkLocalFileFreshness( URL cdfUrl, File maybeLocalFile ) {
+        try {
+            InetAddress addr = InetAddress.getLocalHost();
+            String hostname= addr.getCanonicalHostName();
+            if ( hostname.equals("spot9") || hostname.equals("spot10") ) {
+                if ( maybeLocalFile!=null && maybeLocalFile.exists() ) {
+                    if ( maybeLocalFile.lastModified()-System.currentTimeMillis() > 3600000 ) {
+                        logger.log(Level.INFO, "Removing stale copy of {0} on {1}", new Object[]{maybeLocalFile.getName(), hostname});
+                        maybeLocalFile.delete();
+                    }
+                }
+            }
+            return maybeLocalFile;
+        } catch (UnknownHostException ex) {
+            return maybeLocalFile;
+        }
+    }
+    
+    /**
      * return the record iterator for the dataset.This presumes that start and stop are based on the intervals calculated by
      * CdawebServicesHapiRecordSource, and an incomplete set of records will be returned if this is not the case. The file, 
      * possibly calculated when figuring out intervals, can be provided as well, so that the web service identifying the file 
@@ -1010,14 +1042,19 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
             File tmpFile = new File(p, name + ".cdf"); // madness...  apparently tomcat can't write to /tmp
 
-            if ( tmpFile.exists() && (System.currentTimeMillis() - tmpFile.lastModified()) < (5 * 86400000)) {
-                logger.fine("no need to download file I already have loaded within the last 5 days!");
+            if ( tmpFile.exists() && (System.currentTimeMillis() - tmpFile.lastModified()) < ( 3600000 )) {
+                logger.fine("no need to download file I already have loaded within the last hour!");
                 file= tmpFile.toString();
             } else {
                 URL cdfUrl = getCdfDownloadURL(id, info, start, stop, params, file); //TODO: must there be a download here?
                 logger.log(Level.FINER, "request {0}", cdfUrl);
                 
                 File maybeLocalFile= getCdfLocalFile( cdfUrl );
+                
+                if ( maybeLocalFile!=null ) {
+                    maybeLocalFile= checkLocalFileFreshness( cdfUrl, maybeLocalFile );
+                }
+                
                 if ( maybeLocalFile!=null && maybeLocalFile.exists() ) {
                     file= maybeLocalFile.toString();
                     logger.log(Level.FINER, "using local file {0}", file);
