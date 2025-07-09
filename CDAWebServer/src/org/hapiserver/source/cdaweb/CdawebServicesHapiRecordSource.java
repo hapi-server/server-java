@@ -2,7 +2,10 @@
 package org.hapiserver.source.cdaweb;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -54,14 +57,14 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
         int ia= id.indexOf("@");
         String availId= ia==-1 ? id : id.substring(0,ia);
                 
-        String availInfo= CdawebAvailabilityHapiRecordSource.getInfoAvail( availRoot, availId + "/availability" );
+        String availInfo= CdawebAvailabilityHapiRecordSource.getInfoAvail( availRoot, availId + "/source" );
         JSONObject infoObject;
         try {
             infoObject = new JSONObject(availInfo);
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
         }
-        CdawebAvailabilityHapiRecordSource source= new CdawebAvailabilityHapiRecordSource( availRoot, availId + "/availability", infoObject );
+        CdawebAvailabilityHapiRecordSource source= new CdawebAvailabilityHapiRecordSource( availRoot, availId + "/source", infoObject );
         
         Iterator<HapiRecord> it = source.getIterator(start, stop);
         this.root= source.getRoot();
@@ -78,13 +81,17 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
 
     @Override
     public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
-        logger.entering("CdawebServicesHapiRecordSource","getIterator");
-        String f= this.root + availabilityIterator.getFile();
-        
-        CdawebServicesHapiRecordIterator result= CdawebServicesHapiRecordIterator.create(id, info, start, stop, params, f );
-        
-        logger.exiting("CdawebServicesHapiRecordSource","getIterator");
-        return result;
+        try {
+            logger.entering("CdawebServicesHapiRecordSource","getIterator");
+            URL f= new URL( this.root + availabilityIterator.getFile() );
+            
+            CdawebServicesHapiRecordIterator result= CdawebServicesHapiRecordIterator.create(id, info, start, stop, params, f );
+            
+            logger.exiting("CdawebServicesHapiRecordSource","getIterator");
+            return result;
+        } catch (MalformedURLException ex) {
+            throw new RuntimeException(ex);
+        }
     }    
  
     public static void main( String[] args ) throws IOException, JSONException {
