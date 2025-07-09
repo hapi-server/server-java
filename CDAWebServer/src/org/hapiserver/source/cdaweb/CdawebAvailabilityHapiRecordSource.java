@@ -415,7 +415,7 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
     
     /**
      * AC_K1_SWE/availability -> AC_K1_SWE
-     * @param idavail AC_K1_SWE/availability
+     * @param idavail AC_K1_SWE/source
      * @return AC_K1_SWE
      */
     private static String spidFor( String idavail ) {
