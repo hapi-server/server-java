@@ -852,10 +852,10 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
      * @param start the seven-component start time
      * @param stop the seven-component stop time
      * @param params the list of parameters to read
-     * @param file null or the file which contains the data
+     * @param origFile null or the file which contains the original data (pre Bernie's services)
      * @return the URL of the file containing the data.
      */
-    private static URL getCdfDownloadURL(String id, JSONObject info, int[] start, int[] stop, String[] params, String file) throws MalformedURLException {
+    private static URL getCdfDownloadURL(String id, JSONObject info, int[] start, int[] stop, String[] params, URL origFile) throws MalformedURLException {
         logger.entering("CdawebServicesHapiRecordIterator", "getCdfDownloadURL");
         String sstart = String.format("%04d%02d%02dT%02d%02d%02dZ", start[0], start[1], start[2], start[3], start[4], start[5]);
         String sstop = String.format("%04d%02d%02dT%02d%02d%02dZ", stop[0], stop[1], stop[2], stop[3], stop[4], stop[5]);
@@ -865,7 +865,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             id = id.substring(0, iat);
         }
 
-        if (file == null || mustUseWebServices(id)) {
+        if (origFile == null || mustUseWebServices(id)) {
 
             String ss;
             if (params.length == 1) {
@@ -903,7 +903,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
         } else {
             logger.exiting("CdawebServicesHapiRecordIterator", "getCdfDownloadURL");
-            return new URL(file);
+            return origFile;
         }
 
     }
@@ -1012,11 +1012,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
      * @param start the start time
      * @param stop the stop time
      * @param params the parameters to read
-     * @param file the file, (or null if not known), of the data. (or URL)
+     * @param origFile the file, (or null if not known), of the data. 
      * @return the record iterator.
      */
     public static CdawebServicesHapiRecordIterator create(
-        String id, JSONObject info, int[] start, int[] stop, String[] params, String file) {
+        String id, JSONObject info, int[] start, int[] stop, String[] params, URL origFile) {
         try {
 
             logger.entering(CdawebServicesHapiRecordIterator.class.getCanonicalName(), "constructor");
@@ -1040,13 +1040,16 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 }
             }
 
+            File cdfFile; // this is the file we'll use to read the data, possibly created by Bernie's web services
+            
             File tmpFile = new File(p, name + ".cdf"); // madness...  apparently tomcat can't write to /tmp
 
             if ( tmpFile.exists() && (System.currentTimeMillis() - tmpFile.lastModified()) < ( 3600000 )) {
                 logger.fine("no need to download file I already have loaded within the last hour!");
-                file= tmpFile.toString();
+                cdfFile= tmpFile;
+                
             } else {
-                URL cdfUrl = getCdfDownloadURL(id, info, start, stop, params, file); //TODO: must there be a download here?
+                URL cdfUrl = getCdfDownloadURL(id, info, start, stop, params, origFile); //TODO: must there be a download here?
                 logger.log(Level.FINER, "request {0}", cdfUrl);
                 
                 File maybeLocalFile= getCdfLocalFile( cdfUrl );
@@ -1056,8 +1059,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 }
                 
                 if ( maybeLocalFile!=null && maybeLocalFile.exists() ) {
-                    file= maybeLocalFile.toString();
-                    logger.log(Level.FINER, "using local file {0}", file);
+                    cdfFile= maybeLocalFile;
+                    logger.log(Level.FINER, "using local file {0}", cdfFile.toString() );
                 } else {
                     logger.log(Level.INFO, "Downloading {0}", cdfUrl);
                     tmpFile = SourceUtil.downloadFileLocking(cdfUrl, tmpFile, tmpFile.toString()+".tmp" );
@@ -1065,19 +1068,19 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     if ( maybeLocalFile!=null && !mustUseWebServices(id) ) {
                         if ( maybeLocalFile.getParentFile().exists() || maybeLocalFile.getParentFile().mkdirs() ) {
                             Files.move( tmpFile.toPath(), maybeLocalFile.toPath() );
-                            file= maybeLocalFile.toString();
+                            cdfFile= maybeLocalFile;
                         } else {
                             logger.log(Level.INFO, "unable to mkdir -p {0}", maybeLocalFile.getParentFile());
-                            file= tmpFile.toString();
+                            cdfFile= tmpFile;
                         }
                     } else {
-                        file= tmpFile.toString();
+                        cdfFile= tmpFile;
                     }
                     logger.log(Level.FINER, "downloaded {0}", cdfUrl);
                 }
             }
 
-            return new CdawebServicesHapiRecordIterator(info, start, stop, params, file);
+            return new CdawebServicesHapiRecordIterator(info, start, stop, params, cdfFile);
 
         } catch (CDFException.ReaderError | JSONException | IOException r ) {
             throw new RuntimeException(r);
@@ -1125,7 +1128,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
      * @throws gov.nasa.gsfc.spdf.cdfj.CDFException.ReaderError
      * @throws JSONException 
      */
-    public CdawebServicesHapiRecordIterator(JSONObject info, int[] start, int[] stop, String[] params, String tmpFile) throws CDFException.ReaderError, JSONException {
+    public CdawebServicesHapiRecordIterator(JSONObject info, int[] start, int[] stop, String[] params, File tmpFile) throws CDFException.ReaderError, JSONException {
 
         if ( tmpFile==null ) {
             throw new NullPointerException("tmpFile is null");
@@ -1151,7 +1154,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             int nrec = -1;
 
             logger.log(Level.FINE, "opening CDF file {0}", tmpFile);
-            CDFReader reader = new CDFReader(tmpFile);
+            CDFReader reader = new CDFReader(tmpFile.toString());
             JSONArray pp;
             try {
                 pp = info.getJSONArray("parameters");
