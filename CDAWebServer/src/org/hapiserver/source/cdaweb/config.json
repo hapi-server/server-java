@@ -45,8 +45,8 @@
                     "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
                     "x_method": "getInfoAvail",
                     "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/cdfmetafile/", "${id}" ],
-                    "x_doc_arg1": "root folder (website or file://...) containing \"info\" directory and \"catalog.json\"",
-                    "x_doc_arg2": "the dataset id, starting with \"availability/\"" 
+                    "x_doc_arg1": "root folder (website or file://...) containing \"info\" directory with file listings.",
+                    "x_doc_arg2": "the dataset id, ending with \"/source\"" 
                 },
                 "data": {                     
                     "source": "classpath",
@@ -54,7 +54,7 @@
                     "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
                     "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/cdfmetafile/", "${id}", "${info}"],
                     "x_doc_arg1": "availRoot folder containing orig_data responses, with a file \"info/AC_AT_DEF.pkl\"",
-                    "x_doc_arg2": "idavail the id for the availability set, like \"AC_OR_SSC/availability\"",
+                    "x_doc_arg2": "idavail the id for the availability set, like \"AC_OR_SSC/source\"",
                     "x_doc_arg3": "info the info for this availability set."
                 }
             }
