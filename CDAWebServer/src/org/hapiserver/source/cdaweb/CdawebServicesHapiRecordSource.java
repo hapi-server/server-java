@@ -22,8 +22,6 @@ import org.hapiserver.TimeUtil;
 public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
     
     private static final Logger logger= Logger.getLogger("hapi.cdaweb");
-
-    private static final File cacheDir= new File("/tmp/hapi-server-cache");
     
     private String id;
     JSONObject info;
@@ -105,7 +103,7 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
         String hapiRoot= "file:/net/spot10/hd1_8t/home/weigel/cdawmeta/data/hapi/info/AMPTECCE_H0_MEPA@0.json";
         String id= "AMPTECCE_H0_MEPA@0";
         JSONObject info= new JSONObject( CdawebInfoCatalogSource.getInfo( origRoot, hapiRoot ) );
-        CdawebServicesHapiRecordSource crs= new CdawebServicesHapiRecordSource( origRoot, id, info, null, cacheDir );
+        CdawebServicesHapiRecordSource crs= new CdawebServicesHapiRecordSource( origRoot, id, info, null,  new File("/tmp/hapi-server-cache") );
         
         System.err.println("crs: "+ crs);
         
