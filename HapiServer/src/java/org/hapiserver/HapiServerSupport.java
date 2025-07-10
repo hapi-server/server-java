@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -138,23 +139,131 @@ public class HapiServerSupport {
 
     private static final Map<String,CatalogData> catalogCache= new HashMap<>();
 
+    /**
+     * New 2025: the config.json file can contain node "options" which are a 
+     * set of definitions for the node.  Note options' namespace is the same
+     * as the servers, so "${id}", "${info}", and "${data-config}" are all
+     * reserved words.  This will only look at the "args" of the "config" node.
+     * @param options
+     * @param item item with either catalog, info, or data node.
+     * @return 
+     */
+    private static JSONObject resolveOptions( Map<String,Object> options, JSONObject item ) {
+        JSONObject itemConfig;
+        JSONObject config= item.optJSONObject("config");
+        if ( config==null ) return item;
+        String[] confs= new String[] { "catalog", "info", "data" };
+        for (String s: confs ) {
+            itemConfig= config.optJSONObject(s);
+            if ( itemConfig==null ) continue;
+            if ( "classpath".equals(itemConfig.opt("source")) ) {
+                JSONArray args= itemConfig.optJSONArray("args");
+                if (args!=null ) {
+                    for ( int i=0; i<args.length(); i++ ) {
+                        String sarg= args.optString(i,"");
+                        if ( sarg.contains("${") ) {
+                            String[] ss= sarg.split("\\$\\{");
+                            for ( int j=1; j<ss.length; j++ ) {
+                                int k2= ss[j].indexOf("}");
+                                if ( k2==-1 ) {
+                                    logger.log(Level.WARNING, "syntax error in args: {0}", sarg);
+                                    continue;
+                                } 
+                                String k= ss[j].substring(0,k2);
+                                if ( k.equals("id") || k.equals("info") || k.equals("data-config") ) {
+                                    ss[j]= "${"+ k + ss[j].substring(k2); // we need this because because it is resolved later.
+                                    continue;
+                                } else {
+                                    String v= String.valueOf(options.get( k ));
+                                    ss[j]= v + ss[j].substring(k2+1);
+                                }
+                            }
+                            sarg= String.join("", ss);
+                            try {
+                                args.put(i,sarg);
+                            } catch (JSONException ex) {
+                                logger.log(Level.SEVERE, null, ex); // this shouldn't happen
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return item;
+    }
+        
+    /**
+     * resolve the catalog, which can be a simple catalog with each dataset 
+     * described in simple info responses in separate files, or with a json
+     * document with "groups" listing groups which need to be resolved separately.
+     * @param HAPI_HOME
+     * @param jo contents of config.json
+     * @return the catalog response.
+     * @throws JSONException 
+     */
     private static JSONObject resolveCatalog(String HAPI_HOME, JSONObject jo) throws JSONException {
-        JSONArray catalog= jo.getJSONArray("catalog");
+        JSONArray catalog= jo.optJSONArray("catalog");
+        if ( catalog==null ) {
+            catalog= jo.optJSONArray("groups");
+        }
         JSONArray resolvedCatalog= new JSONArray();
         JSONObject groups= new JSONObject();
         JSONObject datasetToGroupId= new JSONObject();
         
         int resolvedCatalogLength=0;
         
+        JSONObject options = jo.optJSONObject("options");
+        Map<String,Object> optionsMap;
+        if ( options==null ) {
+            optionsMap= Collections.emptyMap();
+        } else {
+            // go through and resolve any internal references within the options
+            optionsMap = new HashMap( options.toMap() );
+            Set<String> kk= optionsMap.keySet();
+            for ( String k1 : kk ) {
+                Object o= optionsMap.get(k1);
+                if ( o instanceof String ) {
+                    String v1= (String)o;
+                    if ( v1.contains("${") ) {
+                        String[] ss= v1.split("\\$\\{");
+                        for ( int j=1; j<ss.length; j++ ) {
+                            int k2= ss[j].indexOf("}");
+                            if ( k2==-1 ) {
+                                logger.log(Level.WARNING, "syntax error in args: {0}", v1);
+                                continue;
+                            } 
+                            String k= ss[j].substring(0,k2);
+                            if ( k.equals("id") || k.equals("info") || k.equals("data-config") ) {
+                                ss[j]= "${"+ k + ss[j].substring(k2); // we need this because because it is resolved later.
+                                continue;
+                            } else {
+                                String v= optionsMap.get( k ).toString();
+                                ss[j]= v + ss[j].substring(k2+1);
+                            }
+                        }
+                        optionsMap.put( k1, String.join("", ss) );
+                    }
+                } 
+            }
+        }
+        
         for ( int i=0; i<catalog.length(); i++ ) {
             JSONObject item= catalog.getJSONObject(i);
+            item= resolveOptions( optionsMap, item );
+            String groupId= item.optString("group_id", item.optString("x_group_id",null) );
             String source= item.optString("x_source","");
+            JSONObject config= item.optJSONObject("config");
+            if ( config==null ) config= item.optJSONObject("x_config");
+            
+            if ( source.length()==0 ) {
+                item= config.optJSONObject("catalog");
+                source= item.optString("source",item.optString("x_source",""));
+            }
             if ( source.length()==0 ) {
                 resolvedCatalog.put( resolvedCatalogLength, item );
                 resolvedCatalogLength++;
             } else if ( source.equals("spawn") ) {
                 String command = item.optString("x_command","");
-                String groupId= item.optString("x_group_id","");
                 if ( command.length()==0 ) throw new IllegalArgumentException("x_command is missing");
                 try {
                     jo= getCatalogFromSpawnCommand( command );
@@ -170,14 +279,11 @@ public class HapiServerSupport {
                 } catch (JSONException | IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
-                JSONObject config= item.optJSONObject("x_config");
                 if ( config!=null ) {
                     groups.put( groupId, config );
                 }
             } else if ( source.equals("classpath") ) {
                  
-                String groupId= item.optString("x_group_id","");
-                
                 try {
                     jo= getCatalogFromClasspath( item,HAPI_HOME  );
 
@@ -193,7 +299,6 @@ public class HapiServerSupport {
                 } catch (JSONException | IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
-                JSONObject config= item.optJSONObject("x_config");
                 if ( config!=null ) {
                     groups.put( groupId, config );
                 }
@@ -201,7 +306,7 @@ public class HapiServerSupport {
                 warnWebMaster(new RuntimeException("catalog source can only be spawn") );
             }
         }
-        
+                
         JSONObject newCatalogResponse= Util.copyJSONObject(jo);
         newCatalogResponse.put( "catalog", resolvedCatalog );
         newCatalogResponse.put( "x_groups", groups );
