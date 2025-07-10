@@ -251,7 +251,7 @@ public class HapiServerSupport {
             JSONObject item= catalog.getJSONObject(i);
             item= resolveOptions( optionsMap, item );
             String groupId= item.optString("group_id", item.optString("x_group_id",null) );
-            String source= item.optString("x_source","");
+            String source= item.optString("source",item.optString("x_source",null));
             JSONObject config= item.optJSONObject("config");
             if ( config==null ) config= item.optJSONObject("x_config");
             
