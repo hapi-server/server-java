@@ -1,66 +1,70 @@
  {
-    "HAPI": "3.2",
+    "options": {
+        "homeDir":"file:///net/spot10/hd1_8t/home/weigel/cdawmeta/",
+        "homeDir_doc":"location for the server",
+        "cacheDir":"file:///net/spot10/hd1_8t/home/tomcat/cdaweb/tmp/",
+        "cacheDir_doc": "read-write location where files will be downloaded.",
+        "catalogHome": "${homeDir}/data/hapi/catalog.json",
+        "catalogHome_doc": "read-only location of the catalog file",
+        "infoHome": "${homeDir}/data/hapi/info/",
+        "infoHome_doc": "read-only root folder (website or file://...) containing \"info\" directory and \"catalog.json\"",
+        "metaHome": "${homeDir}/data/cdfmetafile/",
+        "metaHome_doc": "read-only root folder (website or file://...) containing \"info\" directory with file listings."
+    },
     "catalog": [
         {
-            "x_group_id": "cdaweb",
-            "x_source": "classpath",
-            "x_classpath": "CDAWebServer.jar",
-            "x_class": "org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
-            "x_method": "getCatalog",
-            "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/hapi/catalog.json" ],
-            "x_config": {
+            "group_id": "cdaweb",
+            "config": {
+                "catalog": {
+                    "source": "classpath",
+                    "classpath": "CDAWebServer.jar",
+                    "class": "org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
+                    "method": "getCatalog",
+                    "args": [ "${catalogHome}" ]
+                },
                 "info": {
-                    "x_source":"classpath",
-                    "x_classpath": "CDAWebServer.jar",
-                    "x_class":"org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
-                    "x_method": "getInfo",
-                    "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/hapi/info/${id}.json", "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/hapi/info/${id}.json" ],
-                    "x_doc_arg1": "the orig_data for the info, used to calculate lastModified.",
-                    "x_doc_arg2": "root folder (website or file://...) containing \"info\" directory and \"catalog.json\""
+                    "source":"classpath",
+                    "classpath": "CDAWebServer.jar",
+                    "class":"org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
+                    "method": "getInfo",
+                    "args": [ "${infoHome}${id}.json", "${infoHome}${id}.json" ]
                 },
                 "data": {                     
                     "source": "classpath",
-                    "x_classpath": "CDAWebServer.jar",             
-                    "x_class":"org.hapiserver.source.cdaweb.CdawebHapiRecordSource",
-                    "x_method": "create",
-                    "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/cdfmetafile/", "${id}", "${info}", "${data-config}" ],
-                    "x_doc_arg1": "folder containing orig_data responses, with a file \"info/AC_AT_DEF.pkl\"",
-                    "x_doc_arg2": "the id, like \"AC_H0_EPM\"",
-                    "x_doc_arg3": "the info JSONObject",
-                    "x_doc_arg4": "the data configuration JSONObject"
+                    "classpath": "CDAWebServer.jar",             
+                    "class":"org.hapiserver.source.cdaweb.CdawebHapiRecordSource",
+                    "method": "create",
+                    "args": [ "${metaHome}", "${id}", "${info}", "${data-config}", "${cacheDir}" ]
                 }
             }
         },
         {
-            "x_group_id": "cdaweb_availability",
-            "x_source": "classpath",
-            "x_classpath": "CDAWebServer.jar",
-            "x_class": "org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
-            "x_method": "getAvailabilityCatalog",
-            "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/hapi/catalog.json" ],
-            "x_config": {
+            "group_id": "cdaweb_availability",
+            "config": {
+                "catalog": {
+                    "source": "classpath",
+                    "classpath": "CDAWebServer.jar",
+                    "class": "org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
+                    "method": "getAvailabilityCatalog",
+                    "args": [ "${catalogHome}" ]
+                },
                 "info": {
-                    "x_source":"classpath",
-                    "x_classpath": "CDAWebServer.jar",
-                    "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
-                    "x_method": "getInfoAvail",
-                    "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/cdfmetafile/", "${id}" ],
-                    "x_doc_arg1": "root folder (website or file://...) containing \"info\" directory with file listings.",
-                    "x_doc_arg2": "the dataset id, ending with \"/source\"" 
+                    "source":"classpath",
+                    "classpath": "CDAWebServer.jar",
+                    "class":"org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
+                    "method": "getInfoAvail",
+                    "args": [ "${metaHome}", "${id}" ]
                 },
                 "data": {                     
                     "source": "classpath",
-                    "x_classpath": "CDAWebServer.jar",             
-                    "x_class":"org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
-                    "x_args": [ "file:///net/spot10/hd1_8t/home/weigel/cdawmeta/data/cdfmetafile/", "${id}", "${info}"],
-                    "x_doc_arg1": "availRoot folder containing orig_data responses, with a file \"info/AC_AT_DEF.pkl\"",
-                    "x_doc_arg2": "idavail the id for the availability set, like \"AC_OR_SSC/source\"",
-                    "x_doc_arg3": "info the info for this availability set."
+                    "classpath": "CDAWebServer.jar",             
+                    "class":"org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
+                    "args": [ "${metaHome}", "${id}", "${info}"]
                 }
             }
         }
     ],
-    "x_about": {
+    "about": {
         "_": "This is not used, see ticket https://github.com/hapi-server/server-java/issues/64",
         "HAPI": "3.2",
         "id":"cdaweb",

@@ -1,6 +1,7 @@
 
 package org.hapiserver.source.cdaweb;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -21,6 +22,8 @@ import org.hapiserver.TimeUtil;
 public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
     
     private static final Logger logger= Logger.getLogger("hapi.cdaweb");
+
+    private static final File cacheDir= new File("/tmp/hapi-server-cache");
     
     private String id;
     JSONObject info;
@@ -28,6 +31,7 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
     AvailabilityIterator availabilityIterator;
     String root;
     String availRoot; // Root containing "info" and the data granule availability files.
+    File cache;
     
     /**
      * Constructor for the record source.  This reads the CDF files needed from the availability files.
@@ -35,13 +39,15 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
      * @param id the id, like "AC_H0_EPM"
      * @param info the resolved info configuration object
      * @param data the data configuration object
+     * @param cacheDir cacheDir staging area where files can be stored for ~ 1 hour for reuse
      */
-    public CdawebServicesHapiRecordSource( String availRoot, String id, JSONObject info, JSONObject data ) {
+    public CdawebServicesHapiRecordSource( String availRoot, String id, JSONObject info, JSONObject data, File cacheDir ) {
         logger.entering("CdawebServicesHapiRecordSource","constructor");
         this.id= id;
         this.info= info;
         this.data= data;
         this.availRoot= availRoot;
+        this.cache= cacheDir;
         logger.exiting("CdawebServicesHapiRecordSource","constructor");
     }
     
@@ -85,7 +91,7 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
             logger.entering("CdawebServicesHapiRecordSource","getIterator");
             URL f= new URL( this.root + availabilityIterator.getFile() );
             
-            CdawebServicesHapiRecordIterator result= CdawebServicesHapiRecordIterator.create(id, info, start, stop, params, f );
+            CdawebServicesHapiRecordIterator result= CdawebServicesHapiRecordIterator.create(id, info, start, stop, params, f, cache );
             
             logger.exiting("CdawebServicesHapiRecordSource","getIterator");
             return result;
@@ -99,7 +105,7 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
         String hapiRoot= "file:/net/spot10/hd1_8t/home/weigel/cdawmeta/data/hapi/info/AMPTECCE_H0_MEPA@0.json";
         String id= "AMPTECCE_H0_MEPA@0";
         JSONObject info= new JSONObject( CdawebInfoCatalogSource.getInfo( origRoot, hapiRoot ) );
-        CdawebServicesHapiRecordSource crs= new CdawebServicesHapiRecordSource( origRoot, id, info, null );
+        CdawebServicesHapiRecordSource crs= new CdawebServicesHapiRecordSource( origRoot, id, info, null, cacheDir );
         
         System.err.println("crs: "+ crs);
         
