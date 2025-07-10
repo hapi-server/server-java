@@ -11,7 +11,7 @@
         "metaHome": "${homeDir}/data/cdfmetafile/",
         "metaHome_doc": "read-only root folder (website or file://...) containing \"info\" directory with file listings."
     },
-    "catalog": [
+    "groups": [
         {
             "group_id": "cdaweb",
             "config": {
