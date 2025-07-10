@@ -256,7 +256,7 @@ public class HapiServerSupport {
             if ( config==null ) config= item.optJSONObject("x_config");
             
             if ( source.length()==0 ) {
-                item= config.optJSONObject("catalog");
+                item= config.optJSONObject("catalog"); 
                 source= item.optString("source",item.optString("x_source",""));
             }
             if ( source.length()==0 ) {
