@@ -1,43 +1,76 @@
  {
-     "HAPI": "3.2",
-     "catalog": [
-         {
-             "x_group_id": "csa",
-             "x_source": "classpath",
-             "x_class": "org.hapiserver.source.tap.CsaInfoCatalogSource",
-             "x_method": "getCatalog",
-             "x_config": {
-                 "info": {
-                     "x_source":"classpath",
-                     "x_class":"org.hapiserver.source.tap.CsaInfoCatalogSource",
-                     "x_method": "getInfo",
-                     "x_args": [ "${id}" ]
-                 },
-                 "data": {
-                     "source": "classpath",
-                     "class":"org.hapiserver.source.tap.TAPDataSource",
-                     "args":["https://csa.esac.esa.int/csa-sl-tap/","${id}","${info}"]
-                 }
-             }
-         },
-         {
-             "x_group_id": "csa-availability",
-             "x_source": "classpath",
-             "x_class": "org.hapiserver.source.tap.TAPAvailabilityDataSource",
-             "x_method": "getCatalog",
-             "x_config": {
-                 "info": {
-                     "x_source":"classpath",
-                     "x_class":"org.hapiserver.source.tap.TAPAvailabilityDataSource",
-                     "x_method": "getInfo",
-                     "x_args": [ "${id}" ]
-                 },
-                 "data": {
-                     "source": "classpath",
-                     "class":"org.hapiserver.source.tap.TAPAvailabilityDataSource",
-                     "args":["https://csa.esac.esa.int/csa-sl-tap/","${id}","${info}"]
-                 }
-             }
-         }
-     ]
- }
+    "options": {
+        "cdawmetaDir":"https://cottagesystems.com/~jbf/hapi/p/cdaweb/",
+        "cdawmetaDir_doc":"location for the server",
+        "cacheDir":"file:///tmp/cdaweb-hapi/cache/",
+        "cacheDir_doc": "read-write location where files will be downloaded.",
+        "catalogHome": "${homeDir}/data/hapi/catalog.json",
+        "catalogHome_doc": "read-only location of the catalog file",
+        "infoHome": "${homeDir}/data/hapi/info/",
+        "infoHome_doc": "read-only root folder (website or file://...) containing \"info\" directory and \"catalog.json\"",
+        "metaHome": "${homeDir}/data/cdfmetafile/",
+        "metaHome_doc": "read-only root folder (website or file://...) containing \"info\" directory with file listings."
+    },
+    "groups": [
+        {
+            "group_id": "cdaweb",
+            "config": {
+                "catalog": {
+                    "source": "classpath",
+                    "classpath": "CDAWebServer.jar",
+                    "class": "org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
+                    "method": "getCatalog",
+                    "args": [ "${catalogHome}" ]
+                },
+                "info": {
+                    "source":"classpath",
+                    "classpath": "CDAWebServer.jar",
+                    "class":"org.hapiserver.source.cdaweb.CdawebInfoCatalogSource",
+                    "method": "getInfo",
+                    "args": [ "${infoHome}${id}.json", "${infoHome}${id}.json" ]
+                },
+                "data": {                     
+                    "source": "classpath",
+                    "classpath": "CDAWebServer.jar",             
+                    "class":"org.hapiserver.source.cdaweb.CdawebHapiRecordSource",
+                    "method": "create",
+                    "args": [ "${metaHome}", "${id}", "${info}", "${data-config}", "${cacheDir}" ]
+                }
+            }
+        },
+        {
+            "group_id": "cdaweb_availability",
+            "config": {
+                "catalog": {
+                    "source": "classpath",
+                    "classpath": "CDAWebServer.jar",
+                    "class": "org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
+                    "method": "getAvailabilityCatalog",
+                    "args": [ "${catalogHome}" ]
+                },
+                "info": {
+                    "source":"classpath",
+                    "classpath": "CDAWebServer.jar",
+                    "class":"org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
+                    "method": "getInfoAvail",
+                    "args": [ "${metaHome}", "${id}" ]
+                },
+                "data": {                     
+                    "source": "classpath",
+                    "classpath": "CDAWebServer.jar",             
+                    "class":"org.hapiserver.source.cdaweb.CdawebAvailabilityHapiRecordSource",
+                    "args": [ "${metaHome}", "${id}", "${info}"]
+                }
+            }
+        }
+    ],
+    "about": {
+        "_": "This is not used, see ticket https://github.com/hapi-server/server-java/issues/64",
+        "HAPI": "3.2",
+        "id":"cdaweb",
+        "title":"CDAWeb HAPI Server",
+        "contact":"Jeremy Faden <faden@cottagesystems.com>",
+        "description":"CDF data sets from CDAWeb.",
+        "x_server_version": "2025-07-10T13:37"
+    }
+}
