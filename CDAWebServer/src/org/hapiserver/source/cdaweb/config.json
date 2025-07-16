@@ -1,8 +1,8 @@
  {
     "options": {
-        "homeDir":"file:///net/spot10/hd1_8t/home/weigel/cdawmeta/",
-        "homeDir_doc":"location for the server",
-        "cacheDir":"file:///net/spot10/hd1_8t/home/tomcat/cdaweb/tmp/",
+        "cdawmetaDir":"https://cottagesystems.com/~jbf/hapi/p/cdaweb/",
+        "cdawmetaDir_doc":"location for the server",
+        "cacheDir":"file:///tmp/cdaweb-hapi/cache/",
         "cacheDir_doc": "read-write location where files will be downloaded.",
         "catalogHome": "${homeDir}/data/hapi/catalog.json",
         "catalogHome_doc": "read-only location of the catalog file",
