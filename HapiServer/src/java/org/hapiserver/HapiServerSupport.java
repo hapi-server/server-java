@@ -237,6 +237,9 @@ public class HapiServerSupport {
                                 ss[j]= "${"+ k + ss[j].substring(k2); // we need this because because it is resolved later.
                                 continue;
                             } else {
+                                if ( !optionsMap.containsKey(k) ) {
+                                    throw new IllegalArgumentException("options map \""+k1+"\" uses key which is not found: "+k );
+                                }
                                 String v= optionsMap.get( k ).toString();
                                 ss[j]= v + ss[j].substring(k2+1);
                             }
