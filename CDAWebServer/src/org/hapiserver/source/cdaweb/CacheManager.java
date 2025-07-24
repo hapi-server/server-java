@@ -78,7 +78,7 @@ public class CacheManager {
             long now = System.currentTimeMillis();
             for (Path path : stream) {
                 long ageMillis = now - Files.getLastModifiedTime(path).toMillis();
-                System.err.println(path.toString()+"..."+(ageMillis/1000.)+" seconds old");
+                //System.err.println(path.toString()+"..."+(ageMillis/1000.)+" seconds old");
                 if ( ageMillis > maxAgeMilliseconds) {
                     Files.deleteIfExists(path);
                 }
