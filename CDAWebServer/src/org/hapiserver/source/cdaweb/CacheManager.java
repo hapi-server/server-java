@@ -60,7 +60,6 @@ public class CacheManager {
             @Override
             public void run() {
                 try {
-                    System.err.println("run cleanup");
                     cleanup();
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
