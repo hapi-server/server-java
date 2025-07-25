@@ -90,32 +90,6 @@ public class Initialize {
             InputStream in;
             File tmpFile;
 
-            // copy about.json to config
-            File aboutFile= new File( configDir, "about.json" );                                    
-            logger.log(Level.INFO, "copy about.json from internal templates to {0}", aboutFile);
-            in = Util.getTemplateAsStream("about.json");
-            tmpFile = new File( configDir, "_about.json" );
-            Util.transfer( in, new FileOutputStream(tmpFile), true );
-            if ( !tmpFile.renameTo(aboutFile) ) {
-                logger.log(Level.SEVERE, "Unable to write to {0}", aboutFile);
-                throw new IllegalArgumentException("unable to write about file");
-            } else {
-                logger.log(Level.FINE, "wrote config about file {0}", aboutFile);
-            }
-
-            // copy capabilities.json to config
-            File capabilitiesFile= new File( configDir, "capabilities.json" ); 
-            logger.log(Level.INFO, "copy capabilities.json from internal templates to {0}", capabilitiesFile);
-            in= Util.getTemplateAsStream("capabilities.json");
-            tmpFile= new File( configDir, "_capabilities.json" );
-            Util.transfer( in, new FileOutputStream(tmpFile), true );
-            if ( !tmpFile.renameTo(capabilitiesFile) ) {
-                logger.log(Level.SEVERE, "Unable to write to {0}", capabilitiesFile);
-                throw new IllegalArgumentException("unable to write capabilities file");
-            } else {
-                logger.log(Level.FINE, "wrote config capabilities file {0}", capabilitiesFile);
-            }
-
             // copy catalog.json to config.  Note either config.json or catalog.json can be used.
             File configFile= new File( configDir, "config.json" );
             logger.log(Level.INFO, "copy catalog.json from internal templates to {0}", configFile);
