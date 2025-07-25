@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -735,11 +736,36 @@ public class HapiServerSupport {
             throw new IllegalArgumentException("ff cannot contain ..");
         }
         
+        if ( !Pattern.matches("[a-z\\-]+.json", ff) ) {
+            throw new IllegalArgumentException("ff must match [a-z]+");
+        }
+        
         File releaseFile= new File( HAPI_HOME, ff );
         long releaseFileTimeStamp= releaseFile.exists() ? releaseFile.lastModified() : 0;
         File configDir= new File( HAPI_HOME, "config" );
         File configFile= new File( configDir, ff );
         if ( !configFile.exists() ) {
+            
+            File catalogConfigFile= getConfigFile(HAPI_HOME);     
+        
+            if ( !catalogConfigFile.exists() ) {
+                throw new IOException("config directory should contain config.json or catalog.json");
+            }
+            
+            byte[] bb= Files.readAllBytes( Paths.get( catalogConfigFile.toURI() ) );
+            String s= new String( bb, Charset.forName("UTF-8") );
+            try {
+                JSONObject jo= Util.newJSONObject(s);
+                
+                int i= ff.indexOf(".");
+                String item= ff.substring(0,i);
+                if ( jo.has(item) ) {
+                    return jo.getJSONObject(item);
+                }
+            }  catch ( JSONException ex ) {
+                warnWebMaster(ex);
+            }
+            
             if ( deft==null ) {
                 try {
                     InputStream ins= Util.getTemplateAsStream(ff);
