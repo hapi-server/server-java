@@ -11,6 +11,14 @@
         "metaHome": "${cdawmetaDir}/data/cdfmetafile/",
         "metaHome_doc": "read-only root folder (website or file://...) containing \"info\" directory with file listings."
     },
+    "about": {
+        "HAPI": "3.2",
+        "id":"cdaweb",
+        "title":"CDAWeb HAPI Server",
+        "contact":"Jeremy Faden <faden@cottagesystems.com>",
+        "description":"CDF data sets from CDAWeb.",
+        "x_server_version": "2025-07-25T07:48"
+    },
     "groups": [
         {
             "group_id": "cdaweb",
@@ -63,15 +71,6 @@
                 }
             }
         }
-    ],
-    "about": {
-        "_": "This is not used, see ticket https://github.com/hapi-server/server-java/issues/64",
-        "HAPI": "3.2",
-        "id":"cdaweb",
-        "title":"CDAWeb HAPI Server",
-        "contact":"Jeremy Faden <faden@cottagesystems.com>",
-        "description":"CDF data sets from CDAWeb.",
-        "x_server_version": "2025-07-10T13:37"
-    }
+    ]
 }
 

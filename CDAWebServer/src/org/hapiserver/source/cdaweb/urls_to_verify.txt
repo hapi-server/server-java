@@ -1,0 +1,4 @@
+# Shows possible problem with assumptions about parameter numbers:
+wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=BAR_1D_L2_HKPG&parameters=T11_Solar4&time.min=2013-01-19T23:59:27Z&time.max=2013-01-20T23:59:18Z'
+
+wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=AC_OR_SSC&parameters=XYZ_GSEO&start=2023-01-01T00:00Z&stop=2024-01-01T00:00Z'
