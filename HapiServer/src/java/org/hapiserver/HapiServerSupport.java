@@ -4,7 +4,6 @@ package org.hapiserver;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -24,7 +23,6 @@ import java.text.ParseException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -173,7 +171,6 @@ public class HapiServerSupport {
                                 String k= ss[j].substring(0,k2);
                                 if ( k.equals("id") || k.equals("info") || k.equals("data-config") ) {
                                     ss[j]= "${"+ k + ss[j].substring(k2); // we need this because because it is resolved later.
-                                    continue;
                                 } else {
                                     String v= String.valueOf(options.get( k ));
                                     ss[j]= v + ss[j].substring(k2+1);
@@ -584,7 +581,6 @@ public class HapiServerSupport {
             } else {
                 c= Class.forName(clas);
             }
-            Object o;
             JSONArray args= jo.optJSONArray("args");
             if ( args==null ) args= jo.optJSONArray("x_args");
             if ( args==null ) {
@@ -1247,7 +1243,7 @@ public class HapiServerSupport {
             synchronized ( HapiServerSupport.class ) {
                 Files.move( tmpFile, infoFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
             }
-        } catch ( Exception ex ) {
+        } catch ( IOException ex ) {
             throw ex;
         } finally {
             if ( tmpFile.toFile().exists() ) {
@@ -1368,7 +1364,11 @@ public class HapiServerSupport {
                 if ( t instanceof JSONObject ) {
                     jo= (JSONObject)t;
                 } else {
-                    throw new IllegalArgumentException("info node is not JSONObject, it is "+t.getClass());
+                    if ( t==null ) {
+                        throw new IllegalArgumentException("info node is not found.");
+                    } else {
+                        throw new IllegalArgumentException("info node is not JSONObject, it is "+t.getClass());
+                    }
                 }
                 String source= jo.optString("source",jo.optString("x_source","") );
                 if ( source.length()>0 ) {
