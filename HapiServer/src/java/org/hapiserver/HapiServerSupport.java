@@ -320,6 +320,20 @@ public class HapiServerSupport {
         
     }
 
+    /**
+     * create a temporary file in HAPI_HOME/tmp.
+     * @param HAPI_HOME
+     * @param typeFileName
+     * @return 
+     */
+    private synchronized static File getTmpFile(String HAPI_HOME,String typeFileName) {
+        File tmpDir= new File( HAPI_HOME, "tmp" );
+        if ( !tmpDir.exists() ) {
+            tmpDir.mkdirs();
+        }
+        return new File( tmpDir, Thread.currentThread().getName() + "_" + typeFileName );
+    }
+
     private static class CatalogData {
         public CatalogData( JSONObject catalog, long catalogTimeStamp ) {
             this.catalog= catalog;
@@ -661,7 +675,8 @@ public class HapiServerSupport {
 
 
     /**
-     * read the relations file from the config directory if it has been modified.
+     * read the semantics file from the config directory if it has been modified.
+     * Note this was an experimental feature which was never accepted.
      * @param HAPI_HOME
      * @return JSON for the about file.
      * @throws IOException
@@ -673,7 +688,7 @@ public class HapiServerSupport {
         
         String ff= "semantics.json";
         
-        JSONObject jo= loadAndCheckConfig(HAPI_HOME, ff);
+        JSONObject jo= loadAndCheckConfig(HAPI_HOME, ff, new JSONObject() );
         
         return jo;
     }
@@ -681,6 +696,8 @@ public class HapiServerSupport {
     
     /**
      * read the relations file from the config directory if it has been modified.
+     * Note this was an experimental feature which was never accepted.
+     * 
      * @param HAPI_HOME
      * @return JSON for the about file.
      * @throws IOException
@@ -692,7 +709,7 @@ public class HapiServerSupport {
         
         String ff= "relations.json";
         
-        JSONObject jo= loadAndCheckConfig(HAPI_HOME, ff);
+        JSONObject jo= loadAndCheckConfig(HAPI_HOME, ff, new JSONObject() );
 
         return jo;
     }
@@ -723,95 +740,91 @@ public class HapiServerSupport {
      * load the file, checking to see if there's a newer version in the config area, and loading the 
      * initial version from the templates area or deft object.
      * @param HAPI_HOME
-     * @param ff the name of the file, one of "about.json", "x-landing.json", "semantics.json", or "relations.json"
+     * @param typeFileName the name of the file, one of "about.json", "x-landing.json", "semantics.json", or "relations.json"
      * @param deft a deft value to use, if null then load from templates area.
      * @return the JSON object for the file.
      * @throws IOException
      * @throws JSONException 
      */
-    private static JSONObject loadAndCheckConfig(String HAPI_HOME, String ff, JSONObject deft ) throws IOException, JSONException {
+    private static JSONObject loadAndCheckConfig(String HAPI_HOME, String typeFileName, JSONObject deft ) throws IOException, JSONException {
         Initialize.maybeInitialize( HAPI_HOME );
         
-        if ( ff.contains("..") ) {
+        if ( typeFileName.contains("..") ) {
             throw new IllegalArgumentException("ff cannot contain ..");
         }
         
-        if ( !Pattern.matches("[a-z\\-]+.json", ff) ) {
+        if ( !Pattern.matches("[a-z\\-]+.json", typeFileName) ) {
             throw new IllegalArgumentException("ff must match [a-z]+");
         }
         
-        File releaseFile= new File( HAPI_HOME, ff );
+        File releaseFile= new File( HAPI_HOME, typeFileName );
         long releaseFileTimeStamp= releaseFile.exists() ? releaseFile.lastModified() : 0;
         File configDir= new File( HAPI_HOME, "config" );
-        File configFile= new File( configDir, ff );
-        if ( !configFile.exists() ) {
-            
-            File catalogConfigFile= getConfigFile(HAPI_HOME);     
+        File typeFile= new File( configDir, typeFileName ); // typeFile is the file in the config directory, when config.json is not used.
+        File catalogConfigFile= getConfigFile(HAPI_HOME);
         
+        if ( !typeFile.exists() ) {
+
             if ( !catalogConfigFile.exists() ) {
-                throw new IOException("config directory should contain config.json or catalog.json");
+                throw new IOException("config directory should contain config.json or "+ catalogConfigFile);
             }
             
-            byte[] bb= Files.readAllBytes( Paths.get( catalogConfigFile.toURI() ) );
-            String s= new String( bb, Charset.forName("UTF-8") );
-            try {
-                JSONObject jo= Util.newJSONObject(s);
-                
-                int i= ff.indexOf(".");
-                String item= ff.substring(0,i);
-                if ( jo.has(item) ) {
-                    return jo.getJSONObject(item);
-                }
-            }  catch ( JSONException ex ) {
-                warnWebMaster(ex);
-            }
+            if ( catalogConfigFile.lastModified() > releaseFileTimeStamp ) {
             
-            if ( deft==null ) {
+                byte[] bb= Files.readAllBytes( Paths.get( catalogConfigFile.toURI() ) );
+                String s= new String( bb, Charset.forName("UTF-8") );
                 try {
-                    InputStream ins= Util.getTemplateAsStream(ff);
-                    File tmpFile = new File( configDir, "_"+ff );
-                    Util.transfer( ins, new FileOutputStream(tmpFile), true );
-                    if ( !tmpFile.renameTo(configFile) ) {
-                        logger.log(Level.SEVERE, "Unable to write to {0}", configFile);
-                        throw new IllegalArgumentException("unable to write file");
-                    } else {
-                        logger.log(Level.FINE, "wrote config file {0}", configFile);
+                    JSONObject jo= Util.newJSONObject(s);
+                
+                    int i= typeFileName.indexOf(".");
+                    String item= typeFileName.substring(0,i);
+                    if ( jo.has(item) ) {
+                        deft= jo.getJSONObject(item); // the item is defined in config.json
                     }
-                } catch ( NullPointerException ex ) {
-                    throw new IOException("templates directory should contain "+ff);
-                }
-            } else {
-                if ( configFile.getParentFile().canWrite() ) {
-                    Files.write( configFile.toPath(), deft.toString(4).getBytes(CHARSET) );
-                } else {
-                    logger.log(Level.WARNING, "writing to server read area: {0}", releaseFile);
-                    if ( releaseFile.getParentFile().canWrite() ) {
-                        Files.write( releaseFile.toPath(), deft.toString(4).getBytes(CHARSET) );
-                        releaseFileTimeStamp= releaseFile.exists() ? releaseFile.lastModified() : 0;
-                    }
+                    typeFile= catalogConfigFile;
+                }  catch ( JSONException ex ) {
+                    warnWebMaster(ex);
                 }
             }
         }
-        logger.log(Level.FINE, " configFile.lastModified(): {0}", configFile.lastModified());
+        
+        logger.log(Level.FINE, " configFile.lastModified(): {0}", typeFile.lastModified());
         logger.log(Level.FINE, " latestTimeStamp: {0}", releaseFileTimeStamp);
-        if ( configFile.lastModified() > releaseFileTimeStamp ) { // verify that it can be parsed and then copy it. //TODO: synchronized
-            byte[] bb= Files.readAllBytes( Paths.get( configFile.toURI() ) );
-            String s= new String( bb, CHARSET );
-            try {
-                logger.log(Level.INFO, "read {0} from config", ff);
-                JSONObject jo= Util.newJSONObject(s);
-                jo.put("x_hapi_home",HAPI_HOME);
-                                
-                try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
-                    logger.log(Level.INFO, "write resolved config to {0}", releaseFile.getPath());
-                    Files.copy( ins,
-                            releaseFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+        if ( typeFile.lastModified() > releaseFileTimeStamp ) { // verify that it can be parsed and then copy it. 
+            synchronized (HapiServerSupport.class) {
+                if ( typeFile.lastModified() > releaseFileTimeStamp ) {
+                    byte[] bb= Files.readAllBytes( Paths.get( typeFile.toURI() ) );
+                    String s= new String( bb, CHARSET );
+                    try {
+                        logger.log(Level.INFO, "read {0} from config", typeFile);
+                        JSONObject jo= Util.newJSONObject(s);
+                        jo.put("x_hapi_home",HAPI_HOME);
+                        
+                        if ( typeFile.getName().endsWith("config.json") ) {
+                            int i= typeFileName.indexOf(".");
+                            String item= typeFileName.substring(0,i);
+                            if ( jo.has(item) ) {
+                                deft= jo.getJSONObject(item);
+                            }
+                        } else {
+                            deft= jo;
+                        }
+
+                        try ( InputStream ins= new ByteArrayInputStream(deft.toString().getBytes(CHARSET) ) ) {
+                            logger.log(Level.INFO, "write resolved config to {0}", releaseFile.getPath());
+                            File tmpFile= getTmpFile(HAPI_HOME,typeFileName);
+                            Files.copy( ins,
+                                    tmpFile.toPath(), StandardCopyOption.REPLACE_EXISTING );
+                            Files.move( tmpFile.toPath(), releaseFile.toPath(), StandardCopyOption.ATOMIC_MOVE );
+                        }
+                    } catch ( JSONException ex ) {
+                        warnWebMaster(ex);
+                        throw ex;
+                    }
                 }
-            } catch ( JSONException ex ) {
-                warnWebMaster(ex);
-                throw ex;
             }
         }
+        
         logger.log(Level.FINE, "reading config json from {0}", releaseFile );
         byte[] bb= Files.readAllBytes( Paths.get( releaseFile.toURI() ) );
         String s= new String( bb, Charset.forName("UTF-8") );
