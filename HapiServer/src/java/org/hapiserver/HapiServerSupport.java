@@ -255,55 +255,58 @@ public class HapiServerSupport {
             JSONObject config= item.optJSONObject("config");
             if ( config==null ) config= item.optJSONObject("x_config");
             
-            if ( source.length()==0 ) {
-                item= config.optJSONObject("catalog"); 
-                source= item.optString("source",item.optString("x_source",""));
-            }
-            if ( source.length()==0 ) {
+            if ( config==null ) {
                 resolvedCatalog.put( resolvedCatalogLength, item );
                 resolvedCatalogLength++;
-            } else if ( source.equals("spawn") ) {
-                String command = item.optString("x_command","");
-                if ( command.length()==0 ) throw new IllegalArgumentException("x_command is missing");
-                try {
-                    jo= getCatalogFromSpawnCommand( command );
-                    JSONArray items= jo.getJSONArray("catalog");
-                    for ( int j=0; j<items.length(); j++ ) {
-                        JSONObject catalogItem= items.getJSONObject(j);
-                        String theId= catalogItem.getString("id");
-                        logger.log(Level.INFO, "mapping in {0}", theId);
-                        datasetToGroupId.put( theId, groupId );
-                        resolvedCatalog.put( resolvedCatalogLength, catalogItem );
-                        resolvedCatalogLength++;
-                    }
-                } catch (JSONException | IOException ex) {
-                    logger.log(Level.SEVERE, null, ex);
-                }
-                if ( config!=null ) {
-                    groups.put( groupId, config );
-                }
-            } else if ( source.equals("classpath") ) {
-                 
-                try {
-                    jo= getCatalogFromClasspath( item,HAPI_HOME  );
-
-                    JSONArray items= jo.getJSONArray("catalog");
-                    for ( int j=0; j<items.length(); j++ ) {
-                        JSONObject catalogItem= items.getJSONObject(j);
-                        String theId= catalogItem.getString("id");
-                        logger.log(Level.INFO, "mapping in {0}", theId);
-                        datasetToGroupId.put( theId, groupId );
-                        resolvedCatalog.put( resolvedCatalogLength, catalogItem );
-                        resolvedCatalogLength++;
-                    }
-                } catch (JSONException | IOException ex) {
-                    logger.log(Level.SEVERE, null, ex);
-                }
-                if ( config!=null ) {
-                    groups.put( groupId, config );
-                }
             } else {
-                warnWebMaster(new RuntimeException("catalog source can only be spawn") );
+                if ( source.length()==0 ) {
+                    item= config.optJSONObject("catalog"); 
+                    source= item.optString("source",item.optString("x_source",""));
+                }
+                if ( source.length()==0 ) {
+                    resolvedCatalog.put( resolvedCatalogLength, item );
+                    resolvedCatalogLength++;
+                } else if ( source.equals("spawn") ) {
+                    String command = item.optString("x_command","");
+                    if ( command.length()==0 ) throw new IllegalArgumentException("x_command is missing");
+                    try {
+                        jo= getCatalogFromSpawnCommand( command );
+                        JSONArray items= jo.getJSONArray("catalog");
+                        for ( int j=0; j<items.length(); j++ ) {
+                            JSONObject catalogItem= items.getJSONObject(j);
+                            String theId= catalogItem.getString("id");
+                            logger.log(Level.INFO, "mapping in {0}", theId);
+                            datasetToGroupId.put( theId, groupId );
+                            resolvedCatalog.put( resolvedCatalogLength, catalogItem );
+                            resolvedCatalogLength++;
+                        }
+                    } catch (JSONException | IOException ex) {
+                        logger.log(Level.SEVERE, null, ex);
+                    }
+                    if ( config!=null ) {
+                        groups.put( groupId, config );
+                    }
+                } else if ( source.equals("classpath") ) {
+
+                    try {
+                        jo= getCatalogFromClasspath( item,HAPI_HOME  );
+
+                        JSONArray items= jo.getJSONArray("catalog");
+                        for ( int j=0; j<items.length(); j++ ) {
+                            JSONObject catalogItem= items.getJSONObject(j);
+                            String theId= catalogItem.getString("id");
+                            logger.log(Level.INFO, "mapping in {0}", theId);
+                            datasetToGroupId.put( theId, groupId );
+                            resolvedCatalog.put( resolvedCatalogLength, catalogItem );
+                            resolvedCatalogLength++;
+                        }
+                    } catch (JSONException | IOException ex) {
+                        logger.log(Level.SEVERE, null, ex);
+                    }
+                    
+                } else {
+                    warnWebMaster(new RuntimeException("catalog source can only be spawn") );
+                }
             }
         }
                 
