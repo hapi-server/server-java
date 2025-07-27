@@ -236,7 +236,6 @@ public class HapiServerSupport {
                             String k= ss[j].substring(0,k2);
                             if ( k.equals("id") || k.equals("info") || k.equals("data-config") ) {
                                 ss[j]= "${"+ k + ss[j].substring(k2); // we need this because because it is resolved later.
-                                continue;
                             } else {
                                 if ( !optionsMap.containsKey(k) ) {
                                     throw new IllegalArgumentException("options map \""+k1+"\" uses key which is not found: "+k );
@@ -341,8 +340,6 @@ public class HapiServerSupport {
         }
         JSONObject catalog;
         long catalogTimeStamp;
-        JSONObject about;
-        long aboutTimeStamp;
         Set<String> datasetIds= new LinkedHashSet<>();
         Map<String,InfoData> infoCache= new HashMap<>();
         Map<String,ConfigData> configCache = new HashMap<>();
@@ -473,7 +470,6 @@ public class HapiServerSupport {
             } else {
                 c= Class.forName(clas);
             }
-            Object o;
             JSONArray args= jo.optJSONArray("args");
             if ( args==null ) {
                 if ( jo.has("x_args") ) {
