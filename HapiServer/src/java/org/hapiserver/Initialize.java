@@ -131,7 +131,9 @@ public class Initialize {
             try {
                 byte[] bb= Files.readAllBytes( Paths.get( configFile.toURI() ) );        
                 JSONObject jo= new JSONObject( new String(bb,"UTF-8") );
-                JSONArray cat=  jo.getJSONArray("catalog");
+                JSONArray cat= jo.optJSONArray("groups");
+                if ( cat.length()==0 ) cat=jo.optJSONArray("catalog");
+                
                 for ( int i=0; i<cat.length(); i++ ) {
                     try {
                         JSONObject ds= cat.getJSONObject(i);
