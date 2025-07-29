@@ -283,11 +283,8 @@ public class HapiServerSupport {
                     } catch (JSONException | IOException ex) {
                         logger.log(Level.SEVERE, null, ex);
                     }
-                    if ( config!=null ) {
-                        groups.put( groupId, config );
-                    }
+                    
                 } else if ( source.equals("classpath") ) {
-
                     try {
                         jo= getCatalogFromClasspath( item,HAPI_HOME  );
 
@@ -307,6 +304,9 @@ public class HapiServerSupport {
                 } else {
                     warnWebMaster(new RuntimeException("catalog source can only be spawn") );
                 }
+
+                groups.put( groupId, config );
+                
             }
         }
                 
@@ -645,7 +645,7 @@ public class HapiServerSupport {
     public static JSONObject getLandingConfig( String HAPI_HOME ) throws IOException, JSONException {
         logger.fine("getLandingConfig");
         
-        JSONObject result= loadAndCheckConfig( HAPI_HOME, "x-landing.json", null );
+        JSONObject result= loadAndCheckConfig( HAPI_HOME, "x-landing.json", new JSONObject() );
         return result;
         
     }
@@ -737,7 +737,7 @@ public class HapiServerSupport {
      * @param HAPI_HOME
      * @param typeFileName the name of the file, one of "about.json", "x-landing.json", "semantics.json", or "relations.json"
      * @param deft a deft value to use, if null then load from templates area.
-     * @return the JSON object for the file.
+     * @return the JSON object for the file, or deft if the configuration is not found.
      * @throws IOException
      * @throws JSONException 
      */
@@ -804,6 +804,10 @@ public class HapiServerSupport {
                         } else {
                             deft= jo;
                         }
+                        
+                        if ( deft==null ) {
+                            return deft;
+                        }
 
                         try ( InputStream ins= new ByteArrayInputStream(deft.toString().getBytes(CHARSET) ) ) {
                             logger.log(Level.INFO, "write resolved config to {0}", releaseFile.getPath());
@@ -857,6 +861,7 @@ public class HapiServerSupport {
     
     /**
      * keep and monitor a cached version of the catalog in memory.
+     * TODO: remove x_groups, which shows some server internals.  This should be done in the servlet code, before it leaves the server.
      * @param HAPI_HOME the location of the server definition
      * @return the JSONObject for the catalog.
      * @throws java.io.IOException 
