@@ -142,6 +142,13 @@ public class CdawebInfoCatalogSource {
             String content= SourceUtil.getAllFileLines(url);
             JSONArray readCatalog= new JSONArray(content);
             
+          //  // For testing, limit the set of parameters...
+          //  JSONArray rc1= new JSONArray();
+          //  for ( int i=0; i<5; i++ ) {
+          //     rc1.put(i,readCatalog.get(i));
+          //  }
+          //  readCatalog= rc1;
+            
             JSONArray catalog= new JSONArray();
             for ( int i=0; i<readCatalog.length(); i++ ) {
                 //String n= readCatalog.getJSONObject(i).getString("id");
