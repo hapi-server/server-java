@@ -190,7 +190,13 @@ public class DataServlet extends HttpServlet {
         String parameters= 
             getParam( params, "parameters", "", "The comma separated list of parameters to include in the response ", null );
         String include= getParam(params, "include", "", "include header at the top", PATTERN_INCLUDE);
-        String format= getParam(params, "format", "csv", "The desired format for the data stream.", PATTERN_FORMAT);
+        String format;
+        try {
+            format = getParam(params, "format", "csv", "The desired format for the data stream.", PATTERN_FORMAT);
+        } catch ( IllegalArgumentException ex ) {
+            Util.raiseError( 1409, "Bad request - unsupported output format", response, response.getOutputStream() );
+            return;
+        }
         
         if ( !params.isEmpty() ) {
             Util.raiseError( 1401, "Bad request - unknown API parameter name", 
@@ -221,16 +227,22 @@ public class DataServlet extends HttpServlet {
         logger.log(Level.FINE, "data request for {0} {1}/{2}", new Object[]{dataset, start, stop});
         
         DataFormatter dataFormatter;
-        if ( format.equals("binary") ) {
-            response.setContentType("application/binary");
-            dataFormatter= new BinaryDataFormatter();
-            response.setHeader("Content-disposition", "attachment; filename="
-                + Util.fileSystemSafeName(dataset).replaceAll("\\/", "_" ) + "_"+start+ "_"+stop + ".bin" );
-        } else {
-            response.setContentType("text/csv;charset=UTF-8");  
-            dataFormatter= new CsvDataFormatter();
-            response.setHeader("Content-disposition", "attachment; filename=" 
-                + Util.fileSystemSafeName(dataset).replaceAll("\\/", "_" ) + "_"+start+ "_"+stop + ".csv" ); 
+        switch (format) {
+            case "binary":
+                response.setContentType("application/binary");
+                dataFormatter= new BinaryDataFormatter();
+                response.setHeader("Content-disposition", "attachment; filename="
+                        + Util.fileSystemSafeName(dataset).replaceAll("\\/", "_" ) + "_"+start+ "_"+stop + ".bin" );
+                break;
+            case "csv":
+            case "":
+                response.setContentType("text/csv;charset=UTF-8");
+                dataFormatter= new CsvDataFormatter();
+                response.setHeader("Content-disposition", "attachment; filename="
+                        + Util.fileSystemSafeName(dataset).replaceAll("\\/", "_" ) + "_"+start+ "_"+stop + ".csv" );
+                break;
+            default:
+                throw new IllegalArgumentException("bad format"); // shouldn't get here
         }
         
         
