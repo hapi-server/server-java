@@ -80,6 +80,8 @@ public class CatalogServlet extends HttpServlet {
             response.setHeader("Access-Control-Allow-Headers","Content-Type" );
             
             JSONObject catalog= HapiServerSupport.getCatalog(HAPI_HOME);
+            catalog.remove("x_groups");
+            catalog.remove("x_dataset_to_group");
             
             try (PrintWriter out = response.getWriter()) {
                 String s= catalog.toString(4);
