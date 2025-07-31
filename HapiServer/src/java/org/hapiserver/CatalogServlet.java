@@ -80,6 +80,9 @@ public class CatalogServlet extends HttpServlet {
             response.setHeader("Access-Control-Allow-Headers","Content-Type" );
             
             JSONObject catalog= HapiServerSupport.getCatalog(HAPI_HOME);
+            catalog = new JSONObject(catalog.toMap()); // force a shallow copy
+            
+            //TODO: we need to remove x_groups and x_dataset_to_group without modifying the database.
             catalog.remove("x_groups");
             catalog.remove("x_dataset_to_group");
             
