@@ -223,12 +223,23 @@ public class CdawebInfoCatalogSource {
             JSONArray ja= jo.getJSONArray("parameters");
             for ( int ip= 0; ip<ja.length(); ip++ ) { 
                 JSONObject p= ja.getJSONObject(ip);
-                String sfill= p.getString("fill");
+                String sfill= p.optString("fill",null);
                 String type= p.getString("type");
                 if ( sfill!=null && type.equals("double") ) {
                     sfill= String.valueOf(Double.parseDouble(sfill));
                     p.put("fill",sfill);
                     ja.put(ip,p);
+                } else if ( sfill!=null && type.equals("integer") ) {
+                    try {
+                        sfill= String.valueOf(Integer.parseInt(sfill));
+                        p.put("fill",sfill);
+                        ja.put(ip,p);
+                    } catch ( NumberFormatException ex ) {
+                        // possibly huge number which doesn't fit in int. id=MSL_RAD_OBS-L1&parameter=FSW_XSUM
+                        p.put("fill",JSONObject.NULL);
+                    }
+                } else {
+                    p.put("fill",JSONObject.NULL);
                 }
             }
             String sampleStartDate= jo.optString("sampleStartDate","");
