@@ -68,7 +68,7 @@ public class DataServlet extends HttpServlet {
     }
     
     private static final Pattern PATTERN_TRUE_FALSE = Pattern.compile("(|true|false)");
-    private static final Pattern PATTERN_FORMAT = Pattern.compile("(|csv|binary)");
+    private static final Pattern PATTERN_FORMAT = Pattern.compile("(|csv|binary|json)");
     private static final Pattern PATTERN_INCLUDE = Pattern.compile("(|header)");
     
     /**
@@ -234,6 +234,12 @@ public class DataServlet extends HttpServlet {
                 response.setHeader("Content-disposition", "attachment; filename="
                         + Util.fileSystemSafeName(dataset).replaceAll("\\/", "_" ) + "_"+start+ "_"+stop + ".bin" );
                 break;
+            case "json":
+                response.setContentType("application/json");
+                dataFormatter= new JsonDataFormatter();
+                response.setHeader("Content-disposition", "attachment; filename="
+                        + Util.fileSystemSafeName(dataset).replaceAll("\\/", "_" ) + "_"+start+ "_"+stop + ".bin" );
+                break;
             case "csv":
             case "":
                 response.setContentType("text/csv;charset=UTF-8");
@@ -283,7 +289,10 @@ public class DataServlet extends HttpServlet {
         }
 
         OutputStream out = response.getOutputStream();
-
+                
+        // we're going to do some special (kludgy) things to make this format.
+        boolean jsonFormat= dataFormatter instanceof JsonDataFormatter;
+                
         int[] dr;
         try {
             dr = TimeUtil.createTimeRange( TimeUtil.parseISO8601Time(start), TimeUtil.parseISO8601Time(stop) );
@@ -434,7 +443,7 @@ public class DataServlet extends HttpServlet {
         
                 if ( first.getIsoTime(0).compareTo( startTime )>=0 && first.getIsoTime(0).compareTo( stopTime )<0 ) {
                     if ( sentSomething==false ) {
-                        if ( sendHeader ) {
+                        if ( sendHeader && !jsonFormat )  {
                             try {
                                 sendHeader( jo, format, out);
                             } catch (JSONException | UnsupportedEncodingException ex) {
@@ -450,14 +459,20 @@ public class DataServlet extends HttpServlet {
                     String isoTime= record.getIsoTime(0);
                     if ( isoTime.compareTo( startTime )>=0 && isoTime.compareTo( stopTime )<0 ) { //TODO: repeat code, consider do..while
                         if ( sentSomething==false ) {
-                            if ( sendHeader ) {
+                            if ( sendHeader && !jsonFormat ) {
                                 try {
-                                    sendHeader( jo, format, out);
+                                    sendHeader( jo, format, out );
                                 } catch (JSONException | UnsupportedEncodingException ex) {
                                     logger.log(Level.SEVERE, null, ex);
                                 }
                             }
                             sentSomething= true;
+                            out.write(',');
+                            out.write((char)10);
+                        } else {
+                            if ( jsonFormat ) {
+                                out.write(",\n".getBytes(CHARSET));
+                            }
                         }
                         dataFormatter.sendRecord( out,record );
                     }
@@ -468,6 +483,9 @@ public class DataServlet extends HttpServlet {
                 Util.raiseError( 1201, "HAPI error 1201: no data found " + dataset, response, out );   
             }
             
+            if ( jsonFormat ) {
+                out.write("\n".getBytes(CHARSET));
+            }
             dataFormatter.finalize(out);
             
         } catch ( RuntimeException ex ) {
@@ -494,11 +512,14 @@ public class DataServlet extends HttpServlet {
      */
     private void doVerify(DataFormatter dataFormatter, HapiRecord first, JSONObject jo) throws IOException {
         ByteArrayOutputStream testOut= new ByteArrayOutputStream(1024);
-        dataFormatter.sendRecord( testOut, first);
+        dataFormatter.sendRecord(testOut, first);
         byte[] bb= testOut.toByteArray();
         try {
             int len= jo.getJSONArray("parameters").getJSONObject(0).getInt("length");
-            if ( bb[len-1]!='Z' ) {
+            if ( dataFormatter instanceof JsonDataFormatter ) {
+                len= len+2; // because it has ["
+            }
+            if ( bb[len-1]!='Z' ) { 
                 logger.log(Level.WARNING,
                     "time is not the correct length or Z is missing, expected Z at byte offset {0}", len);
             }
