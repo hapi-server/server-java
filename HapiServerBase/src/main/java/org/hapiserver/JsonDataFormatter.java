@@ -24,6 +24,7 @@ public class JsonDataFormatter implements DataFormatter {
     
     boolean[] unitsFormatter;
     int[] types;
+    JSONArray[] sizes;
     String[] exampleTimes;
 
     private final int TYPE_ISOTIME=0;
@@ -59,6 +60,7 @@ public class JsonDataFormatter implements DataFormatter {
             fill= new String[len];
             dfill= new double[len];
             types= new int[len];
+            sizes= new JSONArray[len];
             exampleTimes= new String[len];
             formats= new String[len];
             
@@ -103,6 +105,7 @@ public class JsonDataFormatter implements DataFormatter {
                     case "integer": {
                         if ( parameter.has("size") ) {
                             types[i]= TYPE_INTEGER_ARRAY;
+                            sizes[i]= parameter.getJSONArray("size");
                         } else {
                             types[i]= TYPE_INTEGER;
                         }
@@ -111,6 +114,7 @@ public class JsonDataFormatter implements DataFormatter {
                     case "double": {
                         if ( parameter.has("size") ) {
                             types[i]= TYPE_DOUBLE_ARRAY;
+                            sizes[i]= parameter.getJSONArray("size");
                         } else {
                             types[i]= TYPE_DOUBLE;
                         }
@@ -230,23 +234,12 @@ public class JsonDataFormatter implements DataFormatter {
                     build.append(s);
                     break;
                 case TYPE_DOUBLE_ARRAY:
-                    build.append("[");
                     double[] dd= record.getDoubleArray(i);
-                    String f= formats[i];
-                	for ( int j=0; j<dd.length; j++ ) {
-                        d= dd[j];
-                	if ( j>0 ) build.append(",");
-                        if ( d==dfill[i] ) {
-                            build.append(fill[i]);
-                        } else {
-                    		if ( f==null ) {
-                                build.append(d);
-                            } else {
-                                build.append(String.format( f,d ));
-                            }
-                        }
+                    try {
+                        doMultiArray(i,formats[i],dfill[i],sizes[i],dd,0,dd.length,build);
+                    } catch ( JSONException ex ) {
+                        throw new RuntimeException(ex);
                     }
-                    build.append(']');
                     break;
                 case TYPE_INTEGER:
                     s= String.valueOf(record.getInteger(i) );
@@ -274,6 +267,53 @@ public class JsonDataFormatter implements DataFormatter {
     @Override
     public void finalize(OutputStream out) throws IOException {
         out.write("    ]\n}\n".getBytes(CHARSET));
+    }
+
+    
+    private void doMultiArray1D( int i, String format, double dfill, JSONArray size, double[] dd, int offset, int len, StringBuilder build ) {
+        build.append('[');
+        int lastOffset= offset+len;
+        for ( int j=offset; j<lastOffset; j++ ) {
+            double d= dd[j];
+            if ( j>offset ) build.append(",");
+            if ( d==dfill ) {
+                build.append(fill[i]);
+            } else {
+                if ( format==null ) {
+                    build.append(d);
+                } else {
+                    build.append(String.format( format,d ));
+                }
+            }
+        }
+        build.append(']');
+    }
+    
+    private void doMultiArray( int i, String format, double dfill, JSONArray size, double[] dd, int offset, int len, StringBuilder build) throws JSONException {
+        int len0, len1, ind;
+        switch ( size.length() ) {
+            case 0:
+                throw new IllegalArgumentException("can not get here 291");
+            case 1:
+                doMultiArray1D( i, format, dfill, size, dd, offset, len, build );
+                break;
+            default:
+                build.append('[');
+                len0= size.optInt(0);
+                JSONArray subsize= new JSONArray(size.length()-1);
+                int nele=1;
+                for ( int j=1; j<size.length(); j++ ) {
+                    int l= size.getInt(j);
+                    subsize.put(j-1,l);
+                    nele= nele*l;
+                }
+                for ( int k=0; k<len0; k++ ) {
+                    if ( k>0 ) build.append(",");
+                    doMultiArray( i, format, dfill, subsize, dd, offset, nele, build );
+                    offset= offset+nele;
+                }
+                break;
+        }
     }
 
 }
