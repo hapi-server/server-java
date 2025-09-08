@@ -41,7 +41,7 @@ public class DataServlet extends HttpServlet {
     
     private String HAPI_HOME;
     
-    private static Charset CHARSET= Charset.forName("UTF-8");
+    private static final Charset CHARSET= Charset.forName("UTF-8");
     
     @Override
     public void init() throws ServletException {
@@ -415,6 +415,9 @@ public class DataServlet extends HttpServlet {
         
         boolean sendHeader= include.equals("header");
         
+        // The following line can be used to eavesdrop on the output stream.
+        //out= new DebugOutputStream(out);
+                
         try {
             assert dsiter!=null;
             if ( dsiter.hasNext() ) {
@@ -467,8 +470,6 @@ public class DataServlet extends HttpServlet {
                                 }
                             }
                             sentSomething= true;
-                            out.write(',');
-                            out.write((char)10);
                         } else {
                             if ( jsonFormat ) {
                                 out.write(",\n".getBytes(CHARSET));
