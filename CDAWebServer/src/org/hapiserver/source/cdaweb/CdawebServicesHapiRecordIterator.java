@@ -15,14 +15,11 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
@@ -39,6 +36,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
+import org.hapiserver.source.cdaweb.adapters.ApplyEsaQflag;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -63,7 +61,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
      * @param nrec
      * @return 
      */
-    private Object makeFillValues( JSONObject param, int nrec) throws JSONException {
+    private static Object makeFillValues( JSONObject param, int nrec) throws JSONException {
         JSONArray sizej= param.optJSONArray("size");
         int[] size;
         int ndims;
@@ -163,38 +161,6 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
     int index;
     int nindex;
-
-    /**
-     * one of these methods will be implemented by the adapter.
-     */
-    private static abstract class Adapter {
-
-        public String adaptString(int index) {
-            throw new IllegalArgumentException("incorrect adapter used");
-        }
-
-        public double adaptDouble(int index) {
-            throw new IllegalArgumentException("incorrect adapter used");
-        }
-
-        public int adaptInteger(int index) {
-            throw new IllegalArgumentException("incorrect adapter used");
-        }
-
-        public double[] adaptDoubleArray(int index) {
-            throw new IllegalArgumentException("incorrect adapter used");
-        }
-
-        public int[] adaptIntegerArray(int index) {
-            throw new IllegalArgumentException("incorrect adapter used");
-        }
-
-        public String[] adaptStringArray(int index) {
-            throw new IllegalArgumentException("incorrect adapter used");
-        }
-        
-        public abstract String getString(int index);
-    }
     
     private static class StringAdapter extends Adapter {
 
@@ -956,7 +922,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         return flattenedArray;
     }
 
-    private double[][] flattenDoubleArray(Object array) {
+    private static double[][] flattenDoubleArray(Object array) {
         int numDimensions = 1;
         Class<?> componentType = array.getClass().getComponentType();
         while (componentType != double.class) {
@@ -1112,6 +1078,118 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         return false;
     }
     
+    private static Adapter getAdapterFor( CDFReader reader, JSONObject param1, 
+            String param, int nrec ) throws CDFException.ReaderError, JSONException {
+                   
+        Adapter result;
+
+        // BB_xyz_xyz_sr2__C1_CP_STA_SM is crash
+        //if ( param.equals("BB_xyz_xyz_sr2__C1_CP_STA_SM") ) {
+        //    System.err.println("stop here");
+        //}
+
+        int type = reader.getType(param);
+        Object o = reader.get(param);
+        if ( o==null || !o.getClass().isArray() ) {
+            try {
+                o= makeFillValues( param1, nrec );
+                //throw new RuntimeException("didn't get array from reader: "+param+" file: "+tmpFile.toString());
+            } catch (JSONException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        if (Array.getLength(o) != nrec) {
+            if ( nrec==1 ) { // IBEX_H3_ENA_HI_R13_CG_NOSP_RAM_1YR has one record of 30x60 map
+                Object newo= Array.newInstance( o.getClass(), nrec );
+                Array.set(newo, 0, o);
+                o= newo;
+            } else {
+                if (Array.getLength(o) == 1) {
+                    // let's assume they meant for this to non-time varying.
+                    Object newO = Array.newInstance(o.getClass().getComponentType(), nrec);
+                    Object v1 = Array.get(o, 0);
+                    for (int irec = 0; irec < nrec; irec++) {
+                        Array.set(newO, irec, v1);
+                    }
+                    o = newO;
+                } else {
+                    throw new IllegalArgumentException("nrec is inconsistent!  This internal error must be fixed.");
+                }
+            }
+        }
+        String stype = nameForType(type);
+        Class c = o.getClass().getComponentType();
+        double fill= param1.getDouble("fill"); //TODO: I think this is actually a string.
+        if (!c.isArray()) {
+            if (c == double.class) {
+                if ( stype.startsWith("CDF_INT") ) {
+                    result = new IntDoubleAdapter((double[]) o,fill);
+                } else if ( stype.startsWith("CDF_UINT") ) {
+                    result = new IntDoubleAdapter((double[]) o,fill);
+                } else {
+                    result = new DoubleDoubleAdapter((double[]) o,fill);
+                }
+            } else if (c == float.class) {
+                result = new DoubleFloatAdapter((float[]) o,fill);
+            } else if (c == int.class) {
+                result = new IntegerIntegerAdapter((int[]) o);
+            } else if (c == short.class) {
+                result = new IntegerShortAdapter((short[]) o);
+            } else if (c == byte.class) {
+                result = new IntegerByteAdapter((byte[]) o);
+            } else if (c == long.class) {
+                result = new IntegerLongAdapter((long[]) o);
+            } else if (stype.equals("CDF_UINT2")) {
+                result = new IntegerIntegerAdapter((int[]) o);
+            } else if (stype.equals("CDF_UINT1")) {
+                result = new IntegerShortAdapter((short[]) o);
+            } else if ( c == String.class ) {
+                result = new StringAdapter((String[])o);
+            } else {
+                throw new IllegalArgumentException("unsupported type");
+            }
+        } else {
+            c = c.getComponentType();
+            if (c == double.class) {
+                JSONArray size= param1.getJSONArray("size");
+                int items= size.getInt(0);
+                for ( int k=1; k<size.length(); k++ ) {
+                    items*= size.getInt(k);
+                }
+                result = new DoubleArrayDoubleAdapter((double[][]) o,items,fill);
+            } else if (c == int.class) {
+                result = new IntegerArrayIntegerAdapter((int[][]) o);
+            } else if (c.isArray()) {
+                JSONArray size= param1.getJSONArray("size");
+                int items= size.getInt(0);
+                for ( int k=1; k<size.length(); k++ ) {
+                    items*= size.getInt(k);
+                }
+                o = flattenDoubleArray(o);
+                result = new DoubleArrayDoubleAdapter((double[][]) o,items,fill);
+            } else {
+                throw new IllegalArgumentException("unsupported type");
+            }
+        }
+        return result;
+    }
+    
+    /**
+     * loop through the parameters returning the parameter with the given name.
+     * @param pp the info parameters array.
+     * @param name the parameter name, like mms1_fgm_b_gsm_srvy_l2
+     * @return null or the parameter.
+     * @throws JSONException 
+     */
+    public static JSONObject getParamFor( JSONArray pp, String name ) throws JSONException {
+        for ( int j=0; j<pp.length(); j++ ) {
+            JSONObject p= pp.getJSONObject(j);
+            if ( p.getString("name").equals(name) ) {
+                return p;
+            }
+        }
+        return null;
+    }
     
     /**
      * 
@@ -1129,18 +1207,41 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             throw new NullPointerException("tmpFile is null");
         }
 
+        String[] virtualParams;
+        JSONArray[] virtualComponents;
+        
         // We implement just one trivial virtual variable, alternate_view.  TODO: filters etc.
         if ( isVirtual(info,params) ) { 
+            virtualParams= new String[params.length];
+            virtualComponents= new JSONArray[params.length];
             for ( int i=0; i<params.length; i++ ) {
                 JSONObject param= SourceUtil.getParam( info, params[i] );
                 if ( param.optBoolean("x_cdf_VIRTUAL",false) ) {
                     String funct= param.getString("x_cdf_FUNCT");
                     JSONArray components= param.getJSONArray("x_cdf_COMPONENTS");
-                    if ( funct.equals("alternate_view") ) {
-                        params[i]= components.getString(0);
-                    }
+
+                    virtualParams[i]= funct;
+                    virtualComponents[i]= components;
+                    
+//                    if ( funct.equals("alternate_view") ) {
+//                        loadParams[i]= components.getString(0);
+//                    } else if ( funct.equals("filt_param") ) {
+//                        loadParams[i]= components.getString(0);
+//                    } else if ( funct.equals("apply_esa_qflag") ) {
+//                        loadParams= new String[params.length+components.length()];
+//                        System.arraycopy( params, 0, loadParams, 0, params.length );
+//                        for ( int j=0; j<components.length(); j++ ) {
+//                            loadParams[params.length+j]= components.getString(j);
+//                        }
+//                    }
+                } else {
+                    virtualParams[i]= null;
+                    virtualComponents[i]= null;
                 }
             }
+        } else {
+            virtualParams= null;
+            virtualComponents= null;
         }
         
         try {
@@ -1163,22 +1264,41 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 if ( p.getString("name").equals(params[i]) ) { // check for "all" response, otherwise this is N^2 code.
                     param1= p;
                 } else {
-                    for ( int j=0; j<pp.length(); j++ ) {
-                        p= pp.getJSONObject(j);
-                        if ( p.getString("name").equals(params[i]) ) {
-                            param1= p;
-                            break;
-                        }
-                    }
+                    param1= getParamFor( pp, params[i] );
                 }
                 if ( param1==null ) {
                     throw new IllegalArgumentException("didn't find parameter named \""+params[i]+"\"");
+                }
+                
+                if ( virtualParams!=null && virtualParams[i]!=null ) {
+                    switch ( virtualParams[i] ) {
+                        case "alternate_view": {
+                            String param= virtualComponents[i].getString(0);
+                            JSONObject param1_1= getParamFor( pp, param );
+                            Adapter paramAdapter= getAdapterFor( reader, param1_1, param, nrec );
+                            adapters[i]= paramAdapter;
+                            continue;
+                        }
+                        case "apply_esa_qflag": {
+                            String param= virtualComponents[i].getString(0);
+                            String flag= virtualComponents[i].getString(1);
+                            JSONObject param1_1= getParamFor( pp, param );
+                            Adapter paramAdapter= getAdapterFor( reader, param1_1, param, nrec );
+                            JSONObject flagParam= getParamFor( pp, flag );
+                            Adapter flagAdapter= getAdapterFor( reader, flagParam, flag, nrec );
+                            double dfill= param1.getDouble("fill");
+                            adapters[i]= new ApplyEsaQflag(paramAdapter, flagAdapter, dfill);
+                            continue;
+                        }
+                        default:
+                            throw new IllegalArgumentException("not implemented:" + virtualParams[i]);
+                    }
                 }
 
                 if (i == 0) {
                     int length = param1.optInt("length",24);
                     
-                    String dep0= param1.getString("x_cdf_NAME"); // Just use Bob's metadata!
+                    String dep0= param1.getString("x_cdf_NAME"); 
                     
                     int type = reader.getType(dep0); // 31=Epoch
                     Object o = reader.get(dep0);
@@ -1206,94 +1326,9 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 } else {
                     
                     String param = params[i]; 
-                    // BB_xyz_xyz_sr2__C1_CP_STA_SM is crash
-                    //if ( param.equals("BB_xyz_xyz_sr2__C1_CP_STA_SM") ) {
-                    //    System.err.println("stop here");
-                    //}
-                            
-                    int type = reader.getType(param);
-                    Object o = reader.get(param);
-                    if ( o==null || !o.getClass().isArray() ) {
-                        try {
-                            o= makeFillValues( param1, nrec );
-                            //throw new RuntimeException("didn't get array from reader: "+param+" file: "+tmpFile.toString());
-                        } catch (JSONException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    }
-                    if (Array.getLength(o) != nrec) {
-                        if ( nrec==1 ) { // IBEX_H3_ENA_HI_R13_CG_NOSP_RAM_1YR has one record of 30x60 map
-                            Object newo= Array.newInstance( o.getClass(), nrec );
-                            Array.set(newo, 0, o);
-                            o= newo;
-                        } else {
-                            if (Array.getLength(o) == 1) {
-                                // let's assume they meant for this to non-time varying.
-                                Object newO = Array.newInstance(o.getClass().getComponentType(), nrec);
-                                Object v1 = Array.get(o, 0);
-                                for (int irec = 0; irec < nrec; irec++) {
-                                    Array.set(newO, irec, v1);
-                                }
-                                o = newO;
-                            } else {
-                                throw new IllegalArgumentException("nrec is inconsistent!  This internal error must be fixed.");
-                            }
-                        }
-                    }
-                    String stype = nameForType(type);
-                    Class c = o.getClass().getComponentType();
-                    double fill= param1.getDouble("fill"); //TODO: I think this is actually a string.
-                    if (!c.isArray()) {
-                        if (c == double.class) {
-                            if ( stype.startsWith("CDF_INT") ) {
-                                adapters[i] = new IntDoubleAdapter((double[]) o,fill);
-                            } else if ( stype.startsWith("CDF_UINT") ) {
-                                adapters[i] = new IntDoubleAdapter((double[]) o,fill);
-                            } else {
-                                adapters[i] = new DoubleDoubleAdapter((double[]) o,fill);
-                            }
-                        } else if (c == float.class) {
-                            adapters[i] = new DoubleFloatAdapter((float[]) o,fill);
-                        } else if (c == int.class) {
-                            adapters[i] = new IntegerIntegerAdapter((int[]) o);
-                        } else if (c == short.class) {
-                            adapters[i] = new IntegerShortAdapter((short[]) o);
-                        } else if (c == byte.class) {
-                            adapters[i] = new IntegerByteAdapter((byte[]) o);
-                        } else if (c == long.class) {
-                            adapters[i] = new IntegerLongAdapter((long[]) o);
-                        } else if (stype.equals("CDF_UINT2")) {
-                            adapters[i] = new IntegerIntegerAdapter((int[]) o);
-                        } else if (stype.equals("CDF_UINT1")) {
-                            adapters[i] = new IntegerShortAdapter((short[]) o);
-                        } else if ( c == String.class ) {
-                            adapters[i] = new StringAdapter((String[])o);
-                        } else {
-                            throw new IllegalArgumentException("unsupported type");
-                        }
-                    } else {
-                        c = c.getComponentType();
-                        if (c == double.class) {
-                            JSONArray size= param1.getJSONArray("size");
-                            int items= size.getInt(0);
-                            for ( int k=1; k<size.length(); k++ ) {
-                                items*= size.getInt(k);
-                            }
-                            adapters[i] = new DoubleArrayDoubleAdapter((double[][]) o,items,fill);
-                        } else if (c == int.class) {
-                            adapters[i] = new IntegerArrayIntegerAdapter((int[][]) o);
-                        } else if (c.isArray()) {
-                            JSONArray size= param1.getJSONArray("size");
-                            int items= size.getInt(0);
-                            for ( int k=1; k<size.length(); k++ ) {
-                                items*= size.getInt(k);
-                            }
-                            o = flattenDoubleArray(o);
-                            adapters[i] = new DoubleArrayDoubleAdapter((double[][]) o,items,fill);
-                        } else {
-                            throw new IllegalArgumentException("unsupported type");
-                        }
-                    }
+                    
+                    adapters[i]= getAdapterFor( reader, param1, param, nrec );
+                    
                 }
             }
 
