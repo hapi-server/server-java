@@ -37,6 +37,8 @@ import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
 import org.hapiserver.source.cdaweb.adapters.ApplyEsaQflag;
+import org.hapiserver.source.cdaweb.adapters.CompThemisEpoch;
+import org.hapiserver.source.cdaweb.adapters.ConstantAdapter;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -194,7 +196,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
     }    
     
-    private static class IsotimeEpochAdapter extends Adapter {
+    public static class IsotimeEpochAdapter extends Adapter {
 
         /**
          * the time in milliseconds since year 1 for cdfEpoch, and this
@@ -209,7 +211,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         String format = ":%02d:%02d.%09d";
         int formatFactor = 1; // number by which to round
 
-        private IsotimeEpochAdapter(double[] array, int length) {
+        public IsotimeEpochAdapter(double[] array, int length) {
             this.array = array;
             double d = array[0];
             double us2000 = (d - 6.3113904E13) * 1000; // ms -> microseconds
@@ -1106,12 +1108,16 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             } else {
                 if (Array.getLength(o) == 1) {
                     // let's assume they meant for this to non-time varying.
-                    Object newO = Array.newInstance(o.getClass().getComponentType(), nrec);
-                    Object v1 = Array.get(o, 0);
-                    for (int irec = 0; irec < nrec; irec++) {
-                        Array.set(newO, irec, v1);
+                    if ( nrec==-1 ) {
+                        return new ConstantAdapter( Array.getDouble(o,0) );
+                    } else {
+                        Object newO = Array.newInstance(o.getClass().getComponentType(), nrec);
+                        Object v1 = Array.get(o, 0);
+                        for (int irec = 0; irec < nrec; irec++) {
+                            Array.set(newO, irec, v1);
+                        }
+                        o = newO;
                     }
-                    o = newO;
                 } else {
                     throw new IllegalArgumentException("nrec is inconsistent!  This internal error must be fixed.");
                 }
@@ -1119,7 +1125,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
         String stype = nameForType(type);
         Class c = o.getClass().getComponentType();
-        double fill= param1.getDouble("fill"); //TODO: I think this is actually a string.
+        double fill= param1==null ? -1e31 : param1.getDouble("fill"); //TODO: I think this is actually a string.
         if (!c.isArray()) {
             if (c == double.class) {
                 if ( stype.startsWith("CDF_INT") ) {
@@ -1290,6 +1296,30 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             adapters[i]= new ApplyEsaQflag(paramAdapter, flagAdapter, dfill);
                             continue;
                         }
+                        case "comp_themis_epoch": {
+                            String base= virtualComponents[i].getString(0);
+                            String plus= virtualComponents[i].getString(1);
+                            JSONObject param1_1= getParamFor( pp, base );
+                            Adapter paramAdapter= getAdapterFor( reader, param1_1, base, nrec );
+                            JSONObject param1_2= getParamFor( pp, plus );
+                            double[] dplus= (double[])reader.get(plus);
+                            nrec= dplus.length;
+                            nindex = nrec;
+                            Adapter flagAdapter= getAdapterFor( reader, param1_2, plus, nrec );
+                            adapters[i]= new CompThemisEpoch(paramAdapter, flagAdapter);
+                            continue;
+                        }
+                        case "apply_gmom_qflag": {
+                            String param= virtualComponents[i].getString(0);
+                            String flag= virtualComponents[i].getString(1);
+                            JSONObject param1_1= getParamFor( pp, param );
+                            Adapter paramAdapter= getAdapterFor( reader, param1_1, param, nrec );
+                            JSONObject flagParam= getParamFor( pp, flag );
+                            Adapter flagAdapter= getAdapterFor( reader, flagParam, flag, nrec );
+                            double dfill= param1.getDouble("fill");
+                            adapters[i]= new ApplyEsaQflag(paramAdapter, flagAdapter, dfill);
+                            continue;
+                        }
                         default:
                             throw new IllegalArgumentException("not implemented:" + virtualParams[i]);
                     }
@@ -1318,7 +1348,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                                 //TODO: epoch16.
                                 throw new IllegalArgumentException("type not supported for column 0 time: "+ nameForType(type) );
                         }
-                        nindex = Array.getLength(o);
+                        nindex = nrec;
                     } else {
                         nindex = 0;
                     }
