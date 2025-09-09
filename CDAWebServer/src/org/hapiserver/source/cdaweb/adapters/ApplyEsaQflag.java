@@ -29,7 +29,7 @@ public class ApplyEsaQflag extends Adapter {
     public double adaptDouble(int index) {
         double d= param.adaptDouble(index);
         int i= flag.adaptInteger(index);
-        if ( i>0 ) {
+        if ( i==0 ) {
             return d;
         } else {
             return fill;
