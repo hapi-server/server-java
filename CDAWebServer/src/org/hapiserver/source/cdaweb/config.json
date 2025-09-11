@@ -17,7 +17,7 @@
         "title":"CDAWeb HAPI Server",
         "contact":"Jeremy Faden <faden@cottagesystems.com>",
         "description":"Heliophysics data sets from Coordinated Data Analysis Web (CDAWeb).",
-        "x_server_version": "2025-09-09T13:27"
+        "x_server_version": "2025-09-11T12:27"
     },
     "groups": [
         {
