@@ -39,6 +39,7 @@ import org.hapiserver.source.SourceUtil;
 import org.hapiserver.source.cdaweb.adapters.ApplyEsaQflag;
 import org.hapiserver.source.cdaweb.adapters.CompThemisEpoch;
 import org.hapiserver.source.cdaweb.adapters.ConstantAdapter;
+import org.hapiserver.source.cdaweb.adapters.ConvertLog10;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -722,18 +723,13 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     }
 
     /**
-     * List of datasets which are known to be readable from the files, containing no virtual variables. Eventually there will be
+     * List of datasets which are known to be readable from the files, containing no virtual variables or virtual variables
+     * which can be implemented within the HAPI server. Eventually there will be
      * metadata in the infos which contains this information.
      */
     private static final HashSet<String> readDirect = new HashSet<String>();
 
     static {
-        //readDirect.add("RBSP-A_DENSITY_EMFISIS-L4");
-        //readDirect.add("RBSP-B_DENSITY_EMFISIS-L4");
-        //readDirect.add("RBSP-A_MAGNETOMETER_4SEC-GEI_EMFISIS-L3");
-        //readDirect.add("RBSP-B_MAGNETOMETER_4SEC-GEI_EMFISIS-L3");
-        //readDirect.add("RBSPA_REL04_ECT-HOPE-PA-L3");
-        //readDirect.add("RBSPB_REL04_ECT-HOPE-PA-L3");
         URL virt = CdawebServicesHapiRecordIterator.class.getResource("virtualVariables.txt");
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(virt.openStream()))) {
             String line = reader.readLine();
@@ -745,11 +741,33 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     if (ss[1].equals("0")) {
                         readDirect.add(ss[0]);
                     } else {
-                        System.err.println("virtual variable: "+ss[0]);
+                        boolean canImplementVVar= true;
+                        if ( ss.length>2 ) {
+                            String[] vvars= ss[2].split(",");
+                            for ( String v : vvars ) {
+                                switch ( v ) {
+                                    case "alternate_view":
+                                    case "apply_esa_qflag":
+                                    case "comp_themis_epoch":
+                                    case "convert_log10":
+                                        break;
+                                    default:
+                                        canImplementVVar= false;
+                                }
+                            }
+                            if ( canImplementVVar ) {
+                                readDirect.add(ss[0]);
+                            } else {
+                                logger.log(Level.FINE, "must use web services to read {0}", ss[0]);
+                            }
+                        } else {
+                            logger.log(Level.FINE, "strange one... must use web services to read {0}", line);
+                        }
                     }
                 }
                 line = reader.readLine();
             }
+            logger.info("read in table of virtual variable use.  TODO: use Bob's database");
         } catch (IOException ex) {
             logger.log(Level.WARNING, ex.getMessage(), ex);
         }
@@ -904,7 +922,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     }
 
     /**
-     * flatten 3-D array into 2-D. Thanks, Bard!
+     * flatten 3-D array into 2-D. Thanks, (Google) Bard!
      * TODO: review--looks like IBEX_H3_ENA_HI_R13_CG_NOSP_RAM_1YR needs transpose
      * @param array
      * @return
@@ -923,6 +941,35 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
 
         return flattenedArray;
     }
+    
+    /**
+     * flatten 4-D array into 2-D array.  Thanks, ChatGPT!
+     * @param input
+     * @return 
+     */
+    public static double[][] flatten4D(double[][][][] input) {
+        int dim0 = input.length;
+        int dim1 = input[0].length;
+        int dim2 = input[0][0].length;
+        int dim3 = input[0][0][0].length;
+
+        int cols = dim1 * dim2 * dim3;
+        double[][] output = new double[dim0][cols];
+
+        for (int i = 0; i < dim0; i++) {
+            for (int j = 0; j < dim1; j++) {
+                for (int k = 0; k < dim2; k++) {
+                    for (int l = 0; l < dim3; l++) {
+                        int colIndex = j * (dim2 * dim3) + k * dim3 + l;
+                        output[i][colIndex] = input[i][j][k][l];
+                    }
+                }
+            }
+        }
+
+        return output;
+    }
+ 
 
     private static double[][] flattenDoubleArray(Object array) {
         int numDimensions = 1;
@@ -936,6 +983,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 return (double[][]) array;
             case 3:
                 return flatten((double[][][]) array);
+            case 4:
+                return flatten4D((double[][][][]) array);
             default:
                 throw new IllegalArgumentException("Not supported: rank 4");
         }
@@ -1216,7 +1265,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         String[] virtualParams;
         JSONArray[] virtualComponents;
         
-        // We implement just one trivial virtual variable, alternate_view.  TODO: filters etc.
+        // The virtual variables are implemented.
         if ( isVirtual(info,params) ) { 
             virtualParams= new String[params.length];
             virtualComponents= new JSONArray[params.length];
@@ -1229,17 +1278,6 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     virtualParams[i]= funct;
                     virtualComponents[i]= components;
                     
-//                    if ( funct.equals("alternate_view") ) {
-//                        loadParams[i]= components.getString(0);
-//                    } else if ( funct.equals("filt_param") ) {
-//                        loadParams[i]= components.getString(0);
-//                    } else if ( funct.equals("apply_esa_qflag") ) {
-//                        loadParams= new String[params.length+components.length()];
-//                        System.arraycopy( params, 0, loadParams, 0, params.length );
-//                        for ( int j=0; j<components.length(); j++ ) {
-//                            loadParams[params.length+j]= components.getString(j);
-//                        }
-//                    }
                 } else {
                     virtualParams[i]= null;
                     virtualComponents[i]= null;
@@ -1319,6 +1357,23 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             double dfill= param1.getDouble("fill");
                             adapters[i]= new ApplyEsaQflag(paramAdapter, flagAdapter, dfill);
                             continue;
+                        }
+                        case "apply_filter_flag": {
+                            String param= virtualComponents[i].getString(0);
+                            String flag= virtualComponents[i].getString(1);
+                            JSONObject param1_1= getParamFor( pp, param );
+                            Adapter paramAdapter= getAdapterFor( reader, param1_1, param, nrec );
+                            JSONObject flagParam= getParamFor( pp, flag );
+                            Adapter flagAdapter= getAdapterFor( reader, flagParam, flag, nrec );
+                            double dfill= param1.getDouble("fill");
+                            adapters[i]= new ApplyEsaQflag(paramAdapter, flagAdapter, dfill);
+                            continue;
+                        }                        
+                        case "convert_log10": {
+                            String name1= virtualComponents[i].getString(0);
+                            JSONObject param1_1= getParamFor( pp, name1 );
+                            Adapter paramAdapter= getAdapterFor( reader, param1_1, name1, nrec );
+                            adapters[i]= new ConvertLog10(paramAdapter);
                         }
                         default:
                             throw new IllegalArgumentException("not implemented:" + virtualParams[i]);
