@@ -46,7 +46,7 @@ public class ApplyEsaQflag extends Adapter {
         if ( i==0 ) {
             return d;
         } else {
-            if ( ffill==null ) {
+            if ( ffill==null ) { // initialize once, now that we know the size of param.
                 ffill= new double[d.length];
                 for ( int j=0; j<d.length; j++ ) {
                     ffill[j]= fill;
