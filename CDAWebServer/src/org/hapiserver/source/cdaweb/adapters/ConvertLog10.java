@@ -5,6 +5,9 @@ import org.hapiserver.source.cdaweb.Adapter;
 
 /**
  * return log10 of another dataset.
+ * <ul>
+ * <li>.../hapi/data?id=IM_K0_WIC&parameters=Time,WIC_PIXELS_LOG&timerange=2005-12-17+2:32+to+23:55
+ * </ul>
  * @author jbf
  */
 public class ConvertLog10 extends Adapter {

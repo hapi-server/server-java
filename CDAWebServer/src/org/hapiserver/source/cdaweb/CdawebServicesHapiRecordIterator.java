@@ -1334,7 +1334,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             adapters[i]= new ApplyEsaQflag(paramAdapter, flagAdapter, dfill);
                             continue;
                         }
-                        case "comp_themis_epoch": {
+                        case "comp_themis_epoch": { //  THG_L1_ASK@8
                             String base= virtualComponents[i].getString(0);
                             String plus= virtualComponents[i].getString(1);
                             JSONObject param1_1= getParamFor( pp, base );
@@ -1374,6 +1374,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             JSONObject param1_1= getParamFor( pp, name1 );
                             Adapter paramAdapter= getAdapterFor( reader, param1_1, name1, nrec );
                             adapters[i]= new ConvertLog10(paramAdapter);
+                            continue;
                         }
                         default:
                             throw new IllegalArgumentException("not implemented:" + virtualParams[i]);

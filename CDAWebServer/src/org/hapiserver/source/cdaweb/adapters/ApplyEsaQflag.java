@@ -5,6 +5,9 @@ import org.hapiserver.source.cdaweb.Adapter;
 
 /**
  * Implements by returning parameter only where the flag is (?) nonzero.
+ * <ul>
+ * <li>vap+hapi:http://localhost:8280/HapiServer/hapi?id=THE_L2_GMOM@5&parameters=Time,the_ptebb_avgtempQ&timerange=2025-09-07
+ * </ul>
  * @author jbf
  */
 public class ApplyEsaQflag extends Adapter {

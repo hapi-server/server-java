@@ -6,6 +6,9 @@ import org.hapiserver.source.cdaweb.CdawebServicesHapiRecordIterator;
 
 /**
  * Implements by returning parameter only where the flag is (?) nonzero.
+ * <ul>
+ * <li>.../hapi/data?id=THG_L1_ASK@8&timerange=2025-09-08+0:00+to+12:55
+ * </ul>
  * @author jbf
  */
 public class CompThemisEpoch extends Adapter {
