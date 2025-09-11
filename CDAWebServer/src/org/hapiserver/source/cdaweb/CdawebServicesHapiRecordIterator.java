@@ -37,6 +37,7 @@ import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
 import org.hapiserver.source.cdaweb.adapters.ApplyEsaQflag;
+import org.hapiserver.source.cdaweb.adapters.ClampToZero;
 import org.hapiserver.source.cdaweb.adapters.CompThemisEpoch;
 import org.hapiserver.source.cdaweb.adapters.ConstantAdapter;
 import org.hapiserver.source.cdaweb.adapters.ConvertLog10;
@@ -748,8 +749,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                                 switch ( v ) {
                                     case "alternate_view":
                                     case "apply_esa_qflag":
+                                    //case "apply_filter_flag": // COMPARE_VAL and COMPARE_OPERATOR are missing from metadata.
+                                    //case "apply_qflag": // too difficult, old mission
                                     case "comp_themis_epoch":
                                     case "convert_log10":
+                                    //case "clamp_to_zero":
                                         break;
                                     default:
                                         canImplementVVar= false;
@@ -1376,6 +1380,15 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             adapters[i]= new ConvertLog10(paramAdapter);
                             continue;
                         }
+                        case "clamp_to_zero": {
+                            // This one is interesting because it uses a variable which is not found in the CDF, FEDU_CORR!
+                            String name1= virtualComponents[i].getString(0);
+                            JSONObject param1_1= getParamFor( pp, name1 );
+                            Adapter paramAdapter= getAdapterFor( reader, param1_1, name1, nrec );
+                            String amount= virtualComponents[i].getString(1);
+                            adapters[i]= new ClampToZero(paramAdapter,Double.parseDouble(amount));
+                            continue;
+                        }                        
                         default:
                             throw new IllegalArgumentException("not implemented:" + virtualParams[i]);
                     }
