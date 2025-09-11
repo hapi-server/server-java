@@ -4,7 +4,7 @@ package org.hapiserver.source.cdaweb.adapters;
 import org.hapiserver.source.cdaweb.Adapter;
 
 /**
- * Implements by returning parameter only where the flag is (?) nonzero.
+ * Implements by returning parameter only where the flag is zero.
  * <ul>
  * <li>vap+hapi:http://localhost:8280/HapiServer/hapi?id=THE_L2_GMOM@5&parameters=Time,the_ptebb_avgtempQ&timerange=2025-09-07
  * </ul>
@@ -25,7 +25,7 @@ public class ApplyEsaQflag extends Adapter {
     
     @Override
     public String getString(int index) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported.");
     }
 
     @Override
