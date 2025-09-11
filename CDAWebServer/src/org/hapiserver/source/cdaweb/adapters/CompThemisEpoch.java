@@ -3,7 +3,6 @@ package org.hapiserver.source.cdaweb.adapters;
 
 import org.hapiserver.source.cdaweb.Adapter;
 import org.hapiserver.source.cdaweb.CdawebServicesHapiRecordIterator;
-import org.hapiserver.source.cdaweb.CdawebServicesHapiRecordSource;
 
 /**
  * Implements by returning parameter only where the flag is (?) nonzero.
@@ -29,6 +28,7 @@ public class CompThemisEpoch extends Adapter {
     @Override
     public String adaptString(int index) {
         double d= adaptDouble(index);
+        //TODO: there might be a better implementation of this.
         return new CdawebServicesHapiRecordIterator.IsotimeEpochAdapter( new double[] { d }, 30 ).adaptString(0);
     }
 
