@@ -17,9 +17,11 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
@@ -1138,8 +1140,27 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         return false;
     }
     
-    private static Adapter getAdapterFor( CDFReader reader, JSONObject param1, 
-            String param, int nrec ) throws CDFException.ReaderError, JSONException {
+    /**
+     * return the sizes for the array.  This can be an array of arrays, too.
+     * @param o object which is an array.
+     * @return the JSONArray of sizes for each dimension.
+     */
+    private static JSONArray getSizeFor( Object o ) {
+        if ( !o.getClass().isArray() ) throw new IllegalArgumentException("Expected array");
+        o= Array.get( o, 0 );  // HAPI wants size for each record.
+        List<Integer> sizes= new ArrayList<>(); 
+        while ( o.getClass().isArray() ) {
+            sizes.add( Array.getLength(o) );
+            o= Array.get( o, 0 );
+        }
+        return new JSONArray(sizes);
+    }
+    
+    private static Adapter getAdapterFor( 
+            CDFReader reader, 
+            JSONObject param1, 
+            String param, 
+            int nrec ) throws CDFException.ReaderError, JSONException {
                    
         Adapter result;
 
@@ -1217,7 +1238,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         } else {
             c = c.getComponentType();
             if (c == double.class) {
-                JSONArray size= param1.getJSONArray("size");
+                JSONArray size;
+                size= getSizeFor(o);
                 int items= size.getInt(0);
                 for ( int k=1; k<size.length(); k++ ) {
                     items*= size.getInt(k);
@@ -1226,7 +1248,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             } else if (c == int.class) {
                 result = new IntegerArrayIntegerAdapter((int[][]) o);
             } else if (c.isArray()) {
-                JSONArray size= param1.getJSONArray("size");
+                JSONArray size= getSizeFor(c);
                 int items= size.getInt(0);
                 for ( int k=1; k<size.length(); k++ ) {
                     items*= size.getInt(k);
