@@ -59,6 +59,7 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
                 if ( this.parameters==null ) {
                     this.hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule) );
                 } else {
+                    // Here we make the iterator for the next granule.
                     this.hapiRecordIterator= source.getIterator(granule, TimeUtil.getStopTime(granule), this.parameters );
                 }
                 findNextRecord();
