@@ -7,6 +7,7 @@ import org.hapiserver.source.cdaweb.Adapter;
  * return log10 of another dataset, but then flip the data vertically.
  * <ul>
  * <li>.../hapi/data?id=IM_K0_WIC&parameters=Time,WIC_PIXELS_LOG&timerange=2005-12-17+2:32+to+23:55
+ * <li>https://github.com/autoplot/cdfj/blob/virtual_variable_descriptions/virtual/convert_log10_flip_vert.md
  * </ul>
  * This is a nice example because we'll need to know the sizes to implement this.
  * @author jbf
