@@ -37,6 +37,7 @@ import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
 import org.hapiserver.source.cdaweb.adapters.ApplyEsaQflag;
+import org.hapiserver.source.cdaweb.adapters.ApplyRtnQflag;
 import org.hapiserver.source.cdaweb.adapters.ClampToZero;
 import org.hapiserver.source.cdaweb.adapters.CompThemisEpoch;
 import org.hapiserver.source.cdaweb.adapters.ConstantAdapter;
@@ -749,6 +750,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                                 switch ( v ) {
                                     case "alternate_view":
                                     case "apply_esa_qflag":
+                                    case "apply_fgm_qflag":
+                                    case "apply_gmom_qflag":
                                     //case "apply_filter_flag": // COMPARE_VAL and COMPARE_OPERATOR are missing from metadata.
                                     //case "apply_qflag": // too difficult, old mission
                                     case "comp_themis_epoch":
@@ -1327,7 +1330,9 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             adapters[i]= paramAdapter;
                             continue;
                         }
-                        case "apply_esa_qflag": {
+                        case "apply_esa_qflag": 
+                        case "apply_fgm_qflag": 
+                        case "apply_gmom_qflag": {
                             String param= virtualComponents[i].getString(0);
                             String flag= virtualComponents[i].getString(1);
                             JSONObject param1_1= getParamFor( pp, param );
@@ -1338,6 +1343,17 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             adapters[i]= new ApplyEsaQflag(paramAdapter, flagAdapter, dfill);
                             continue;
                         }
+                        case "apply_rtn_qflag": {
+                            String param= virtualComponents[i].getString(0);
+                            String flag= virtualComponents[i].getString(1);
+                            JSONObject param1_1= getParamFor( pp, param );
+                            Adapter dataAdapter= getAdapterFor( reader, param1_1, param, nrec );
+                            JSONObject qualityParam= getParamFor( pp, flag );
+                            Adapter flagAdapter= getAdapterFor( reader, qualityParam, flag, nrec );
+                            double dfill= param1.getDouble("fill");
+                            adapters[i]= new ApplyRtnQflag(dataAdapter, flagAdapter, dfill);
+                            continue;
+                        }                        
                         case "comp_themis_epoch": { //  THG_L1_ASK@8
                             String base= virtualComponents[i].getString(0);
                             String plus= virtualComponents[i].getString(1);
@@ -1349,17 +1365,6 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             nindex = nrec;
                             Adapter flagAdapter= getAdapterFor( reader, param1_2, plus, nrec );
                             adapters[i]= new CompThemisEpoch(paramAdapter, flagAdapter);
-                            continue;
-                        }
-                        case "apply_gmom_qflag": {
-                            String param= virtualComponents[i].getString(0);
-                            String flag= virtualComponents[i].getString(1);
-                            JSONObject param1_1= getParamFor( pp, param );
-                            Adapter paramAdapter= getAdapterFor( reader, param1_1, param, nrec );
-                            JSONObject flagParam= getParamFor( pp, flag );
-                            Adapter flagAdapter= getAdapterFor( reader, flagParam, flag, nrec );
-                            double dfill= param1.getDouble("fill");
-                            adapters[i]= new ApplyEsaQflag(paramAdapter, flagAdapter, dfill);
                             continue;
                         }
                         case "apply_filter_flag": {
