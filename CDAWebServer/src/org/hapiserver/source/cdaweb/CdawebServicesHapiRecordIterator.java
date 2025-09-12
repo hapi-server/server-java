@@ -36,6 +36,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
+import org.hapiserver.source.cdaweb.adapters.Add1800;
 import org.hapiserver.source.cdaweb.adapters.ApplyEsaQflag;
 import org.hapiserver.source.cdaweb.adapters.ApplyRtnQflag;
 import org.hapiserver.source.cdaweb.adapters.ClampToZero;
@@ -749,6 +750,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             for ( String v : vvars ) {
                                 switch ( v ) {
                                     case "alternate_view":
+                                    case "add_1800":
                                     case "apply_esa_qflag":
                                     case "apply_fgm_qflag":
                                     case "apply_gmom_qflag":
@@ -1161,6 +1163,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 Object newo= Array.newInstance( o.getClass(), nrec );
                 Array.set(newo, 0, o);
                 o= newo;
+            } else if ( nrec==-1 ) {
+                nrec= Array.getLength(o);
             } else {
                 if (Array.getLength(o) == 1) {
                     // let's assume they meant for this to non-time varying.
@@ -1362,11 +1366,20 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             JSONObject param1_2= getParamFor( pp, plus );
                             double[] dplus= (double[])reader.get(plus);
                             nrec= dplus.length;
-                            nindex = nrec;
+                            nindex = dplus.length;
                             Adapter flagAdapter= getAdapterFor( reader, param1_2, plus, nrec );
                             adapters[i]= new CompThemisEpoch(paramAdapter, flagAdapter);
                             continue;
                         }
+                        case "add_1800": {
+                            String param= virtualComponents[i].getString(0);
+                            double[] epoch=(double[])reader.get(param);
+                            Adapter epochAdapter = new IsotimeEpochAdapter( epoch, 30 );
+                            nrec= epoch.length;
+                            nindex= epoch.length; // Any virtual time will need this!!!!
+                            adapters[i]= new Add1800(epochAdapter);
+                            continue;
+                        }                        
                         case "apply_filter_flag": {
                             String param= virtualComponents[i].getString(0);
                             String flag= virtualComponents[i].getString(1);
@@ -1807,10 +1820,10 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         //mainCase6();
         //mainCase7();
         //mainCase8();
-        //mainCase9();
+        mainCase9();
         //mainCase10();
         //mainCase11();
-        mainCase12();
+        //mainCase12();
     }
 
 }
