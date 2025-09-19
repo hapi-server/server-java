@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Vector;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
@@ -41,6 +42,7 @@ import org.hapiserver.source.SourceUtil;
 import org.hapiserver.source.cdaweb.adapters.Add1800;
 import org.hapiserver.source.cdaweb.adapters.ApplyEsaQflag;
 import org.hapiserver.source.cdaweb.adapters.ApplyRtnQflag;
+import org.hapiserver.source.cdaweb.adapters.ArrSlice;
 import org.hapiserver.source.cdaweb.adapters.ClampToZero;
 import org.hapiserver.source.cdaweb.adapters.CompThemisEpoch;
 import org.hapiserver.source.cdaweb.adapters.ConstantAdapter;
@@ -1248,7 +1250,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             } else if (c == int.class) {
                 result = new IntegerArrayIntegerAdapter((int[][]) o);
             } else if (c.isArray()) {
-                JSONArray size= getSizeFor(c);
+                JSONArray size= getSizeFor(o);
                 int items= size.getInt(0);
                 for ( int k=1; k<size.length(); k++ ) {
                     items*= size.getInt(k);
@@ -1277,6 +1279,27 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             }
         }
         return null;
+    }
+    
+    private static Integer getIntegerAttribute( CDFReader reader, String varName, String attributeName ) throws CDFException.ReaderError {
+        Object o= reader.getAttribute( varName, attributeName );
+        if ( o==null ) return null;
+        if ( o instanceof Vector ) {
+            Vector v= (Vector)o;
+            if ( v.size()==0 ) return null;
+            Object v1= v.get(0);
+            if ( v1.getClass().isArray() ) {
+                if ( v1.getClass().getComponentType()==double.class ) {
+                    return (int)Array.getDouble(v1, 0);
+                } else {
+                    throw new IllegalArgumentException("expected different type");
+                }
+            } else {
+                return ((Number)v.get(0)).intValue();
+            }
+        } else {
+            return null;
+        }
     }
     
     /**
@@ -1424,11 +1447,26 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             // This one is interesting because it uses a variable which is not found in the CDF, FEDU_CORR!
                             String name1= virtualComponents[i].getString(0);
                             JSONObject param1_1= getParamFor( pp, name1 );
-                            Adapter paramAdapter= getAdapterFor( reader, param1_1, name1, nrec );
+                          Adapter paramAdapter= getAdapterFor( reader, param1_1, name1, nrec );
                             String amount= virtualComponents[i].getString(1);
                             adapters[i]= new ClampToZero(paramAdapter,Double.parseDouble(amount));
                             continue;
-                        }                        
+                        }    
+                        case "arr_slice": {
+                            String name1= virtualComponents[i].getString(0);
+                            JSONObject param1_1= getParamFor( pp, name1 );
+                            Adapter paramAdapter= getAdapterFor( reader, param1_1, name1, nrec );
+                            String vvarName= param1.getString("name");
+                            Integer arrIndex= getIntegerAttribute( reader, vvarName, "ARR_INDEX" );
+                            Integer arrDim= getIntegerAttribute( reader, vvarName, "ARR_DIM" );
+                            JSONArray size= param1_1.getJSONArray("size");
+                            int[] qube= new int[size.length()];
+                            for ( int jj=0; jj<size.length(); jj++ ) {
+                                qube[jj]= size.getInt(jj);
+                            }
+                            adapters[i]= new ArrSlice(paramAdapter, qube, arrDim, arrIndex );
+                            continue;
+                        }
                         default:
                             throw new IllegalArgumentException("not implemented:" + virtualParams[i]);
                     }
