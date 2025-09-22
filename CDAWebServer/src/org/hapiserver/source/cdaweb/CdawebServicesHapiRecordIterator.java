@@ -41,6 +41,7 @@ import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
 import org.hapiserver.source.cdaweb.adapters.Add1800;
 import org.hapiserver.source.cdaweb.adapters.ApplyEsaQflag;
+import org.hapiserver.source.cdaweb.adapters.ApplyFilterFlag;
 import org.hapiserver.source.cdaweb.adapters.ApplyRtnQflag;
 import org.hapiserver.source.cdaweb.adapters.ArrSlice;
 import org.hapiserver.source.cdaweb.adapters.ClampToZero;
@@ -1281,6 +1282,23 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         return null;
     }
     
+    private static String getAttribute( CDFReader reader, String varName, String attributeName ) throws CDFException.ReaderError {
+        Object o= reader.getAttribute( varName, attributeName );
+        if ( o==null ) return null;
+        if ( o instanceof Vector ) {
+            Vector v= (Vector)o;
+            if ( v.size()==0 ) return null;
+            Object v1= v.get(0);
+            if ( v1.getClass().isArray() ) {
+                return String.valueOf(Array.get(v1, 0));
+            } else {
+                return String.valueOf(v1);
+            }
+        } else {
+            return null;
+        }
+    }
+    
     private static Integer getIntegerAttribute( CDFReader reader, String varName, String attributeName ) throws CDFException.ReaderError {
         Object o= reader.getAttribute( varName, attributeName );
         if ( o==null ) return null;
@@ -1425,15 +1443,19 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             adapters[i]= new Add1800(epochAdapter);
                             continue;
                         }                        
-                        case "apply_filter_flag": {
+                        case "apply_filter_flag": { //http://localhost:8280/HapiServer/hapi/data?dataset=PSP_SWP_SPC_L3I&parameters=vp_moment_SC_gd&start=2025-05-29T00:00Z&stop=2025-05-30T00:00Z
                             String param= virtualComponents[i].getString(0);
                             String flag= virtualComponents[i].getString(1);
                             JSONObject param1_1= getParamFor( pp, param );
                             Adapter paramAdapter= getAdapterFor( reader, param1_1, param, nrec );
                             JSONObject flagParam= getParamFor( pp, flag );
                             Adapter flagAdapter= getAdapterFor( reader, flagParam, flag, nrec );
-                            double dfill= param1.getDouble("fill");
-                            adapters[i]= new ApplyEsaQflag(paramAdapter, flagAdapter, dfill);
+                            String vvarName= param1.getString("name");
+                            String val= getAttribute( reader, vvarName, "COMPARE_VAL" );
+                            if ( val==null ) val= "0.0";
+                            String operator= getAttribute( reader, vvarName, "COMPARE_OPERATOR" );
+                            if ( operator==null ) operator="eq";
+                            adapters[i]= new ApplyFilterFlag( param1, paramAdapter, flagAdapter, operator, Double.parseDouble(val) );
                             continue;
                         }                        
                         case "convert_log10": {
