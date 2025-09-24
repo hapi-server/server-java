@@ -46,8 +46,10 @@ import org.hapiserver.source.cdaweb.adapters.ApplyRtnQflag;
 import org.hapiserver.source.cdaweb.adapters.ArrSlice;
 import org.hapiserver.source.cdaweb.adapters.ClampToZero;
 import org.hapiserver.source.cdaweb.adapters.CompThemisEpoch;
+import org.hapiserver.source.cdaweb.adapters.CompThemisEpoch16;
 import org.hapiserver.source.cdaweb.adapters.ConstantAdapter;
 import org.hapiserver.source.cdaweb.adapters.ConvertLog10;
+import org.hapiserver.source.cdaweb.adapters.VirtualFunctions;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -731,71 +733,15 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     }
 
     /**
-     * List of datasets which are known to be readable from the files, containing no virtual variables or virtual variables
-     * which can be implemented within the HAPI server. Eventually there will be
-     * metadata in the infos which contains this information.
-     */
-    private static final HashSet<String> readDirect = new HashSet<String>();
-
-    static {
-        URL virt = CdawebServicesHapiRecordIterator.class.getResource("virtualVariables.txt");
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(virt.openStream()))) {
-            String line = reader.readLine();
-            while (line != null) {
-                if (line.length() > 0 && line.charAt(0) == '#') {
-                    // skip comment line
-                } else {
-                    String[] ss = line.split("\t");
-                    if (ss[1].equals("0")) {
-                        readDirect.add(ss[0]);
-                    } else {
-                        boolean canImplementVVar= true;
-                        if ( ss.length>2 ) {
-                            String[] vvars= ss[2].split(",");
-                            for ( String v : vvars ) {
-                                switch ( v ) {
-                                    case "alternate_view":
-                                    case "add_1800":
-                                    case "apply_esa_qflag":
-                                    case "apply_fgm_qflag":
-                                    case "apply_gmom_qflag":
-                                    //case "apply_filter_flag": // COMPARE_VAL and COMPARE_OPERATOR are missing from metadata.
-                                    //case "apply_qflag": // too difficult, old mission
-                                    case "comp_themis_epoch":
-                                    case "convert_log10":
-                                    //case "clamp_to_zero":
-                                        break;
-                                    default:
-                                        canImplementVVar= false;
-                                }
-                            }
-                            if ( canImplementVVar ) {
-                                readDirect.add(ss[0]);
-                            } else {
-                                logger.log(Level.FINE, "must use web services to read {0}", ss[0]);
-                            }
-                        } else {
-                            logger.log(Level.FINE, "strange one... must use web services to read {0}", line);
-                        }
-                    }
-                }
-                line = reader.readLine();
-            }
-            logger.info("read in table of virtual variable use.  TODO: use Bob's database");
-        } catch (IOException ex) {
-            logger.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        logger.log(Level.INFO, "readDirect has {0} entries", readDirect.size());
-    }
-
-    /**
      * return true if the data contain virtual variables which must be calculated by CDAWeb web services. This is slower than
      * reading the files directly. Some virtual variables may be implemented within this server in the future.
      *
      * @param id the id, for example RBSP-A_DENSITY_EMFISIS-L4
+     * @param info info for the parameter.
+     * @param params the parameters to read
      * @return true if web services must be used.
      */
-    private static boolean mustUseWebServices(String id) {
+    public static boolean mustUseWebServices(String id, JSONObject info, String[] params) {
         int iat = id.indexOf("@");  // multiple timetags cdf files will have @\d for each set of timetags.
         if (iat > 0) {
             id = id.substring(0, iat);
@@ -803,8 +749,22 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         if ( hapiServerResolvesId(id) ) return false;
         if ( id.equals("AC_OR_SSC") ) {
             return true; // uses both rvars and zvars
-        }  
-        return !readDirect.contains(id);
+        }
+        
+        try {
+            JSONArray parameters= info.getJSONArray("parameters");
+            for ( int i=0; i<parameters.length(); i++ ) {
+                JSONObject p= parameters.getJSONObject(i);
+                String s= p.optString("x_cdf_FUNCT","");
+                if ( s.length()>0 && !VirtualFunctions.virtualFunctionSupported(s) ) {
+                    return true;
+                }
+            }
+        } catch ( JSONException ex ) {
+            throw new RuntimeException(ex);
+        }
+        
+        return false;
     }
     
     /**
@@ -868,7 +828,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             id = id.substring(0, iat);
         }
 
-        if (origFile == null || mustUseWebServices(id)) {
+        if (origFile == null || mustUseWebServices(id, info, params)) {
 
             String ss;
             if (params.length == 1) {
@@ -1094,7 +1054,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     logger.log(Level.INFO, "Downloading {0}", cdfUrl);
                     tmpFile = SourceUtil.downloadFileLocking(cdfUrl, tmpFile, tmpFile.toString()+".tmp" );
                     
-                    if ( maybeLocalFile!=null && !mustUseWebServices(id) ) {
+                    if ( maybeLocalFile!=null && !mustUseWebServices(id, info, params) ) {
                         if ( maybeLocalFile.getParentFile().exists() || maybeLocalFile.getParentFile().mkdirs() ) {
                             Files.move( tmpFile.toPath(), maybeLocalFile.toPath() );
                             cdfFile= maybeLocalFile;
@@ -1109,7 +1069,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 }
             }
 
-            return new CdawebServicesHapiRecordIterator(info, start, stop, params, cdfFile);
+            return new CdawebServicesHapiRecordIterator( id, info, start, stop, params, cdfFile);
 
         } catch (CDFException.ReaderError | JSONException | IOException r ) {
             throw new RuntimeException(r);
@@ -1206,7 +1166,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                         o = newO;
                     }
                 } else {
-                    throw new IllegalArgumentException("nrec is inconsistent!  This internal error must be fixed.");
+                    throw new IllegalArgumentException("nrec is inconsistent!  This internal error must be fixed, got "+Array.getLength(o)+" expected "+nrec);
                 }
             }
         }
@@ -1325,6 +1285,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
     
     /**
      * 
+     * @param id the dataset id.
      * @param info info for the dataset
      * @param start start time [Y,m,D,H,M,S,N]
      * @param stop stop time [Y,m,D,H,M,S,N]
@@ -1333,7 +1294,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
      * @throws gov.nasa.gsfc.spdf.cdfj.CDFException.ReaderError
      * @throws JSONException 
      */
-    public CdawebServicesHapiRecordIterator(JSONObject info, int[] start, int[] stop, String[] params, File tmpFile) throws CDFException.ReaderError, JSONException {
+    public CdawebServicesHapiRecordIterator( String id, JSONObject info, int[] start, int[] stop, String[] params, File tmpFile) throws CDFException.ReaderError, JSONException {
 
         if ( tmpFile==null ) {
             throw new NullPointerException("tmpFile is null");
@@ -1343,7 +1304,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         JSONArray[] virtualComponents;
         
         // The virtual variables are implemented.
-        if ( isVirtual(info,params) ) { 
+        if ( isVirtual(info,params) && !mustUseWebServices( id, info, params) ) { 
             virtualParams= new String[params.length];
             virtualComponents= new JSONArray[params.length];
             for ( int i=0; i<params.length; i++ ) {
@@ -1435,6 +1396,17 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             adapters[i]= new CompThemisEpoch( dbase, dplus );
                             continue;
                         }
+                        case "comp_themis_epoch16": { //  THG_L1_ASK@8
+                            String base= virtualComponents[i].getString(0);
+                            String plus= virtualComponents[i].getString(1);
+                            double[] dbase= (double[])reader.get(base);
+                            double[] dplus= (double[])reader.get(plus);
+                            nrec= dplus.length;
+                            nindex = dplus.length;
+                            
+                            adapters[i]= new CompThemisEpoch16( dbase, dplus );
+                            continue;
+                        }                        
                         case "add_1800": {
                             String param= virtualComponents[i].getString(0);
                             double[] epoch=(double[])reader.get(param);
