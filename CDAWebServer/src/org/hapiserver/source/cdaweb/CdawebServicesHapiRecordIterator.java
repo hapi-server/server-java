@@ -1445,9 +1445,10 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             // This one is interesting because it uses a variable which is not found in the CDF, FEDU_CORR!
                             String name1= virtualComponents[i].getString(0);
                             JSONObject param1_1= getParamFor( pp, name1 );
-                          Adapter paramAdapter= getAdapterFor( reader, param1_1, name1, nrec );
+                            Adapter paramAdapter= getAdapterFor( reader, param1_1, name1, nrec );
                             String amount= virtualComponents[i].getString(1);
-                            adapters[i]= new ClampToZero(paramAdapter,Double.parseDouble(amount));
+                            double d= Array.getDouble(reader.get(amount),0);
+                            adapters[i]= new ClampToZero(paramAdapter,d);
                             continue;
                         }    
                         case "arr_slice": {
