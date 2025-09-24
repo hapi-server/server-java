@@ -241,6 +241,9 @@ public class CdawebInfoCatalogSource {
                 } else {
                     p.put("fill",JSONObject.NULL);
                 }
+                if ( type.equals("isotime") && p.getInt("length")>30 ) {
+                    p.put("length","30");
+                }
             }
             String sampleStartDate= jo.optString("sampleStartDate","");
             String sampleStopDate=  jo.optString("sampleStopDate","");
