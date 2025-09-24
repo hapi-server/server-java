@@ -801,6 +801,9 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             id = id.substring(0, iat);
         }
         if ( hapiServerResolvesId(id) ) return false;
+        if ( id.equals("AC_OR_SSC") ) {
+            return true; // uses both rvars and zvars
+        }  
         return !readDirect.contains(id);
     }
     
