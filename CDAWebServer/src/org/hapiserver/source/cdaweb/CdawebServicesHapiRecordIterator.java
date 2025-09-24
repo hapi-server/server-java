@@ -828,7 +828,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             id = id.substring(0, iat);
         }
 
-        if (origFile == null || mustUseWebServices(id, info, params)) {
+        if (origFile == null || origFile.getFile().endsWith(".nc") || mustUseWebServices(id, info, params)) {
 
             String ss;
             if (params.length == 1) {
@@ -1069,6 +1069,9 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 }
             }
 
+            if ( cdfFile.getName().endsWith(".nc") ) {
+                throw new IllegalArgumentException("cdfFile ends with .nc and is probably not a CDF file.");
+            }
             return new CdawebServicesHapiRecordIterator( id, info, start, stop, params, cdfFile);
 
         } catch (CDFException.ReaderError | JSONException | IOException r ) {
