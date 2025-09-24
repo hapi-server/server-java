@@ -1427,14 +1427,12 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                         case "comp_themis_epoch": { //  THG_L1_ASK@8
                             String base= virtualComponents[i].getString(0);
                             String plus= virtualComponents[i].getString(1);
-                            JSONObject param1_1= getParamFor( pp, base );
-                            Adapter paramAdapter= getAdapterFor( reader, param1_1, base, nrec );
-                            JSONObject param1_2= getParamFor( pp, plus );
+                            double[] dbase= (double[])reader.get(base);
                             double[] dplus= (double[])reader.get(plus);
                             nrec= dplus.length;
                             nindex = dplus.length;
-                            Adapter flagAdapter= getAdapterFor( reader, param1_2, plus, nrec );
-                            adapters[i]= new CompThemisEpoch(paramAdapter, flagAdapter);
+                            
+                            adapters[i]= new CompThemisEpoch( dbase, dplus );
                             continue;
                         }
                         case "add_1800": {
@@ -1540,6 +1538,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             logger.exiting(CdawebServicesHapiRecordIterator.class.getCanonicalName(), "constructor");
 
         } catch (CDFException.ReaderError ex) {
+            ex.printStackTrace();
             throw new RuntimeException(ex);
         }
 

@@ -13,18 +13,18 @@ import org.hapiserver.source.cdaweb.CdawebServicesHapiRecordIterator;
  */
 public class CompThemisEpoch extends Adapter {
 
-    Adapter base;
-    Adapter offset;
+    double[] base;
+    double[] offset;
     
-    public CompThemisEpoch( Adapter base, Adapter offset ) {
+    public CompThemisEpoch( double[] base, double[] offset ) {
         this.base= base;
         this.offset= offset;
     }
     
     @Override
     public double adaptDouble(int index) {
-        double d= base.adaptDouble(index);
-        double d2= offset.adaptDouble(index);
+        double d= base[0];
+        double d2= offset[index];
         return d+d2*1000;
     }
 
