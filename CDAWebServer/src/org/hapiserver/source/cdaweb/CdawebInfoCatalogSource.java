@@ -242,7 +242,7 @@ public class CdawebInfoCatalogSource {
                     p.put("fill",JSONObject.NULL);
                 }
                 if ( type.equals("isotime") && p.getInt("length")>30 ) {
-                    p.put("length","30");
+                    p.put("length","30"); // match the old server for Epoch16
                 }
             }
             String sampleStartDate= jo.optString("sampleStartDate","");
