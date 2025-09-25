@@ -14,6 +14,7 @@ public class DemoBugCDFJ {
     public static void main( String[] args ) throws CDFException.ReaderError {
         File tmpFile= new File("/var/www/cdaweb/htdocs/sp_phys/data/erg/mepe/l2/3dflux/2024/erg_mepe_l2_3dflux_20240830_v01_01.cdf");
         CDFReader reader = new CDFReader(tmpFile.toString());
+        reader.getBuffer( "FEDU", "float", new int[] { 0, 8910 }, true );
         reader.get("FEDU");
     }
 }
