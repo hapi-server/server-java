@@ -1404,6 +1404,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                             String plus= virtualComponents[i].getString(1);
                             double[] dbase= (double[])reader.get(base);
                             double[] dplus= (double[])reader.get(plus);
+                            if ( dplus==null ) throw new IllegalArgumentException("virtual component not found in file: "+plus+ " "+ tmpFile);
                             nrec= dplus.length;
                             nindex = dplus.length;
                             
