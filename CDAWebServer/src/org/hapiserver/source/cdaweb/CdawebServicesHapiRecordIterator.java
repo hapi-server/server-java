@@ -1175,7 +1175,18 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
         String stype = nameForType(type);
         Class c = o.getClass().getComponentType();
-        double fill= param1==null ? -1e31 : param1.getDouble("fill"); //TODO: I think this is actually a string.
+        String sfill= param1.getString("fill");
+        double fill;
+        if ( sfill==null ) {
+            fill= -1e31;
+        } else {
+            try {
+                fill=  Double.parseDouble(sfill);
+            } catch ( NumberFormatException ex ) {
+                fill= -1e31;
+            }
+        }
+        
         if (!c.isArray()) {
             if (c == double.class) {
                 if ( stype.startsWith("CDF_INT") ) {
