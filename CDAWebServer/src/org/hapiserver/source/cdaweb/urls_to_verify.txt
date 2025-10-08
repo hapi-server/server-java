@@ -5,3 +5,15 @@ wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=AC_OR_SSC&parameters=XY
 
 # JSON double array:
 wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=RBSP-A-RBSPICE_LEV-2_TOFXPHHLEHT&start=2014-10-02T17:30:00.000Z&stop=2014-10-02T17:30:10.000Z&parameters=Time,FPDU' 
+
+# extra variable "sc_pos_syngci"
+https://cottagesystems.com/~jbf/hapi/p/cdaweb/data/hapi/info/A2_K0_MPA.json
+
+# strange error "sc_pos_syngci"
+wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=A2_K0_MPA&time.min=2008-002T00:01:48Z&time.max=2008-002T23:58:16Z
+
+# FH has many more records in 
+wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=ALOUETTE2_AV_LIM&time.min=1967-015T12:58:30Z&time.max=1967-015T12:59:04Z
+
+# info is missing fill value
+wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=DE1_1MIN_RIMS&parameters=flags_z_hi_Oplus&time.min=1984-11-01T13:23:44Z&time.max=1984-11-25T07:57:26Z'
