@@ -42,6 +42,12 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
      */
     public AggregatingIterator( HapiRecordSource source, int[] start, int[] stop, String[] parameters ) {
         this.source= source;
+        //this.granuleIterator= source.getGranuleIterator(start, stop);
+        //System.err.println("=====" + parameters[0] );
+        //while ( this.granuleIterator.hasNext() ) {
+        //    System.err.println( TimeUtil.formatIso8601TimeRange( this.granuleIterator.next() ) );
+        //}
+        //System.err.println("=====");
         this.granuleIterator= source.getGranuleIterator(start, stop);
         this.stop= stop;
         this.parameters= parameters;
