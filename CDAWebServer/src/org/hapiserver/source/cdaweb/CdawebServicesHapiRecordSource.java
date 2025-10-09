@@ -69,7 +69,8 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
             throw new RuntimeException(ex);
         }
         CdawebAvailabilityHapiRecordSource source= new CdawebAvailabilityHapiRecordSource( availRoot, availId + "/source", infoObject );
-        
+        TimeUtil.formatIso8601Time(start);
+        TimeUtil.formatIso8601Time(stop);
         Iterator<HapiRecord> it = source.getIterator(start, stop);
         this.root= source.getRoot();
         
