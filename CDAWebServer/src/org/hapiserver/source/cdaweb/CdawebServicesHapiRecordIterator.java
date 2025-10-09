@@ -251,11 +251,14 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         
         private String formatTime(double t) {
             double offset = t - baseTime;  // milliseconds
-            while (offset < 0.) {
-                // Not sure why we need this, some sort of miscalculation of baseTime 
-                double hours = Math.floor( offset / 3600000. ); 
-                baseTime = baseTime + hours * 3600000.;
-                baseYYYYmmddTHH= addTime( baseYYYYmmddTHH, hours );
+            while (offset < 0.) { // I don't think it should go here, because it means timetags are not in order.
+                double us2000 = (t - 6.3113904E13) * 1000; // ms -> microseconds
+                double day2000 = Math.floor(us2000 / 86400000000.); // days since 2000-01-01.
+                double usDay = us2000 - day2000 * 86400000000.; // microseconds within this day.
+                double ms1970 = day2000 * 86400000. + 946684800000.;
+                String baseDay = TimeUtil.fromMillisecondsSince1970((long) ms1970);
+                baseYYYYmmddTHH = baseDay.substring(0, 10) + "T00";
+                baseTime = (long) (t - usDay / 1000);
                 try {
                     baseYYYYmmddTHH = TimeUtil.normalizeTimeString(baseYYYYmmddTHH).substring(0, 13);
                 } catch ( IllegalArgumentException ex ) {
