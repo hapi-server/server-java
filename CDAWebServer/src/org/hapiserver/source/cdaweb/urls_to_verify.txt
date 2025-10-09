@@ -17,3 +17,7 @@ wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=ALOUETTE2_AV_LIM&time.m
 
 # info is missing fill value
 wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=DE1_1MIN_RIMS&parameters=flags_z_hi_Oplus&time.min=1984-11-01T13:23:44Z&time.max=1984-11-25T07:57:26Z'
+
+# this is strange, because it is handing times from 1983, not just the one day 1991-02-17.
+wget -o /dev/null -O - 'http://localhost:8280/HapiServer/hapi/data?id=DE1_62MS_MAGA-GMS/source&time.min=1991-02-17T05:30:18Z&time.max=1991-02-17T06:20:32Z'
+wget -o /dev/null -O - 'http://localhost:8280/HapiServer/hapi/data?id=DE1_62MS_MAGA-GMS&parameters=alt&time.min=1991-02-17T05:30:18Z&time.max=1991-02-17T06:20:32Z'
