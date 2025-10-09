@@ -290,6 +290,21 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
     private static Iterator<HapiRecord> fromJSONArray( JSONArray array, final String root, final int rootlen ) {
         final int len=  array.length();
         
+        try {
+            for ( int i=0; i<len-1; i++ ) {
+                JSONObject n1= array.getJSONObject(i);
+                JSONObject n2= array.getJSONObject(i+1);
+                String s1= n1.optString("EndTime");
+                String s2= n2.optString("StartTime");
+                if ( s1.compareTo(s2)>0 ) {
+                    System.err.println("Found overlapping files");
+                    n1.put("EndTime",s2);
+                }
+            }
+        } catch (JSONException ex) {
+            Logger.getLogger(CdawebAvailabilityHapiRecordSource.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         logger.log(Level.FINE, "creating {0} record iterator", len);
         
         return new Iterator<HapiRecord>() {
