@@ -208,13 +208,14 @@ public class CdawebInfoCatalogSource {
 
             URL url= new URL(surl);
             String src= SourceUtil.getAllFileLines( url );
-            
             try {
                 jo= new JSONObject(src);
             } catch ( JSONException ex ) {
                 throw new IllegalArgumentException("input file has JSON syntax issue: " +surl );
             }
 
+            String id= jo.optString("id");
+            
             if ( jo.has("info") ) {
                 jo= jo.getJSONObject("info");
             }
@@ -244,6 +245,22 @@ public class CdawebInfoCatalogSource {
                 if ( type.equals("isotime") && p.getInt("length")>30 ) {
                     p.put("length","30"); // match the old server for Epoch16
                 }
+                // https://github.com/rweigel/cdawmeta/issues/42
+//                if ( "AWE_L3A_TMP".equals(id) && ip>0 ) {// .../hapi/info?id=AWE_L3A_TMP
+//                    String n= p.getString("name"); 
+//                    if ( n.equals("Temperature")
+//                            || n.equals("Latitude") 
+//                            || n.equals("Longitude")
+//                            || n.equals("MLCloud") ) {
+//                        logger.info("reform of parameter is necessary here");
+//                        JSONArray size= p.optJSONArray("size");
+//                        JSONArray reform= new JSONArray();
+//                        for ( int i=1; i<size.length(); i++ ) {
+//                            reform.put(i-1,size.getInt(i));
+//                        }
+//                        p.put("size",reform);
+//                    }
+//                }
             }
             String sampleStartDate= jo.optString("sampleStartDate","");
             String sampleStopDate=  jo.optString("sampleStopDate","");
