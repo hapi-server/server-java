@@ -91,10 +91,15 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
                 }
             }
             TimeUtil.isValidTimeRange(granule);
-            if ( this.parameters==null ) {
-                hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule) );
-            } else {
-                hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule), parameters );
+            try {
+                if ( this.parameters==null ) {
+                    hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule) );
+                } else {
+                    hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule), parameters );
+                }
+            } catch ( RuntimeException ex ) {
+                this.granule= null;
+                break;
             }
         }
     }
