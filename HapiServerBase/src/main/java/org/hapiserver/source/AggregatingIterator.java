@@ -2,6 +2,8 @@
 package org.hapiserver.source;
 
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
 import org.hapiserver.TimeUtil;
@@ -16,6 +18,8 @@ import org.hapiserver.TimeUtil;
  */
 public class AggregatingIterator implements Iterator<HapiRecord> {
 
+    private static final Logger logger= Logger.getLogger("hapi.agg");
+    
     int[] granule;
     Iterator<int[]> granuleIterator;
     Iterator<HapiRecord> hapiRecordIterator;
@@ -54,9 +58,11 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
         if ( granuleIterator.hasNext() ) {
             this.granule= granuleIterator.next();
             while ( TimeUtil.gt( start, TimeUtil.getStopTime(this.granule) ) && granuleIterator.hasNext() ) {
+                logger.log(Level.FINER, "skipping {0}", this.granule);
                 this.granule= granuleIterator.next();
             }
             if ( TimeUtil.gt( this.granule, stop ) ) {
+                logger.log(Level.FINER, "finished {0}", this.granule);
                 this.granule= null;
             } else {
                 if ( this.granule.length!=TimeUtil.TIME_RANGE_DIGITS ) {
@@ -98,6 +104,7 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
                     hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule), parameters );
                 }
             } catch ( RuntimeException ex ) {
+                logger.log(Level.WARNING, "RuntimeException in AggregatingIterator.findNextRecord: {0}", ex.getMessage());
                 this.granule= null;
                 break;
             }
