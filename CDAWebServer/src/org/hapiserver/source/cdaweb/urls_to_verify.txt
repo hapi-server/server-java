@@ -11,9 +11,14 @@ https://cottagesystems.com/~jbf/hapi/p/cdaweb/data/hapi/info/A2_K0_MPA.json
 
 # strange error "sc_pos_syngci"
 wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=A2_K0_MPA&time.min=2008-002T00:01:48Z&time.max=2008-002T23:58:16Z
+Nand's server returns this, but different timetags are returned.
 
 # FH has many more records in 
 wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=ALOUETTE2_AV_LIM&time.min=1967-015T12:58:30Z&time.max=1967-015T12:59:04Z
+
+# Bernie's services claim a file exists when server returns file not found.
+wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=ALOUETTE2_AV_LIM&time.min=1967-01-15T12:47:00.000Z&time.max=1967-01-15T13:05:00.000Z&parameters=Time,ampl' 
+
 
 # info is missing fill value
 wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=DE1_1MIN_RIMS&parameters=flags_z_hi_Oplus&time.min=1984-11-01T13:23:44Z&time.max=1984-11-25T07:57:26Z'
@@ -21,3 +26,14 @@ wget -O - 'http://localhost:8280/HapiServer/hapi/data?id=DE1_1MIN_RIMS&parameter
 # this is strange, because it is handing times from 1983, not just the one day 1991-02-17.
 wget -o /dev/null -O - 'http://localhost:8280/HapiServer/hapi/data?id=DE1_62MS_MAGA-GMS/source&time.min=1991-02-17T05:30:18Z&time.max=1991-02-17T06:20:32Z'
 wget -o /dev/null -O - 'http://localhost:8280/HapiServer/hapi/data?id=DE1_62MS_MAGA-GMS&parameters=alt&time.min=1991-02-17T05:30:18Z&time.max=1991-02-17T06:20:32Z'
+# The gist is that there's a granule which has an unrealistic stop time.
+# in https://cottagesystems.com/~jbf/hapi/p/cdaweb//data/cdfmetafile/info/DE1_62MS_MAGA-GMS.json:
+#      {
+#        "Name": "https://cdaweb.gsfc.nasa.gov/sp_phys/data/de/de1/magnetic_fields_maga/62ms_magagms_cdaweb/1983/de1_62ms_maga-gms_19831220_v01.cdf",
+#        "StartTime": "1983-12-20T10:10:19Z",
+#        "EndTime": "1991-12-20T23:35:11Z"
+#      },
+# See ticket https://github.com/hapi-server/server-java/issues/73
+
+# Too many fields -- Autoplot can't plot this variable, so virtual variable?
+wget -O - 'http://localhost:8280/HapiServer/hapi/data?dataset=IM_K0_HENA&time.min=2005-12-17T00:01:12Z&time.max=2005-12-17T23:50:55Z' | head | tail -n 1
