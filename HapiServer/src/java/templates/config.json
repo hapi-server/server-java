@@ -64,6 +64,9 @@
             }
         }
     ],
+    "capabilities": {
+        "outputFormats": [ "csv", "binary" ]
+    },
     "about": {
         "_": "This is not used, see ticket https://github.com/hapi-server/server-java/issues/64",
         "HAPI": "3.2",
