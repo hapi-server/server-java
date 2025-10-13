@@ -4,6 +4,7 @@ import gov.nasa.gsfc.spdf.cdfj.CDFException;
 import gov.nasa.gsfc.spdf.cdfj.CDFReader;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -863,6 +864,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 String sval = (String) xpath.evaluate("/DataResult/FileDescription/Name/text()", doc, XPathConstants.STRING);
                 logger.exiting("CdawebServicesHapiRecordIterator", "getCdfDownloadURL");
                 return new URL(sval);
+            } catch ( FileNotFoundException ex ) {
+                throw new RuntimeException("File not found", ex );
             } catch (XPathExpressionException | SAXException | IOException | ParserConfigurationException ex) {
                 throw new RuntimeException("unable to handle XML response", ex);
             }
