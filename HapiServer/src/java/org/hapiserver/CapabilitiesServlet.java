@@ -80,9 +80,9 @@ public class CapabilitiesServlet extends HttpServlet {
         response.setHeader("Access-Control-Allow-Headers","Content-Type" );
         
         try {
-            JSONObject about= HapiServerSupport.getCapabilities(HAPI_HOME);
+            JSONObject content= HapiServerSupport.getCapabilities(HAPI_HOME);
             try (PrintWriter out = response.getWriter()) {
-                String s= about.toString(4);
+                String s= content.toString(4);
                 out.write(s);
             } catch ( JSONException ex ) {
                 throw new ServletException(ex);
