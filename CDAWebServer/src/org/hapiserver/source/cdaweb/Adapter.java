@@ -12,27 +12,27 @@ public abstract class Adapter {
      */
 
     public String adaptString(int index) {
-        throw new IllegalArgumentException("incorrect adapter used");
+        throw new IllegalArgumentException("incorrect adapter used for string");
     }
 
     public double adaptDouble(int index) {
-        throw new IllegalArgumentException("incorrect adapter used");
+        throw new IllegalArgumentException("incorrect adapter used for double");
     }
 
     public int adaptInteger(int index) {
-        throw new IllegalArgumentException("incorrect adapter used");
+        throw new IllegalArgumentException("incorrect adapter used for integer");
     }
 
     public double[] adaptDoubleArray(int index) {
-        throw new IllegalArgumentException("incorrect adapter used");
+        throw new IllegalArgumentException("incorrect adapter used for double array");
     }
 
     public int[] adaptIntegerArray(int index) {
-        throw new IllegalArgumentException("incorrect adapter used");
+        throw new IllegalArgumentException("incorrect adapter used for integer array");
     }
 
     public String[] adaptStringArray(int index) {
-        throw new IllegalArgumentException("incorrect adapter used");
+        throw new IllegalArgumentException("incorrect adapter used for string array");
     }
 
     public abstract String getString(int index);
