@@ -88,6 +88,7 @@ public class CatalogServlet extends HttpServlet {
             
             try (PrintWriter out = response.getWriter()) {
                 String s= catalog.toString(4);
+                s= s.replace("\\/", "/"); // a small performance hit.  We can worry about this later...
                 out.write(s);
             } catch ( JSONException ex ) {
                 throw new ServletException(ex);

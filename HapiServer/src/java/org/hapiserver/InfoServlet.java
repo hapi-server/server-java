@@ -3,6 +3,7 @@ package org.hapiserver;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,6 +17,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.codehaus.jettison.json.JSONWriter;
+import org.codehaus.jettison.mapped.Configuration;
 import org.hapiserver.exceptions.BadRequestIdException;
 import org.hapiserver.exceptions.BadRequestParameterException;
 import org.hapiserver.exceptions.HapiException;
@@ -107,8 +110,11 @@ public class InfoServlet extends HttpServlet {
             
             JSONObject status= new JSONObject("{ \"code\":1200, \"message\":\"OK\" }");
             jo.put( "status", status );
-            
+            //jo.setEscapeForwardSlashAlways(false);  This seems to have no effect
             String s= jo.toString(4);
+            
+            s= s.replace("\\/", "/"); // a small performance hit.  We can worry about this later...
+                   
             out.write(s.getBytes( HapiServerSupport.CHARSET ));
             
         } catch ( JSONException ex ) {
