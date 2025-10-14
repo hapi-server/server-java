@@ -222,6 +222,7 @@ public class CdawebInfoCatalogSource {
             jo.put("x_info_author", "bw");
             jo.put("x_cdaweb_hapi_version", CDAWEB_HAPI_VERSION);
             JSONArray ja= jo.getJSONArray("parameters");
+            JSONArray janew= new JSONArray();
             for ( int ip= 0; ip<ja.length(); ip++ ) { 
                 JSONObject p= ja.getJSONObject(ip);
                 String sfill= p.optString("fill",null);
@@ -261,7 +262,20 @@ public class CdawebInfoCatalogSource {
 //                        p.put("size",reform);
 //                    }
 //                }
+                String n= p.getString("name"); 
+                if ( n.equals("sc_pos_syngci") ) {
+                    logger.fine("consider removing sc_pos_syngci here");
+                } else if ( n.equals("sc_pos_syngeo") ) {
+                    logger.fine("consider removing sc_pos_syngeo here");
+                } else {
+                    janew.put( janew.length(), p );
+                }
             }
+            
+            if ( janew.length()<ja.length() ) {
+                jo.put("parameters",janew);
+            }
+            
             String sampleStartDate= jo.optString("sampleStartDate","");
             String sampleStopDate=  jo.optString("sampleStopDate","");
             if ( sampleStopDate.length()>0 && sampleStartDate.equals(sampleStopDate) ) { //C3_PP_CIS has start and stop times equal for each granule.
