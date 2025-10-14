@@ -4,6 +4,7 @@ package org.hapiserver;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.IllegalFormatException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONArray;
@@ -141,7 +142,13 @@ public class CsvDataFormatter implements DataFormatter {
                     if ( !f.startsWith("%") ) {
                         f= "%"+f;
                     }
-                    formats[i]= f;
+                    try {
+                        String.format(f,1.0);
+                        formats[i]= f;
+                    } catch ( IllegalFormatException ex ) {
+                        logger.fine("dropping format which cannot be used: "+f);
+                        formats[i]= null;
+                    }
                 } else {
                     formats[i]=null;
                 }
