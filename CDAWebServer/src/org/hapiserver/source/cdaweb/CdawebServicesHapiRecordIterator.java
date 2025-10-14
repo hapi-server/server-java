@@ -509,6 +509,13 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         }
 
         @Override
+        public int[] adaptIntegerArray(int index) { // hapi/data?id=VG1_PWS_WF@1&time.min=2025-104T17:27:13Z&time.max=2025-104T17:27:59Z'
+            return new int[] { (int)adaptDouble(index) };
+        }
+        
+        
+
+        @Override
         public String getString(int index) {
             return String.valueOf(adaptDouble(index));
         }
