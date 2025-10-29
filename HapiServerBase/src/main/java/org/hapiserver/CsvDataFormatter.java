@@ -139,14 +139,20 @@ public class CsvDataFormatter implements DataFormatter {
                 lengths[i]= parameter.has("length") ? parameter.getInt("length") : 1;
                 if ( parameter.has("x_format") ) {
                     String f= parameter.getString("x_format");
-                    if ( !f.startsWith("%") ) {
+                    if ( !f.startsWith("%") && !f.startsWith("$") ) {
                         f= "%"+f;
                     }
                     try {
-                        String.format(f,1.0);
-                        formats[i]= f;
+                        if ( f.startsWith("%") ) {
+                            String.format(f,1.0);
+                            formats[i]= f;
+                        } else if ( f.startsWith("$") ) {
+                            new URITemplate(f); // Note this is not used.
+                            formats[i]= f;
+                        }
+                        
                     } catch ( IllegalFormatException ex ) {
-                        logger.fine("dropping format which cannot be used: "+f);
+                        logger.log(Level.FINE, "dropping format which cannot be used: {0}", f);
                         formats[i]= null;
                     }
                 } else {
