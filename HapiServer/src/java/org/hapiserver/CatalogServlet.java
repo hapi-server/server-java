@@ -3,6 +3,9 @@ package org.hapiserver;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -80,6 +83,13 @@ public class CatalogServlet extends HttpServlet {
             response.setHeader("Access-Control-Allow-Headers","Content-Type" );
             
             JSONObject catalog= HapiServerSupport.getCatalog(HAPI_HOME);
+            String modificationDate= catalog.optString("x_modificationDate","");
+            if ( modificationDate.length()>0 ) {
+                SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+                sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
+                String rfc2616= sdf.format( new Date( TimeUtil.toMillisecondsSince1970(modificationDate) ) );
+                response.setHeader("Last-Modified", rfc2616 );
+            }
             catalog = new JSONObject(catalog.toMap()); // force a shallow copy
             
             //TODO: we need to remove x_groups and x_dataset_to_group without modifying the database.

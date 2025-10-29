@@ -20,12 +20,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -836,6 +838,8 @@ public class HapiServerSupport {
         jo.put( "status", status );
         jo.put("HAPI", HAPI_VERSION);    
         
+        jo.put("x_modificationDate", TimeUtil.fromMillisecondsSince1970(releaseFileTimeStamp) );
+     
         return jo;
     }
     
@@ -894,7 +898,8 @@ public class HapiServerSupport {
                 
                 logger.info("resolveCatalog");
                 jo= resolveCatalog( HAPI_HOME, jo );
-                
+                jo.put("x_modificationDate", TimeUtil.fromMillisecondsSince1970(catalogConfigFile.lastModified()) );
+
                 try ( InputStream ins= new ByteArrayInputStream(jo.toString(4).getBytes(CHARSET) ) ) {
                     logger.log(Level.INFO, "write resolved catalog to {0}", catalogFile.getPath());
                     Files.copy( ins, 
