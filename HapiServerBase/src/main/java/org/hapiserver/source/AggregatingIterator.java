@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
+import org.hapiserver.TimeString;
 import org.hapiserver.TimeUtil;
 
 /**
@@ -20,12 +21,12 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
 
     private static final Logger logger= Logger.getLogger("hapi.agg");
     
-    int[] granule;
-    Iterator<int[]> granuleIterator;
+    TimeString[] granule;
+    Iterator<TimeString[]> granuleIterator;
     Iterator<HapiRecord> hapiRecordIterator;
     String[] parameters;
     HapiRecordSource source;
-    int[] stop;
+    TimeString stop;
     
     /**
      * construct an iterator which will use the source create and go through a set of iterators, one for each granule.
@@ -33,7 +34,7 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
      * @param start the start time
      * @param stop the stop time
      */
-    public AggregatingIterator( HapiRecordSource source, int[] start, int[] stop ) {
+    public AggregatingIterator( HapiRecordSource source, TimeString start, TimeString stop ) {
         this( source, start, stop, null );
     }
     
@@ -44,7 +45,7 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
      * @param stop the stop time
      * @param parameters null or the parameters to subset.
      */
-    public AggregatingIterator( HapiRecordSource source, int[] start, int[] stop, String[] parameters ) {
+    public AggregatingIterator( HapiRecordSource source, TimeString start, TimeString stop, String[] parameters ) {
         this.source= source;
         //this.granuleIterator= source.getGranuleIterator(start, stop);
         //System.err.println("=====" + parameters[0] );
@@ -57,22 +58,25 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
         this.parameters= parameters;
         if ( granuleIterator.hasNext() ) {
             this.granule= granuleIterator.next();
-            while ( TimeUtil.gt( start, TimeUtil.getStopTime(this.granule) ) && granuleIterator.hasNext() ) {
+            int count=0;
+            while ( start.gt(this.granule[1]) && granuleIterator.hasNext() ) {
                 logger.log(Level.FINER, "skipping {0}", this.granule);
+                count++;
                 this.granule= granuleIterator.next();
             }
-            if ( TimeUtil.gt( this.granule, stop ) ) {
+            logger.log(Level.FINE, "skipped over {0} granules", count);
+            if ( this.granule[0].gt( stop ) ) {
                 logger.log(Level.FINER, "finished {0}", this.granule);
                 this.granule= null;
             } else {
-                if ( this.granule.length!=TimeUtil.TIME_RANGE_DIGITS ) {
+                if ( this.granule.length!=2 ) {
                     throw new IllegalArgumentException("implementation error, granule iterator did not return 14 time range digits");
                 }
                 if ( this.parameters==null ) {
-                    this.hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule) );
+                    this.hapiRecordIterator= source.getIterator( granule[0], granule[1] );
                 } else {
                     // Here we make the iterator for the next granule.
-                    this.hapiRecordIterator= source.getIterator(granule, TimeUtil.getStopTime(granule), this.parameters );
+                    this.hapiRecordIterator= source.getIterator( granule[0], granule[1], this.parameters );
                 }
                 findNextRecord();
             }
@@ -88,20 +92,17 @@ public class AggregatingIterator implements Iterator<HapiRecord> {
                 break;
             } else {
                 granule= granuleIterator.next();
-                if ( granule.length!=14 ) {
-                    throw new IllegalArgumentException("granule length should be 14");
-                }
-                if ( TimeUtil.gt( this.granule, this.stop ) ) {
-                    this.granule= null;
+                if ( granule[0].gt(this.stop) ) {
+                    granule= null;
                     break;
                 }
             }
-            TimeUtil.isValidTimeRange(granule);
+            //TimeUtil.isValidTimeRange(granule);
             try {
                 if ( this.parameters==null ) {
-                    hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule) );
+                    hapiRecordIterator= source.getIterator( granule[0], granule[1] );
                 } else {
-                    hapiRecordIterator= source.getIterator( granule, TimeUtil.getStopTime(granule), parameters );
+                    hapiRecordIterator= source.getIterator( granule[0], granule[1], parameters );
                 }
             } catch ( RuntimeException ex ) {
                 logger.log(Level.WARNING, "RuntimeException in AggregatingIterator.findNextRecord: {0}", ex.getMessage());

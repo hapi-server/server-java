@@ -6,7 +6,7 @@ package org.hapiserver;
  * be ISO8601 and of the format $Y-$m-$dT$H:$M:$S.$NZ.
  * @author jbf
  */
-public final class TimeString {
+public final class TimeString implements Comparable<TimeString> {
     final String iso8601;
     
     public TimeString( String iso8601 ) {
@@ -17,8 +17,37 @@ public final class TimeString {
         this.iso8601= TimeUtil.formatIso8601Time(components);
     }
     
+    public TimeString( int year, int month, int day ) {
+        int[] components= new int[] { year, month, day, 0, 0, 0, 0 };
+        this.iso8601= TimeUtil.formatIso8601Time(components);
+    }
+    
+    /**
+     * return the start time from the first seven elements of the 14-element time range array.
+     * @param arr
+     * @return 
+     */
+    public static TimeString getStartTime( int[] arr ) {
+        int[] components= TimeUtil.getStartTime(arr);
+        return new TimeString( TimeUtil.formatIso8601Time(components) );
+    }
+    
+    /**
+     * return the stop time from the last seven elements of the 14-element time range array.
+     * @param arr
+     * @return 
+     */
+    public static TimeString getStopTime( int[] arr ) {
+        int[] components= TimeUtil.getStopTime(arr);
+        return new TimeString( TimeUtil.formatIso8601Time(components) );
+    }
+
     @Override
     public String toString() {
+        return this.iso8601;
+    }
+    
+    public String toIsoTime() {
         return this.iso8601;
     }
     
@@ -43,12 +72,49 @@ public final class TimeString {
         };
     }
     
+    /**
+     * return the year
+     * @return the year
+     */
+    public int getYear() {
+        return Integer.parseInt(iso8601.substring(0,4));
+    }
+    
+    /**
+     * return the month
+     * @return the month
+     */
+    public int getMonth() {
+        return (iso8601.charAt(5)-'0') * 10 + ( iso8601.charAt(6)-'0' );
+    }
+
+    /**
+     * return the day
+     * @return the day
+     */
+    public int getDay() {
+        return (iso8601.charAt(8)-'0') * 10 + ( iso8601.charAt(9)-'0' );
+    }
+    
     public static void main( String[] args ) {
         TimeString r= new TimeString("2043-04-05T23:13:02.123456789");
+        System.err.println(r.getYear());
+        System.err.println(r.getMonth());
+        System.err.println(r.getDay());
         System.err.println(r);
         for ( int i: r.toComponents() ) {
             System.err.println(i);
         }
+        System.err.println(r.gt( new TimeString("2043-04-05T23:13:02.123456780")));
+    }
+
+    @Override
+    public int compareTo(TimeString t) {
+        return this.iso8601.compareTo(t.iso8601);
+    }
+    
+    public boolean gt( TimeString t ) {
+        return compareTo(t)>0;
     }
     
 }

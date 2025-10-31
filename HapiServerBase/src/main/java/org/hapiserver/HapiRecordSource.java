@@ -19,11 +19,11 @@ public interface HapiRecordSource {
     /**
      * return the iterator that identifies the intervals to load.  This only needs to be
      * implemented if hasGranuleIterator returns true.
-     * @param start the seven component start time [ Y, m, d, H, M, S, N ]
-     * @param stop the seven component stop time [ Y, m, d, H, M, S, N ]
-     * @return the granule iterator which returns [ start Y, m, d, H, M, S, N, stop Y, m, d, H, M, S, N ]
+     * @param start the start time
+     * @param stop the stop time
+     * @return the granule iterator which returns [ TimeString, TimeString ]
      */
-    public Iterator<int[]> getGranuleIterator( int[] start, int[] stop );
+    public Iterator<TimeString[]> getGranuleIterator( TimeString start, TimeString stop );
     
     /**
      * when true is returned, the data source will handle the parameter subsetting.  For
@@ -40,7 +40,7 @@ public interface HapiRecordSource {
      * @param params
      * @return the iterator
      */
-    public Iterator<HapiRecord> getIterator( int[] start, int[] stop, String[] params);
+    public Iterator<HapiRecord> getIterator( TimeString start, TimeString stop, String[] params);
     
     /**
      * return the iterator that returns all the parameters, or throw an IllegalArgumentException when this is not supported.
@@ -48,7 +48,7 @@ public interface HapiRecordSource {
      * @param stop the stop time
      * @return the iterator
      */
-    public Iterator<HapiRecord> getIterator( int[] start, int[] stop );
+    public Iterator<HapiRecord> getIterator( TimeString start, TimeString stop );
     
     /**
      * return null or a isotime time stamp for the interval, to be used when caching data.  When the
@@ -59,7 +59,7 @@ public interface HapiRecordSource {
      * @param stop seven component stop time
      * @return the isotime for the range, or null.
      */
-    public String getTimeStamp( int[] start, int[] stop );
+    public TimeString getTimeStamp( TimeString start, TimeString stop );
     
     /**
      * use of this source is complete and any resources used can be disposed of.

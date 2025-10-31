@@ -4,6 +4,7 @@ package org.hapiserver.source;
 import java.util.Iterator;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.TimeString;
 
 /**
  * RecordSource which simply wraps another HAPI server.  Its configuration 
@@ -43,13 +44,13 @@ public class HapiWrapperRecordSource extends AbstractHapiRecordSource {
     }
     
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
+    public Iterator<HapiRecord> getIterator(TimeString start, TimeString stop, String[] params) {
         hapiWrapperIterator = new HapiWrapperIterator( hapiServer, id, info, params, start, stop );
         return hapiWrapperIterator;
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
+    public Iterator<HapiRecord> getIterator(TimeString start, TimeString stop) {
         hapiWrapperIterator = new HapiWrapperIterator( hapiServer, id, info, start, stop );
         return hapiWrapperIterator;
     }

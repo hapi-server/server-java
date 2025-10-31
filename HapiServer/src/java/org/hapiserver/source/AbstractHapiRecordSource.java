@@ -4,6 +4,7 @@ package org.hapiserver.source;
 import java.util.Iterator;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
+import org.hapiserver.TimeString;
 
 /**
  * provides implementations for typical sources.
@@ -18,7 +19,7 @@ public abstract class AbstractHapiRecordSource implements HapiRecordSource {
     }
 
     @Override
-    public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
+    public Iterator<TimeString[]> getGranuleIterator(TimeString start, TimeString stop) {
         throw new UnsupportedOperationException("not used");
     }
 
@@ -28,15 +29,15 @@ public abstract class AbstractHapiRecordSource implements HapiRecordSource {
     }
 
     @Override
-    public abstract Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params);
+    public abstract Iterator<HapiRecord> getIterator(TimeString start, TimeString stop, String[] params);
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
+    public Iterator<HapiRecord> getIterator(TimeString start, TimeString stop) {
         throw new UnsupportedOperationException("not used");
     }
 
     @Override
-    public String getTimeStamp(int[] start, int[] stop) {
+    public TimeString getTimeStamp(TimeString start, TimeString stop) {
         return null;
     }
 

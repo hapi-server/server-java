@@ -3,12 +3,13 @@ package org.hapiserver.source.cdaweb;
 
 import java.util.Iterator;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.TimeString;
 
 /**
  * convert AvailabilitySource iterator into a granule iterator
  * @author jbf
  */
-public class AvailabilityIterator implements Iterator<int[]> {
+public class AvailabilityIterator implements Iterator<TimeString[]> {
 
     private final Iterator<HapiRecord> it;
     private String file; // the current file
@@ -23,28 +24,13 @@ public class AvailabilityIterator implements Iterator<int[]> {
     }
 
     @Override
-    public int[] next() {
+    public TimeString[] next() {
         HapiRecord hr= it.next();
         String start= hr.getIsoTime(0);
         String stop= hr.getIsoTime(1);
         this.file= hr.getString(2);
         
-        return new int[] { 
-            Integer.parseInt(start.substring(0,4)),
-            Integer.parseInt(start.substring(5,7)),
-            Integer.parseInt(start.substring(8,10)),
-            Integer.parseInt(start.substring(11,13)),
-            Integer.parseInt(start.substring(14,16)),
-            Integer.parseInt(start.substring(17,19)),
-            0,
-            Integer.parseInt(stop.substring(0,4)),
-            Integer.parseInt(stop.substring(5,7)),
-            Integer.parseInt(stop.substring(8,10)),
-            Integer.parseInt(stop.substring(11,13)),
-            Integer.parseInt(stop.substring(14,16)),
-            Integer.parseInt(stop.substring(17,19)),
-            0
-        };
+        return new TimeString[] { new TimeString(start), new TimeString(stop) };
     }
 
     /**

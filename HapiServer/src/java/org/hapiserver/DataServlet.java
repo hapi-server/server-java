@@ -321,11 +321,11 @@ public class DataServlet extends HttpServlet {
          
         String ifModifiedSince= request.getHeader("If-Modified-Since");
         if ( ifModifiedSince!=null ) {
-            String ts= source.getTimeStamp( TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr) );
+            TimeString ts= source.getTimeStamp( new TimeString(dr), new TimeString(dr) );
             if ( ts!=null ) { // this will often be null.
                 try {
                     String clientModifiedTime= parseTime(ifModifiedSince);
-                    if ( clientModifiedTime.compareTo(ts)>=0 ) {
+                    if ( clientModifiedTime.compareTo(ts.toIsoTime())>=0 ) {
                         response.setStatus( HttpServletResponse.SC_NOT_MODIFIED ); //304
                         out.close();
                         return;
@@ -341,16 +341,24 @@ public class DataServlet extends HttpServlet {
                 String[] parametersArray= HapiServerSupport.getAllParameters( jo );
                 dataNeedsParameterSubsetting= false;
                 if ( source.hasGranuleIterator() ) {
-                    dsiter= new AggregatingIterator( source, dr, TimeUtil.getStopTime(dr), parametersArray );
+                    dsiter= new AggregatingIterator( source, 
+                            TimeString.getStartTime(dr), 
+                            TimeString.getStopTime(dr), 
+                            parametersArray );
                 } else {
-                    dsiter= source.getIterator( TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr), parametersArray );
+                    dsiter= source.getIterator( new TimeString(TimeUtil.getStartTime(dr)), 
+                            TimeString.getStopTime(dr), 
+                            parametersArray );
                 }
             } else {
                 dataNeedsParameterSubsetting= false;                    
                 if ( source.hasGranuleIterator() ) {
-                    dsiter= new AggregatingIterator( source, TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr) );
+                    dsiter= new AggregatingIterator( source, 
+                            TimeString.getStartTime(dr), 
+                            TimeString.getStopTime(dr) );
                 } else {
-                    dsiter= source.getIterator( TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr) );
+                    dsiter= source.getIterator( 
+                            TimeString.getStartTime(dr), TimeString.getStopTime(dr) );
                 }
             }
         } else {
@@ -358,16 +366,16 @@ public class DataServlet extends HttpServlet {
                 dataNeedsParameterSubsetting= false;
                 String[] parametersSplit= HapiServerSupport.splitParams( jo, parameters );
                 if ( source.hasGranuleIterator() ) {
-                    dsiter= new AggregatingIterator( source, TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr), parametersSplit );
+                    dsiter= new AggregatingIterator( source, TimeString.getStartTime(dr), TimeString.getStopTime(dr), parametersSplit );
                 } else {
-                    dsiter= source.getIterator( TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr), parametersSplit );
+                    dsiter= source.getIterator( TimeString.getStartTime(dr), TimeString.getStopTime(dr), parametersSplit );
                 }                    
             } else {
                 dataNeedsParameterSubsetting= true;                    
                 if ( source.hasGranuleIterator() ) {
-                    dsiter= new AggregatingIterator( source, TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr) );
+                    dsiter= new AggregatingIterator( source, TimeString.getStartTime(dr), TimeString.getStopTime(dr) );
                 } else {
-                    dsiter= source.getIterator( TimeUtil.getStartTime(dr), TimeUtil.getStopTime(dr) );
+                    dsiter= source.getIterator( TimeString.getStartTime(dr), TimeString.getStopTime(dr) );
                 }
             }
 

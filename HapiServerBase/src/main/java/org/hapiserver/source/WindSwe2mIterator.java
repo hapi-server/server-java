@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.TimeString;
 
 /**
  * Bootstrap method for getting server going, used to test its functionality in initial development.  It still serves
@@ -44,10 +45,10 @@ public class WindSwe2mIterator implements Iterator<HapiRecord> {
      * @param startTime
      * @param stopTime 
      */
-    public WindSwe2mIterator( String dataHome, int[] startTime, int[] stopTime ) {
+    public WindSwe2mIterator( String dataHome, TimeString startTime, TimeString stopTime ) {
         
-        currentYear= startTime[0];
-        currentMonth= startTime[1];
+        currentYear= startTime.getYear();
+        currentMonth= startTime.getMonth();
         
         try {
             currentUrl= new URL( String.format( dataHome+"/wind_swe_2m_sw%4d%02d.asc",

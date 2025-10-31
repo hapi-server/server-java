@@ -16,6 +16,7 @@ import org.hapiserver.AbstractHapiRecord;
 import org.hapiserver.AbstractHapiRecordSource;
 import org.hapiserver.CsvDataFormatter;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.TimeString;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.AggregationGranuleIterator;
 import org.hapiserver.source.SourceUtil;
@@ -149,16 +150,16 @@ public class TAPAvailabilityDataSource extends AbstractHapiRecordSource {
     }
     
     @Override
-    public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
+    public Iterator<TimeString[]> getGranuleIterator(TimeString start, TimeString stop) {
         return new AggregationGranuleIterator( "$Y-$m", start, stop );
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
+    public Iterator<HapiRecord> getIterator(TimeString start, TimeString stop) {
         String templ= tapServerURL + "tap/sync?REQUEST=doQuery&LANG=ADQL&FORMAT=CSV&QUERY=SELECT+start_time,end_time,num_instances+FROM+csa.v_dataset_inventory+WHERE+dataset_id='%s'+AND+start_time>='%s'+AND+start_time<'%s'+AND+num_instances>0+ORDER+BY+start_time";
                        
-        String startStr= TimeUtil.formatIso8601Time(start);
-        String stopStr= TimeUtil.formatIso8601Time(stop);
+        String startStr= start.toString();
+        String stopStr= stop.toString();
         
         String url= String.format( templ, id, startStr, stopStr );
         logger.log(Level.INFO, "readData URL: {0}", url);

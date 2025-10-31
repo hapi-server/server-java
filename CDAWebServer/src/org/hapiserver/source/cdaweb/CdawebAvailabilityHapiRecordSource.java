@@ -16,6 +16,7 @@ import org.hapiserver.AbstractHapiRecord;
 import org.hapiserver.AbstractHapiRecordSource;
 import org.hapiserver.CsvDataFormatter;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.TimeString;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
 import org.w3c.dom.NodeList;
@@ -250,7 +251,7 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
     }
     
     @Override
-    public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
+    public Iterator<TimeString[]> getGranuleIterator(TimeString start, TimeString stop) {
         return null; //not used
     }
 
@@ -260,7 +261,7 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
+    public Iterator<HapiRecord> getIterator(TimeString start, TimeString stop) {
         
         try {
 
@@ -411,10 +412,10 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
     }
 
     @Override
-    public String getTimeStamp(int[] start, int[] stop) {
+    public TimeString getTimeStamp(TimeString start, TimeString stop) {
         if ( bobwurl.startsWith("file:") ) {
             File file= new File( bobwurl.substring(5) );
-            return TimeUtil.fromMillisecondsSince1970( file.lastModified() );
+            return new TimeString( TimeUtil.fromMillisecondsSince1970( file.lastModified() ) );
         }
         return null;
     }
@@ -466,8 +467,8 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
                 }
                 Iterator<HapiRecord> iter = 
                         new CdawebAvailabilityHapiRecordSource( orig_data,args[0],info).getIterator( 
-                                TimeUtil.parseISO8601Time(args[1]), 
-                                TimeUtil.parseISO8601Time(args[2]) );
+                                new TimeString( TimeUtil.parseISO8601Time(args[1]) ), 
+                                new TimeString( TimeUtil.parseISO8601Time(args[2]) ) );
                 if ( iter.hasNext() ) {
                     CsvDataFormatter format= new CsvDataFormatter();
                     format.initialize( info,System.out,iter.next() );

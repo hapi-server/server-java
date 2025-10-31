@@ -14,6 +14,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.AbstractHapiRecordSource;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
+import org.hapiserver.TimeString;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
 import org.xml.sax.SAXException;
@@ -74,16 +75,16 @@ public class Das2ServerDataSource extends AbstractHapiRecordSource {
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
-        String sstart= TimeUtil.formatIso8601TimeBrief(start);
-        String sstop= TimeUtil.formatIso8601TimeBrief(stop);
+    public Iterator<HapiRecord> getIterator( TimeString start, TimeString stop) {
+        String sstart= TimeUtil.formatIso8601TimeBrief(start.toComponents());
+        String sstop= TimeUtil.formatIso8601TimeBrief(stop.toComponents());
         StringBuilder url= new StringBuilder(this.das2server);
         url.append("?server=dataset&dataset=").append(id).append("&start_time=").append(sstart).append("&end_time=").append(sstop);
         int interval= info.optInt("x_interval",0);
         if ( interval>0 ) {
             url.append("&interval=").append(interval);
         }
-    url.append("&ascii=true");
+        url.append("&ascii=true");
         InputStream ins;
         try {
             URL das2StreamUrl= new URL( url.toString() );

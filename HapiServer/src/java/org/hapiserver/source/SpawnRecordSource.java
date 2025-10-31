@@ -15,6 +15,7 @@ import org.hapiserver.CsvHapiRecordConverter;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
 import org.hapiserver.HapiServerSupport;
+import org.hapiserver.TimeString;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.URITemplate;
 import org.hapiserver.Util;
@@ -100,12 +101,13 @@ public class SpawnRecordSource implements HapiRecordSource {
     }
 
     @Override
-    public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
+    public Iterator<TimeString[]> getGranuleIterator(TimeString start, TimeString stopts) {
+        int[] stop= stopts.toComponents();
         try {
-            String time0= this.uriTemplate.format( TimeUtil.formatIso8601Time(start),  TimeUtil.formatIso8601Time(start) );
+            String time0= this.uriTemplate.format( start.toString(), start.toString() );
             int[] time= this.uriTemplate.parse( time0 );
                 
-            return new Iterator<int[]>() {
+            return new Iterator<TimeString[]>() {
                 int[] timeIt= time;
                 
                 @Override
@@ -114,10 +116,12 @@ public class SpawnRecordSource implements HapiRecordSource {
                 }
                 
                 @Override
-                public int[] next() {
+                public TimeString[] next() {
                     int[] result= timeIt;
                     timeIt = TimeUtil.nextRange( timeIt );
-                    return result;
+                    TimeString starts= new TimeString( TimeUtil.getStartTime(result) );
+                    TimeString stops= new TimeString( TimeUtil.getStopTime(result) );
+                    return new TimeString[] { starts, stops };
                 }
             };
             
@@ -132,7 +136,7 @@ public class SpawnRecordSource implements HapiRecordSource {
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
+    public Iterator<HapiRecord> getIterator(TimeString start, TimeString stop, String[] params) {
         try {
             JSONObject infoSubset= Util.subsetParams( info, HapiServerSupport.joinParams( info, params ) );
             iter= new SpawnRecordSourceIterator( hapiHome, id, infoSubset, command, start, stop, params );
@@ -143,13 +147,13 @@ public class SpawnRecordSource implements HapiRecordSource {
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
+    public Iterator<HapiRecord> getIterator(TimeString start, TimeString stop) {
         iter = new SpawnRecordSourceIterator( hapiHome, id, info, command, start, stop, null );
         return iter;
     }
 
     @Override
-    public String getTimeStamp(int[] start, int[] stop) {
+    public TimeString getTimeStamp(TimeString start, TimeString stop) {
         return null;
     }
 
@@ -200,7 +204,8 @@ public class SpawnRecordSource implements HapiRecordSource {
          * @param stop the seven-component stop time
          * @param params null or the parameters which should be sent
          */
-        public SpawnRecordSourceIterator( String hapiHome, String id, JSONObject info, String command, int[] start, int[] stop, String[] params ) {
+        public SpawnRecordSourceIterator( 
+                String hapiHome, String id, JSONObject info, String command, TimeString start, TimeString stop, String[] params ) {
             try {
                 String[] ss= command.split("\\$\\{");
                 for ( int i=0; i<ss.length; i++ ) {
@@ -208,10 +213,10 @@ public class SpawnRecordSource implements HapiRecordSource {
                     if ( s1.startsWith("start") ) {
                         if ( s1.length()>5 && s1.charAt(5)=='}' ) {
                             if ( uriTemplate!=null ) {
-                                String s= TimeUtil.formatIso8601Time( start );
+                                String s= start.toIsoTime();
                                 ss[i] = uriTemplate.format( s, s ) + ss[i].substring(6) ;
                             } else {
-                                ss[i]= TimeUtil.formatIso8601Time( start ) + ss[i].substring(6);
+                                ss[i]= start.toIsoTime() + ss[i].substring(6);
                             }
                         } else {
                             if ( s1.substring(5).startsWith(";format=" ) ) {
@@ -223,10 +228,10 @@ public class SpawnRecordSource implements HapiRecordSource {
                     } else if ( s1.startsWith("stop") ) {
                         if ( s1.length()>4 && s1.charAt(4)=='}' ) {
                             if ( uriTemplate!=null ) {
-                                String s= TimeUtil.formatIso8601Time( stop );
+                                String s= stop.toIsoTime();
                                 ss[i] = uriTemplate.format( s, s ) + ss[i].substring(5) ; 
                             } else {
-                                ss[i]= TimeUtil.formatIso8601Time( stop ) + ss[i].substring(5);
+                                ss[i]= stop.toIsoTime() + ss[i].substring(5);
                             }
                         } else {
                             throw new IllegalArgumentException("not supported: "+command);

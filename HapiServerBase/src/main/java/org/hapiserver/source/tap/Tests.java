@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.TimeString;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
 
@@ -23,8 +24,8 @@ public class Tests {
     public static void mainCase1( String[] args ) {
         String tapServerURL="https://csa.esac.esa.int/csa-sl-tap/";
         String id= "CL_SP_WHI";
-        int[] start= new int[] { 2012, 12, 25, 0, 0, 0, 0 };
-        int[] stop= new int[] { 2012, 12, 26, 0, 0, 0, 0 };
+        TimeString start= new TimeString( new int[] { 2012, 12, 25, 0, 0, 0, 0 } );
+        TimeString stop= new TimeString( new int[] { 2012, 12, 26, 0, 0, 0, 0 } );
         Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
         while ( iter.hasNext() ) {
             HapiRecord r= iter.next();
@@ -35,8 +36,8 @@ public class Tests {
     public static void mainCase2( String[] args ) {
         String tapServerURL="https://csa.esac.esa.int/csa-sl-tap/";
         String id= "D1_CG_STA-DWP_COMBI_PNG";
-        int[] start= new int[] { 2012, 12, 25, 0, 0, 0, 0 };
-        int[] stop= new int[] { 2012, 12, 26, 0, 0, 0, 0 };
+        TimeString  start= new TimeString( new int[] { 2012, 12, 25, 0, 0, 0, 0 } );
+        TimeString  stop= new TimeString( new int[] { 2012, 12, 26, 0, 0, 0, 0 } );
         Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
         while ( iter.hasNext() ) {
             HapiRecord r= iter.next();
@@ -49,8 +50,8 @@ public class Tests {
         String id="CM_CG_WBD_OVERVIEW_500_19_PNG";
         String tr= "2023-01-18T17:00/18:00";
         int[] timerange = TimeUtil.parseISO8601TimeRange(tr);
-        int[] start= Arrays.copyOfRange( timerange, 0, 7 );
-        int[] stop= Arrays.copyOfRange( timerange, 7, 14 );
+        TimeString  start= new TimeString( Arrays.copyOfRange( timerange, 0, 7 ) );
+        TimeString  stop= new TimeString( Arrays.copyOfRange( timerange, 7, 14 ) );
         Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
         while ( iter.hasNext() ) {
             HapiRecord r= iter.next();
@@ -63,8 +64,8 @@ public class Tests {
         String id="C4_CP_CIS-CODIF_HS_O1_PEF";
         String tr= "2021-12-01T00:00/00:02";
         int[] timerange = TimeUtil.parseISO8601TimeRange(tr);
-        int[] start= Arrays.copyOfRange( timerange, 0, 7 );
-        int[] stop= Arrays.copyOfRange( timerange, 7, 14 );
+        TimeString start= new TimeString( Arrays.copyOfRange( timerange, 0, 7 ) );
+        TimeString stop= new TimeString( Arrays.copyOfRange( timerange, 7, 14 ) );
         Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
         while ( iter.hasNext() ) {
             HapiRecord r= iter.next();
@@ -79,7 +80,7 @@ public class Tests {
         int[] timerange = TimeUtil.parseISO8601TimeRange(tr);
         int[] start= Arrays.copyOfRange( timerange, 0, 7 );
         int[] stop= Arrays.copyOfRange( timerange, 7, 14 );
-        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
+        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(new TimeString( start), new TimeString( stop));
         while ( iter.hasNext() ) {
             HapiRecord r= iter.next();
             System.err.println( String.format( "%s %d fields", r.getIsoTime(0), r.length() ) );
@@ -99,7 +100,7 @@ public class Tests {
         int[] timerange = TimeUtil.parseISO8601TimeRange(tr);
         int[] start= Arrays.copyOfRange( timerange, 0, 7 );
         int[] stop= Arrays.copyOfRange( timerange, 7, 14 );
-        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
+        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator( new TimeString(start), new TimeString( stop ));
         while ( iter.hasNext() ) {
             HapiRecord r= iter.next();
             System.err.println( String.format( "%s %d fields", r.getIsoTime(0), r.length() ) );
@@ -119,7 +120,7 @@ public class Tests {
         int[] timerange = TimeUtil.parseISO8601TimeRange(tr);
         int[] start= Arrays.copyOfRange( timerange, 0, 7 );
         int[] stop= Arrays.copyOfRange( timerange, 7, 14 );
-        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
+        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(new TimeString( start), new TimeString( stop));
         while ( iter.hasNext() ) {
             HapiRecord r= iter.next();
             System.err.println( String.format( "%s %d fields", r.getIsoTime(0), r.length() ) );
@@ -139,7 +140,7 @@ public class Tests {
         int[] timerange = TimeUtil.parseISO8601TimeRange(tr);
         int[] start= Arrays.copyOfRange( timerange, 0, 7 );
         int[] stop= Arrays.copyOfRange( timerange, 7, 14 );
-        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(start, stop);
+        Iterator<HapiRecord> iter= new TAPDataSource(tapServerURL, id).getIterator(new TimeString( start), new TimeString( stop));
         while ( iter.hasNext() ) {
             HapiRecord r= iter.next();
             System.err.println( String.format( "%s %d fields", r.getIsoTime(0), r.length() ) );

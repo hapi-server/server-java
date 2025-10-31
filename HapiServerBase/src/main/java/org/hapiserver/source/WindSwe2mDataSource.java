@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.Iterator;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiRecordSource;
+import org.hapiserver.TimeString;
 
 /**
  * Example of class which loads data
@@ -32,9 +33,11 @@ public class WindSwe2mDataSource implements HapiRecordSource {
     }
 
     @Override
-    public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
+    public Iterator<TimeString[]> getGranuleIterator( TimeString startts, TimeString stopts) {
         int stopYear;
         int stopMonth;
+        int[] stop= stopts.toComponents();
+        int[] start= startts.toComponents();
         if ( stop[1]==1 && stop[2]==1 && stop[3]==1 && stop[4]==0 && stop[5]==0 && stop[6]==0 ) {
             stopYear= stop[0];
             stopMonth= stop[1];
@@ -49,7 +52,7 @@ public class WindSwe2mDataSource implements HapiRecordSource {
         int fstopMonth= stopMonth;
         int fstopYear= stopYear;
         
-        return new Iterator<int[]>() {
+        return new Iterator<TimeString[]>() {
             int currentYear= start[0];
             int currentMonth= start[1];
             
@@ -59,7 +62,7 @@ public class WindSwe2mDataSource implements HapiRecordSource {
             }
 
             @Override
-            public int[] next() {
+            public TimeString[] next() {
                 int m= currentMonth;
                 int y= currentYear;
                 currentMonth++;
@@ -67,7 +70,7 @@ public class WindSwe2mDataSource implements HapiRecordSource {
                     currentMonth-= 12;
                     currentYear++;
                 }
-                return new int[] { y, m, 1, 0, 0, 0, 0, currentYear, currentMonth, 1, 0, 0, 0, 0};
+                return new TimeString[] { new TimeString( y, m, 1 ), new TimeString( currentYear, currentMonth, 1 ) };
             }
         };
     }
@@ -78,18 +81,18 @@ public class WindSwe2mDataSource implements HapiRecordSource {
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
+    public Iterator<HapiRecord> getIterator(TimeString start, TimeString stop, String[] params) {
         throw new IllegalArgumentException("not used");
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
+    public Iterator<HapiRecord> getIterator(TimeString start, TimeString stop) {
         return new WindSwe2mIterator( this.dataHome, start, stop );
     }
 
     @Override
-    public String getTimeStamp(int[] start, int[] stop) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public TimeString getTimeStamp(TimeString start, TimeString stop) {
+        return null;
     }
 
     @Override

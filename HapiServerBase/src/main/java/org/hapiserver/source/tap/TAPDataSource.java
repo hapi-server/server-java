@@ -5,14 +5,13 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.AbstractHapiRecordSource;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.TimeString;
 import org.hapiserver.TimeUtil;
 
 /**
@@ -53,16 +52,16 @@ public class TAPDataSource extends AbstractHapiRecordSource {
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
+    public Iterator<HapiRecord> getIterator(TimeString start, TimeString stop) {
         String startTimeString;
         String stopTimeString;
         int minimumDurationNs=200000000;
-        int[] duration = TimeUtil.subtract(stop, start);
+        int[] duration = TimeUtil.subtract( stop.toComponents(), start.toComponents() );
         if ( duration[0]==0 && duration[1]==0 && duration[2]==0 
                 && duration[3]==0 && duration[4]==0 && duration[5]==0 
                 && duration[6]<minimumDurationNs ) {
             startTimeString = formatTime(start);
-            stopTimeString = formatTime( TimeUtil.add( start, new int[] { 0, 0, 0, 0, 0, 0, minimumDurationNs } ) );
+            stopTimeString = formatTime(new TimeString(TimeUtil.add( start.toComponents(), new int[] { 0, 0, 0, 0, 0, 0, minimumDurationNs } )) );
         } else {
             startTimeString = formatTime(start);
             stopTimeString = formatTime(stop);
@@ -100,10 +99,8 @@ public class TAPDataSource extends AbstractHapiRecordSource {
     }
 
     
-    private String formatTime(int[] time) {
-        String timeString = String.format("%4d-%02d-%02dT%02d:%02d:%02dZ",
-            time[0], time[1], time[2], time[3], time[4], time[5]);
-        return timeString;
+    private String formatTime( TimeString time) {
+        return time.toString().substring(0,20);
     }
 
 }

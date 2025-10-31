@@ -12,6 +12,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.AbstractHapiRecordSource;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.TimeString;
 import org.hapiserver.TimeUtil;
 
 /**
@@ -55,7 +56,7 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
     }
     
     @Override
-    public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
+    public Iterator<TimeString[]> getGranuleIterator(TimeString start, TimeString stop) {
         logger.entering("CdawebServicesHapiRecordSource","getGranuleIterator");
         
         int ia= id.indexOf("@");
@@ -69,9 +70,7 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
             throw new RuntimeException(ex);
         }
         CdawebAvailabilityHapiRecordSource source= new CdawebAvailabilityHapiRecordSource( availRoot, availId + "/source", infoObject );
-        TimeUtil.formatIso8601Time(start);
-        TimeUtil.formatIso8601Time(stop);
-        Iterator<HapiRecord> it = source.getIterator(start, stop);
+        Iterator<HapiRecord> it = source.getIterator( start, stop );
         this.root= source.getRoot();
         
         availabilityIterator= new AvailabilityIterator(it);
@@ -85,7 +84,7 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
+    public Iterator<HapiRecord> getIterator(TimeString start, TimeString stop, String[] params) {
         try {
             logger.entering("CdawebServicesHapiRecordSource","getIterator");
             URL f= new URL( this.root + availabilityIterator.getFile() );
@@ -117,10 +116,10 @@ public class CdawebServicesHapiRecordSource extends AbstractHapiRecordSource {
         // This is the a non-virtual one
         //String[] params= new String[]{"Time", "ION_protons_COUNTS"};
         
-        Iterator<int[]> granules= crs.getGranuleIterator( start, stop );
+        Iterator<TimeString[]> granules= crs.getGranuleIterator( new TimeString( start ), new TimeString( stop ) );
         if ( granules.hasNext() ) {
-            int[] tr= granules.next();
-            Iterator<HapiRecord> records= crs.getIterator( TimeUtil.getStartTime(tr), TimeUtil.getStopTime(tr), params);
+            TimeString[] tr= granules.next();
+            Iterator<HapiRecord> records= crs.getIterator( tr[0], tr[1], params);
             while ( records.hasNext() ) {
                 HapiRecord rec= records.next();
                 System.err.println( "next: "+ rec.getIsoTime(0)+" " +rec.getAsString(1) );

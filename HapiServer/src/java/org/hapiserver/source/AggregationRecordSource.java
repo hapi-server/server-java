@@ -10,7 +10,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.CsvHapiRecordConverter;
 import org.hapiserver.HapiRecord;
-import org.hapiserver.TimeUtil;
+import org.hapiserver.TimeString;
 import org.hapiserver.URITemplate;
 
 /**
@@ -49,7 +49,7 @@ public class AggregationRecordSource extends AbstractHapiRecordSource {
     }
     
     @Override
-    public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
+    public Iterator<TimeString[]> getGranuleIterator(TimeString start, TimeString stop) {
         return new AggregationGranuleIterator( fileFormat, start, stop );
     }
 
@@ -59,14 +59,14 @@ public class AggregationRecordSource extends AbstractHapiRecordSource {
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
+    public Iterator<HapiRecord> getIterator(TimeString start, TimeString stop, String[] params) {
         throw new IllegalArgumentException("not supported");
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
+    public Iterator<HapiRecord> getIterator(TimeString start, TimeString stop) {
         
-        String file= uriTemplate.format( TimeUtil.formatIso8601Time(start), TimeUtil.formatIso8601Time(stop) );
+        String file= uriTemplate.format( start.toString(), stop.toString() );
         try {
             
             Iterator<String> iter;

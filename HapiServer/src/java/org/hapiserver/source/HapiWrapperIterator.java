@@ -16,7 +16,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.CsvHapiRecordConverter;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.HapiServerSupport;
-import org.hapiserver.TimeUtil;
+import org.hapiserver.TimeString;
 import org.hapiserver.Util;
 import org.hapiserver.exceptions.BadRequestParameterException;
 
@@ -37,7 +37,7 @@ public class HapiWrapperIterator implements Iterator<HapiRecord> {
     String nextRecord;
     CsvHapiRecordConverter converter;
     
-    public HapiWrapperIterator( String server, String id, JSONObject info, String[] params, int[] start, int[] stop) {
+    public HapiWrapperIterator( String server, String id, JSONObject info, String[] params, TimeString start, TimeString stop) {
         this.info= info;
         String surl;
         try {
@@ -51,11 +51,11 @@ public class HapiWrapperIterator implements Iterator<HapiRecord> {
         
         if ( params==null ) {
             surl= String.format( "%s/data?id=%s&time.min=%s&time.max=%s", 
-                server, id, TimeUtil.formatIso8601Time(start), TimeUtil.formatIso8601Time(stop) );
+                server, id, start.toString(), stop.toString() );
         } else {
             String sparams= HapiServerSupport.joinParams(info,params);
             surl= String.format( "%s/data?id=%s&time.min=%s&time.max=%s&parameters=%s", 
-                server, id, TimeUtil.formatIso8601Time(start), TimeUtil.formatIso8601Time(stop), sparams );
+                server, id, start.toString(), stop.toString(), sparams );
             logger.log(Level.INFO, "upstream url: {0}", surl);
         }
         try {
@@ -65,7 +65,7 @@ public class HapiWrapperIterator implements Iterator<HapiRecord> {
         }
     }
     
-    public HapiWrapperIterator( String server, String id, JSONObject info, int[] start, int[] stop) {
+    public HapiWrapperIterator( String server, String id, JSONObject info, TimeString start, TimeString stop) {
         this( server, id, info, null, start, stop );
     }
     

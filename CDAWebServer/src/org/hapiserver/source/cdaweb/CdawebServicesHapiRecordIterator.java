@@ -38,6 +38,7 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.hapiserver.HapiRecord;
+import org.hapiserver.TimeString;
 import org.hapiserver.TimeUtil;
 import org.hapiserver.source.SourceUtil;
 import org.hapiserver.source.cdaweb.adapters.Add1800;
@@ -1016,15 +1017,15 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
      *
      * @param id the dataset id, such as AC_OR_SSC or RBSP-A_DENSITY_EMFISIS-L4
      * @param info the info for this id
-     * @param start the start time
-     * @param stop the stop time
+     * @param startts the start time
+     * @param stopts the stop time
      * @param params the parameters to read
      * @param origFile the file, (or null if not known), of the data. 
      * @param cacheDir staging area where files can be stored for ~ 1 hour for reuse
      * @return the record iterator.
      */
     public static CdawebServicesHapiRecordIterator create(
-        String id, JSONObject info, int[] start, int[] stop, String[] params, URL origFile, File cacheDir) {
+        String id, JSONObject info, TimeString startts, TimeString stopts, String[] params, URL origFile, File cacheDir) {
         try {
 
             logger.entering(CdawebServicesHapiRecordIterator.class.getCanonicalName(), "constructor");
@@ -1034,6 +1035,9 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                 ss = "ALL-VARIABLES";
             }
 
+            int[] start= startts.toComponents();
+            int[] stop= stopts.toComponents();
+            
             String sstart = String.format("%04d%02d%02dT%02d%02d%02dZ", start[0], start[1], start[2], start[3], start[4], start[5]);
             String sstop = String.format("%04d%02d%02dT%02d%02d%02dZ", stop[0], stop[1], stop[2], stop[3], stop[4], stop[5]);
 
@@ -1627,8 +1631,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
             "RBSP-B_DENSITY_EMFISIS-L4",
             null,
-            new int[]{2019, 7, 15, 0, 0, 0, 0},
-            new int[]{2019, 7, 16, 0, 0, 0, 0},
+            new TimeString( new int[]{2019, 7, 15, 0, 0, 0, 0} ),
+            new TimeString( new int[]{2019, 7, 16, 0, 0, 0, 0} ),
             new String[]{"Time", "fce", "bmag"}, null, new File("/tmp/hapi-server-cache/") );
         while (dd.hasNext()) {
             HapiRecord rec = dd.next();
@@ -1641,8 +1645,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
             "AC_K0_MFI",
             null,
-            new int[]{2023, 4, 26, 0, 0, 0, 0},
-            new int[]{2023, 4, 27, 0, 0, 0, 0},
+            new TimeString( new int[]{2023, 4, 26, 0, 0, 0, 0} ),
+            new TimeString( new int[]{2023, 4, 27, 0, 0, 0, 0} ),
             new String[]{"Time", "BGSEc"}, null, new File("/tmp/hapi-server-cache/"));
         while (dd.hasNext()) {
             HapiRecord rec = dd.next();
@@ -1656,8 +1660,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
             "VG1_PWS_WF",
             null,
-            new int[]{1979, 3, 5, 6, 0, 0, 0},
-            new int[]{1979, 3, 5, 7, 0, 0, 0},
+            new TimeString( new int[]{1979, 3, 5, 6, 0, 0, 0} ),
+            new TimeString( new int[]{1979, 3, 5, 7, 0, 0, 0} ),
             new String[]{"Time", "Waveform"}, null, new File("/tmp/hapi-server-cache/"));
         while (dd.hasNext()) {
             HapiRecord rec = dd.next();
@@ -1671,8 +1675,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
             "AC_H1_SIS",
             null,
-            new int[]{2023, 4, 6, 0, 0, 0, 0},
-            new int[]{2023, 4, 7, 0, 0, 0, 0},
+            new TimeString( new int[]{2023, 4, 6, 0, 0, 0, 0} ),
+            new TimeString( new int[]{2023, 4, 7, 0, 0, 0, 0} ),
             new String[]{"Time", "cnt_Si", "cnt_S"}, null, new File("/tmp/hapi-server-cache/"));
         while (dd.hasNext()) {
             HapiRecord rec = dd.next();
@@ -1689,8 +1693,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
                 "AC_H2_CRIS",
                 null,
-                new int[]{2022, 12, iday, 0, 0, 0, 0},
-                new int[]{2022, 12, iday + 1, 0, 0, 0, 0},
+                new TimeString( new int[]{2022, 12, iday, 0, 0, 0, 0} ),
+                new TimeString( new int[]{2022, 12, iday + 1, 0, 0, 0, 0} ),
                 "Time,flux_B".split(",", -2), null, new File("/tmp/hapi-server-cache/"));
             while (dd.hasNext()) {
                 HapiRecord rec = dd.next();
@@ -1714,8 +1718,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
                 "AC_H2_CRIS",
                 null,
-                start,
-                next,
+                new TimeString( start ),
+                new TimeString( next ),
                 "Time,flux_B".split(",", -2), null, new File("/tmp/hapi-server-cache/"));
             while (dd.hasNext()) {
                 HapiRecord rec = dd.next();
@@ -1741,8 +1745,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
                 "AC_OR_SSC",
                 null,
-                start,
-                next,
+                new TimeString( start ),
+                new TimeString( next ),
                 "Time,XYZ_GSEO".split(",", -2), null, new File("/tmp/hapi-server-cache/"));
             int nrec = 0;
             while (dd.hasNext()) {
@@ -1778,8 +1782,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
                 "ICON_L2-5_FUV_NIGHT",
                 info,
-                start,
-                next,
+                new TimeString( start ),
+                new TimeString( next ),
                 "Time,ICON_L25_O_Plus_Density".split(",", -2), null, new File("/tmp/hapi-server-cache/"));
             int nrec = 0;
             
@@ -1820,8 +1824,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
                 "OMNI2_H0_MRG1HR",
                 null,
-                start,
-                next,
+                new TimeString( start ),
+                new TimeString( next ),
                 "Time,ABS_B1800".split(",", -2), null, new File("/tmp/hapi-server-cache/"));
             int nrec = 0;
             while (dd.hasNext()) {
@@ -1844,8 +1848,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
             "AC_K0_MFI",
             null,
-            new int[]{2023, 4, 26, 0, 0, 0, 0},
-            new int[]{2023, 4, 27, 0, 0, 0, 0},
+            new TimeString( new int[]{2023, 4, 26, 0, 0, 0, 0} ),
+            new TimeString( new int[]{2023, 4, 27, 0, 0, 0, 0} ),
             new String[]{"Time", "Magnitude"}, null, new File("/tmp/hapi-server-cache/"));
         while (dd.hasNext()) {
             HapiRecord rec = dd.next();
@@ -1863,8 +1867,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
             "AC_OR_SSC",
             null,
-            new int[]{2023,01,01,00,00,0,0},
-            new int[]{2024,01,01,00,00,0,0},
+            new TimeString( new int[]{2023,01,01,00,00,0,0} ),
+            new TimeString( new int[]{2024,01,01,00,00,0,0} ),
             new String[]{"Time", "Radius"}, null, new File("/tmp/hapi-server-cache/"));
         while (dd.hasNext()) {
             HapiRecord rec = dd.next();
@@ -1887,8 +1891,8 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
         CdawebServicesHapiRecordIterator dd = CdawebServicesHapiRecordIterator.create(
             id,
             info,
-            new int[]{1988,12,22,0,0,0,0},
-            new int[]{1988,12,22,16,19,0,0},
+            new TimeString( new int[]{1988,12,22,0,0,0,0} ),
+            new TimeString( new int[]{1988,12,22,16,19,0,0} ),
             new String[]{"Time", "ION_protons_COUNTS_stack"}, null, new File("/tmp/hapi-server-cache/"));
         while (dd.hasNext()) {
             HapiRecord rec = dd.next();

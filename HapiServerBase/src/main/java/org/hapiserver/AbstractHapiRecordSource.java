@@ -14,7 +14,7 @@ public abstract class AbstractHapiRecordSource implements HapiRecordSource {
     public abstract boolean hasGranuleIterator();
     
     @Override
-    public Iterator<int[]> getGranuleIterator(int[] start, int[] stop) {
+    public Iterator<TimeString[]> getGranuleIterator( TimeString start, TimeString stop) {
         throw new UnsupportedOperationException("Not implemented"); 
     }
     
@@ -22,17 +22,17 @@ public abstract class AbstractHapiRecordSource implements HapiRecordSource {
     public abstract boolean hasParamSubsetIterator( );
     
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop, String[] params) {
+    public Iterator<HapiRecord> getIterator( TimeString start, TimeString stop, String[] params) {
         throw new UnsupportedOperationException("Not implemented"); 
     }
 
     @Override
-    public Iterator<HapiRecord> getIterator(int[] start, int[] stop) {
+    public Iterator<HapiRecord> getIterator( TimeString start, TimeString stop) {
         throw new UnsupportedOperationException("Not implemented"); 
     }
 
     @Override
-    public String getTimeStamp(int[] start, int[] stop) {
+    public TimeString getTimeStamp(TimeString start, TimeString stop) {
         return null;
     }
     
