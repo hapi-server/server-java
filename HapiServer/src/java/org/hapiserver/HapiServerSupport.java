@@ -1183,7 +1183,8 @@ public class HapiServerSupport {
     
     /**
      * verifies that the info object contains required tags.  Note the config directory can contain infos from an earlier version
-     * of HAPI, and they will be converted to a newer version if possible.
+     * of HAPI, and they will be converted to a newer version if possible.  This is run once each time an info object is changed.
+     * 
      * @param jo a JSONObject
      * @return true if valid
      * @throws IllegalArgumentException when not valid
@@ -1216,6 +1217,18 @@ public class HapiServerSupport {
                 if ( type.equals("isotime") || type.equals("string") ) {
                     if ( param.optInt("length",-1)==-1 ) {
                         throw new IllegalArgumentException( String.format( "parameter \"%s\" of type \"%s\" must have length",name,type ) );
+                    }
+                }
+                JSONArray bins= param.optJSONArray("bins");
+                if ( bins!=null ) {
+                    for ( int j=0; j<bins.length(); j++ ) {
+                        JSONObject bin= bins.getJSONObject(j);
+                        if ( !bin.has("name") ) {
+                            throw new IllegalArgumentException( String.format( "paramter \"%s\" bins[%d] has no name", name, j ) );
+                        }
+                        if ( !bin.has("units") ) {
+                            throw new IllegalArgumentException( String.format( "paramter \"%s\" bins[%d] has no units", name, j ) );
+                        }
                     }
                 }
             }
