@@ -100,7 +100,7 @@ public class TAPDataSource extends AbstractHapiRecordSource {
 
     
     private String formatTime( TimeString time) {
-        return time.toString().substring(0,20);
+        return time.toString().substring(0,19)+"Z";
     }
 
 }
