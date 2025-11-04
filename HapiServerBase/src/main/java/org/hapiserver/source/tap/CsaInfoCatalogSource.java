@@ -226,6 +226,10 @@ public class CsaInfoCatalogSource {
 
             String[] constantData= new String[nl.getLength()];
             JSONObject definitions = new JSONObject();
+            
+            // this contains only the definitions used in the info, we discard unused definitions.
+            JSONObject definitionsOut= new JSONObject();
+
             boolean hasDefinitions= false;
             for (int i = 0; i < nl.getLength(); i++) { // scan through looking for non-time-varying data
                 Node p = nl.item(i);
@@ -416,6 +420,7 @@ public class CsaInfoCatalogSource {
                                 if ( definitions.has( depends.get(ia) ) ) {
                                     //TODO: I can't figure out why it always escapes the backslashes here
                                     bin.put( "$ref", "#/definitions/"+ depends.get(ia) );
+                                    definitionsOut.put( depends.get(ia), definitions.get(depends.get(ia)) );
                                 } else {
                                     bin.put( "name", depends.get(ia)+"__ref" );
                                     bin.put( "centers", depends.get(ia) );
@@ -446,8 +451,8 @@ public class CsaInfoCatalogSource {
                 }
             }
             
-            if ( hasDefinitions ) {
-                jo.put( "definitions", definitions );
+            if ( definitionsOut.length()>0 ) {
+                jo.put( "definitions", definitionsOut );
             }
             
             jo.put("parameters", parameters);
