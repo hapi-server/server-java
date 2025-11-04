@@ -169,6 +169,10 @@ public class CsaInfoCatalogSource {
     
     /**
      * produce the info response for a given ID. This assumes the response will be cached and performance is not an issue.
+     * 
+     * Note C1_CP_CIS-CODIF_LS_64MQ shows where theta__C1_CP_CIS-CODIF_LS_64MQ is included in the definitions
+     * because the other depend variable phi__C1_CP_CIS-CODIF_LS_64MQ depends in it.  This should be addressed in the 
+     * future.
      *
      * @param id the dataset id.
      * @return the JSON formatted response.
