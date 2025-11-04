@@ -652,6 +652,17 @@ public class HapiServerSupport {
         
     }
     
+    private static JSONObject DEFAULT_ABOUT;
+    
+    static {
+        String ss= Util.getTemplateAsString("about.json");
+        try {
+            DEFAULT_ABOUT= new JSONObject(ss);
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+        
     /**
      * read the about file from the config directory if it has been modified.
      * @param HAPI_HOME
@@ -663,7 +674,7 @@ public class HapiServerSupport {
         
         logger.fine("getAbout");
         
-        JSONObject result= loadAndCheckConfig( HAPI_HOME, "about.json" );
+        JSONObject result= loadAndCheckConfig( HAPI_HOME, "about.json", DEFAULT_ABOUT );
         result.put( "x_buildTime", Util.buildTime() );
         result.put( "HAPI", Util.hapiVersion() );
                 
@@ -711,6 +722,17 @@ public class HapiServerSupport {
         return jo;
     }
     
+    private static JSONObject DEFAULT_CAPABILITIES;
+    
+    static {
+        String ss= Util.getTemplateAsString("capabilities.json");
+        try {
+            DEFAULT_CAPABILITIES= new JSONObject(ss);
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
     /**
      * read the capabilities file from the config directory if it has been modified.
      * @param HAPI_HOME
@@ -724,7 +746,7 @@ public class HapiServerSupport {
         
         String ff= "capabilities.json";
         
-        JSONObject jo= loadAndCheckConfig(HAPI_HOME, ff);
+        JSONObject jo= loadAndCheckConfig(HAPI_HOME, ff, DEFAULT_CAPABILITIES );
       
         return jo;
     }

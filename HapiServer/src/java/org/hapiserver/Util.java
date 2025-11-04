@@ -2,6 +2,7 @@
 package org.hapiserver;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -119,6 +120,23 @@ public final class Util {
         InputStream in= Util.class.getResourceAsStream("/templates/"+jsonTemplate);
         if ( in==null ) throw new NullPointerException("/templates/"+jsonTemplate+" not found");
         return in;
+    }
+    
+    /**
+     * return the template as a string, throwing a useful error when the template does not exist.
+     * @param jsonTemplate, like "about.json" or "capabilities.json"
+     * @return the string
+     * @throws NullPointerException when a template is not found.
+     */
+    public static String getTemplateAsString(String jsonTemplate) {
+        InputStream ins= getTemplateAsStream(jsonTemplate);
+        ByteArrayOutputStream oas= new ByteArrayOutputStream();
+        try {
+            transfer( ins, oas, true );
+            return oas.toString("UTF-8");
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
