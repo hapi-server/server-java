@@ -169,10 +169,6 @@ public class CsaInfoCatalogSource {
     
     /**
      * produce the info response for a given ID. This assumes the response will be cached and performance is not an issue.
-     * 
-     * Note C1_CP_CIS-CODIF_LS_64MQ shows where theta__C1_CP_CIS-CODIF_LS_64MQ is included in the definitions
-     * because the other depend variable phi__C1_CP_CIS-CODIF_LS_64MQ depends in it.  This should be addressed in the 
-     * future.
      *
      * @param id the dataset id.
      * @return the JSON formatted response.
@@ -421,7 +417,7 @@ public class CsaInfoCatalogSource {
                             if ( depends.size()==sizes.size() ) {
                                 JSONObject bin= new JSONObject();
                                 bin.setEscapeForwardSlashAlways(false);
-                                if ( definitions.has( depends.get(ia) ) ) {
+                                if ( definitions.has( depends.get(ia) ) && !definitions.has(name) ) {
                                     //TODO: I can't figure out why it always escapes the backslashes here
                                     bin.put( "$ref", "#/definitions/"+ depends.get(ia) );
                                     definitionsOut.put( depends.get(ia), definitions.get(depends.get(ia)) );
