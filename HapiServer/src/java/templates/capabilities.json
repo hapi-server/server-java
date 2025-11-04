@@ -1,5 +1,5 @@
 {
-    "HAPI": "3.2",
+    "HAPI": "3.3",
     "outputFormats": [
         "csv",
         "binary"

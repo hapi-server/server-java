@@ -69,7 +69,7 @@
     },
     "about": {
         "_": "This is not used, see ticket https://github.com/hapi-server/server-java/issues/64",
-        "HAPI": "3.2",
+        "HAPI": "3.3",
         "id":"cdaweb",
         "title":"CDAWeb HAPI Server",
         "contact":"Jeremy Faden <faden@cottagesystems.com>",
