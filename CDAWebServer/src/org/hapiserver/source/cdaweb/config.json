@@ -1,4 +1,4 @@
-{
+ {
     "options": {
         "cdawmetaDir":"https://cottagesystems.com/~jbf/hapi/p/cdaweb/",
         "cdawmetaDir_doc":"location for the server",
@@ -11,13 +11,12 @@
         "metaHome": "${cdawmetaDir}/data/cdfmetafile/",
         "metaHome_doc": "read-only root folder (website or file://...) containing \"info\" directory with file listings."
     },
-    "about": {
-        "HAPI": "3.2",
-        "id":"cdaweb",
-        "title":"CDAWeb HAPI Server",
-        "contact":"Jeremy Faden <faden@cottagesystems.com>",
-        "description":"Heliophysics data sets from Coordinated Data Analysis Web (CDAWeb).",
-        "x_server_version": "2025-09-11T12:27"
+    "capabilities": {
+        "outputFormats": [
+    	    "csv",
+            "binary",
+            "json"
+        ]
     },
     "groups": [
         {
@@ -71,6 +70,13 @@
                 }
             }
         }
-    ]
+    ],
+    "about": {
+        "HAPI": "3.2",
+        "id":"cdaweb",
+        "title":"CDAWeb HAPI Server",
+        "contact":"Jeremy Faden <faden@cottagesystems.com>",
+        "description":"CDF data sets from CDAWeb.",
+        "x_server_version": "2026-01-30T06:06"
+    }
 }
-
