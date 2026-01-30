@@ -1387,8 +1387,7 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
                     switch ( virtualParams[i] ) {
                         case "alternate_view": {
                             String param= virtualComponents[i].getString(0);
-                            JSONObject param1_1= getParamFor( pp, param );
-                            Adapter paramAdapter= getAdapterFor( reader, param1_1, param, nrec );
+                            Adapter paramAdapter= getAdapterFor( reader, param1, param, nrec );
                             adapters[i]= paramAdapter;
                             continue;
                         }
