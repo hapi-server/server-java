@@ -480,7 +480,17 @@ public class CsaInfoCatalogSource {
                 String sampleStartDate= ss[0];
                 String sampleStopDate= ss[1];
                 sampleStartDate= TimeUtil.reformatIsoTime( startDate, sampleStartDate );
-                sampleStopDate= TimeUtil.reformatIsoTime( stopDate, sampleStopDate );
+                sampleStopDate= TimeUtil.reformatIsoTime( startDate, sampleStopDate );
+                if ( sampleStopDate.equals(sampleStartDate) ) {
+                    try {
+                        int[] hour= new int[7];
+                        hour[TimeUtil.COMPONENT_HOUR]=1;
+                        sampleStartDate= TimeUtil.formatIso8601Time( TimeUtil.subtract(TimeUtil.parseISO8601Time(sampleStopDate),hour) );
+                        sampleStartDate=  TimeUtil.reformatIsoTime( startDate, sampleStartDate);
+                    } catch ( ParseException ex ) {
+                        throw new RuntimeException(ex);
+                    }
+                }
                 if ( sampleStopDate.compareTo(startDate)<0 ) sampleStartDate= startDate;
                 if ( sampleStopDate.compareTo(stopDate)>0 ) sampleStopDate= stopDate;
                 try { // make sure sample times are no greater than one or two days.
