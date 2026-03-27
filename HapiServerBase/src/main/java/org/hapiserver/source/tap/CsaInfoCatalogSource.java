@@ -158,6 +158,10 @@ public class CsaInfoCatalogSource {
             t1[i]=0;
             t2[i]=0;
         }
+        if ( !isRoundUp ) {
+            boolean same= TimeUtil.eq(t1, t2);
+            if ( same ) isRoundUp=true;
+        }
         if ( isRoundUp ) t2[digit]++;
         return TimeUtil.createTimeRange( t1, t2 );
     }
