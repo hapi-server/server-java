@@ -11,8 +11,10 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
+          echo "here line14"
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+          echo "here line17"
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
       - name: SSH and echo hello
