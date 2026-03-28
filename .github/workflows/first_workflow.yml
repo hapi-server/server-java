@@ -27,7 +27,7 @@ jobs:
           echo "see https://cottagesystems.com/autoplot/git/server-java/HapiServerBase/dist/HapiServerBase.jar"          
           echo "================"
           cd /var/www/cottagesystems.com/autoplot/git/server-java/HapiServer
-          ant -Dplatforms.JDK_8__System_.home=/usr/local/jdk1.8 -Dj2ee.server.home=/usr/local/apache-tomcat-8/ clean dist
+          ant -Dplatforms.JDK_8__System_.home=/usr/local/jdk1.8 -Dj2ee.server.home=/usr/local/apache-tomcat-9/ clean dist
           echo "see https://cottagesystems.com/autoplot/git/server-java/HapiServer/dist/HapiServer.war"          
           echo "================"
           cd /var/www/cottagesystems.com/autoplot/git/server-java/SimpleClasspathExtension
