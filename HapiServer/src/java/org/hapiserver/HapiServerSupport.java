@@ -667,7 +667,7 @@ public class HapiServerSupport {
      * read the about file from the config directory if it has been modified.  The
      * x_buildTime is set using Util.buildTime() and HAPI version is set with Util.hapiVersion()
      * @param HAPI_HOME
-     * @return JSON for the about file.
+     * @return JSON for the about response.
      * @throws IOException
      * @throws JSONException 
      */
