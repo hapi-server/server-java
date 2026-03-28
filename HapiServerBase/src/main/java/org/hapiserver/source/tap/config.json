@@ -1,13 +1,11 @@
  {
      "HAPI": "3.3",
      "about": {
-        "HAPI": "3.3",
         "id": "CSA",
         "title": "Cluster Science Archive",
         "contact": "https://www.cosmos.esa.int/web/csa/cluster-helpdesk",
         "description": "This HAPI server is based on responses provided by the TAP server at https://csa.esac.esa.int/csa-sl-tap/",
-        "x_hapi_home": "/tmp/hapi-server/",
-        "x_buildTime": "2026-03-28T07:54:00"
+        "x_hapi_home": "/tmp/hapi-server/"
      },
      "catalog": [
          {
