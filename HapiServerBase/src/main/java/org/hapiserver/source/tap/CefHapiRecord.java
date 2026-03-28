@@ -43,7 +43,7 @@ public class CefHapiRecord extends AbstractHapiRecord {
                             field = field + "Z";
                         }   break;
                     case 1:
-                        field = field.substring(is1 + 1).substring(0, 24);
+                        field = field.substring(is1 + 1);
                         if (!field.endsWith("Z")) {
                             field = field + "Z";
                         }   break;
