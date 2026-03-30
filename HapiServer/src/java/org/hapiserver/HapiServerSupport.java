@@ -335,6 +335,19 @@ public class HapiServerSupport {
         return new File( tmpDir, Thread.currentThread().getName() + "_" + typeFileName );
     }
 
+    
+    /**
+     * resolve references
+     * @param jo
+     * @return 
+     * @throws org.codehaus.jettison.json.JSONException 
+     */
+    public static JSONObject resolveReferences(JSONObject jo) throws JSONException {
+        JSONObject result = (JSONObject)JsonRefExpander.expandRefs(jo);
+        result.remove("definitions");
+        return result;
+    }
+
     private static class CatalogData {
         public CatalogData( JSONObject catalog, long catalogTimeStamp ) {
             this.catalog= catalog;
