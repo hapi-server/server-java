@@ -83,16 +83,16 @@ experimental and proposed for 3.2</description>
         <url-pattern>/hapi</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
+        <servlet-name>LandingServlet</servlet-name>
+        <url-pattern>/hapi/</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
         <servlet-name>EmptyServlet</servlet-name>
         <url-pattern>/hapi/info/</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>EmptyServlet</servlet-name>
         <url-pattern>/hapi/data/</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>EmptyServlet</servlet-name>
-        <url-pattern>/hapi/</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>EmptyServlet</servlet-name>

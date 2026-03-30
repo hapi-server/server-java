@@ -30,7 +30,15 @@
 <!DOCTYPE html>
 
     <%
-        String HAPI_HOME= Initialize.getHapiHome(getServletContext());                
+        String HAPI_HOME= Initialize.getHapiHome(getServletContext());           
+        
+        String uri = request.getRequestURI();
+
+        if (uri.endsWith("/hapi/")) {
+            response.sendRedirect(request.getContextPath() + "/hapi");
+            return;
+        }
+        
         JSONObject landingConfig= HapiServerSupport.getLandingConfig(HAPI_HOME);
         JSONObject about= HapiServerSupport.getAbout(HAPI_HOME);
     %>
