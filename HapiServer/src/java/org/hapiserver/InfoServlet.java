@@ -63,7 +63,10 @@ public class InfoServlet extends HttpServlet {
         
         logger.log(Level.FINE, "info request for {0}", dataset);
         
-        if ( dataset==null ) throw new ServletException("required parameter 'dataset' is missing from request");
+        if ( dataset==null ) {
+            Util.raiseError( 1400, "HAPI error 1400: Bad request - user input error", response, null );
+            return;
+        }
         
         response.setContentType("application/json;charset=UTF-8");        
         
@@ -82,18 +85,13 @@ public class InfoServlet extends HttpServlet {
                 response.setHeader("Last-Modified", rfc2616 );
             }
             
-        } catch ( BadRequestIdException ex ) {
-            OutputStream outs= response.getOutputStream();
-            Util.raiseError( 1406, "HAPI error 1406: unknown dataset id", response, outs );
-            outs.close();
+        } catch ( BadRequestIdException | java.nio.file.NoSuchFileException ex ) {
+            Util.raiseError( 1406, "HAPI error 1406: unknown dataset id", response, null );
             return;
-        } catch ( HapiException | JSONException ex ) {
+        }catch ( HapiException | JSONException ex ) {
             throw new RuntimeException(ex);
-        } catch (java.nio.file.NoSuchFileException ex ) {
-            // don't show server-side information.
-            Util.raiseError( 1406, "HAPI error 1406: unknown dataset id", response, response.getOutputStream() );
-            return;
         }
+        // don't show server-side information.
         
         try ( OutputStream out = response.getOutputStream() ) {
             String parameters= request.getParameter("parameters");
