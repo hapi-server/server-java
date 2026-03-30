@@ -190,6 +190,8 @@ public class DataServlet extends HttpServlet {
         String parameters= 
             getParam( params, "parameters", "", "The comma separated list of parameters to include in the response ", null );
         String include= getParam(params, "include", "", "include header at the top", PATTERN_INCLUDE);
+        String sresolveReferences= getParam( params, "resolve_references", "true", "resolve references in included header", null );
+        
         String format;
         try {
             format = getParam(params, "format", "csv", "The desired format for the data stream.", PATTERN_FORMAT);
@@ -456,6 +458,9 @@ public class DataServlet extends HttpServlet {
                     if ( sentSomething==false ) {
                         if ( sendHeader && !jsonFormat )  {
                             try {
+                                if ( sresolveReferences.equals("true") ) {
+                                    jo= HapiServerSupport.resolveReferences(jo);
+                                }
                                 sendHeader( jo, format, out);
                             } catch (JSONException | UnsupportedEncodingException ex) {
                                 logger.log(Level.SEVERE, null, ex);
