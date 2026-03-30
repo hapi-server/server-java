@@ -59,7 +59,10 @@ public class InfoServlet extends HttpServlet {
         dataset= request.getParameter("dataset");
         if ( dataset==null ) {
             dataset= request.getParameter("id"); 
-        }            
+        }
+        
+        String sresolveReferences= request.getParameter("resolve_references");
+        boolean resolveReferences= sresolveReferences==null || sresolveReferences.equals("true");
         
         logger.log(Level.FINE, "info request for {0}", dataset);
         
@@ -78,6 +81,10 @@ public class InfoServlet extends HttpServlet {
         try {
             
             jo = HapiServerSupport.getInfo( HAPI_HOME, dataset );
+            if ( resolveReferences ) {
+                jo= HapiServerSupport.resolveReferences(jo);
+            }
+            
             if ( jo.has( "modificationDate" ) ) {
                 SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
                 sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
