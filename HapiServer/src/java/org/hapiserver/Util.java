@@ -325,34 +325,31 @@ public final class Util {
      * @param statusCode HAPI status code, such as 1406
      * @param statusMessage the message, such as "HAPI error 1406: unknown dataset id"
      * @param response the response object
-     * @param out the output stream from the response object.
+     * @param out the output stream from the response object, or null if the response should be used to get the output stream.
      * @throws java.io.IOException when there are errors in I/O
      * @see #logError(java.lang.Exception) 
      */
-    public static void raiseError( int statusCode, String statusMessage, HttpServletResponse response, final OutputStream out ) 
+    public static void raiseError( int statusCode, String statusMessage, HttpServletResponse response, OutputStream out ) 
         throws IOException {
+        boolean doClose= out==null;
+        if ( out==null ) {
+            out= response.getOutputStream();
+        }
         try {
             JSONObject jo= createHapiResponse(statusCode,statusMessage);
             String s= jo.toString(4);
             int httpStatus= httpForHapiStatusCode(statusCode);
+            response.setStatus(httpStatus);
             response.setContentType("application/json;charset=UTF-8");
-            if ( statusCode==1201 ) {
-                response.sendError( httpStatus, statusMessage );
-                //response.sendError( httpStatus, statusMessage );
-                // no data means empty response
-            } else {
-                if ( statusCode==1406 && statusMessage.equals("HAPI error 1406: unknown dataset id") ) {
-                    response.sendError( httpStatus, "Not Found; HAPI error 1406: unknown dataset id" );
-                    //response.setStatus( httpStatus,  "Not Found; HAPI error 1406: unknown dataset id" );
-                } else {
-                    response.sendError( httpStatus, statusMessage );
-                }
-                out.write(s.getBytes(CHARSET));
-                
-            }
+            
+            out.write( s.getBytes("UTF-8") );
             
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
+        } finally {
+            if ( doClose ) {
+                out.close();
+            }
         }
     }
     
