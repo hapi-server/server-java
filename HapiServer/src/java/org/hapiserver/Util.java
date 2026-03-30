@@ -336,13 +336,17 @@ public final class Util {
             out= response.getOutputStream();
         }
         try {
-            JSONObject jo= createHapiResponse(statusCode,statusMessage);
-            String s= jo.toString(4);
-            int httpStatus= httpForHapiStatusCode(statusCode);
-            response.setStatus(httpStatus);
-            response.setContentType("application/json;charset=UTF-8");
-            
-            out.write( s.getBytes("UTF-8") );
+            if ( statusCode==1201 ) {
+                // No data should just return empty response.  This is left here for debugging purposes.
+                logger.finer("no data found");
+            } else {
+                JSONObject jo= createHapiResponse(statusCode,statusMessage);
+                String s= jo.toString(4);
+                int httpStatus= httpForHapiStatusCode(statusCode);
+                response.setStatus(httpStatus);
+                response.setContentType("application/json;charset=UTF-8");
+                out.write( s.getBytes("UTF-8") );
+            }
             
         } catch (JSONException ex) {
             throw new RuntimeException(ex);
