@@ -323,20 +323,26 @@ public class SourceUtil {
         }
     }
     
+    private static final File CACHE_HOME;
+    static {
+        String s= System.getProperty("HAPI_SERVER_CACHE_HOME","/tmp/HapiServerCache/");
+        CACHE_HOME= new File( s );
+    }
+    
     /**
      * return an input stream for the resource, possibly using a cached copy which is no older than ageSeconds.
      * Note this should only be used for testing, and not in production use.
      * @param url the URL
-     * @param ageSeconds the maximum allowed age in seconds.
+     * @param ageSeconds the maximum allowed age in seconds, if 0 then disable caching.
      * @return an InputStream
      * @throws java.io.IOException
      */
     public static InputStream getInputStream( URL url, int ageSeconds ) throws IOException {
         InputStream result;
-        boolean allowCaching= true;
+        boolean allowCaching= ageSeconds>0;
         if ( allowCaching ) {
             String hash = Integer.toHexString(url.hashCode());
-            File cacheFile= new File( "/tmp/HapiServerCache/" + url.getHost() + "/" + hash );
+            File cacheFile= new File( CACHE_HOME, url.getHost() + "/" + hash );
             if ( !cacheFile.getParentFile().exists() ) {
                 if ( !cacheFile.getParentFile().mkdirs() ) {
                     logger.log(Level.FINE, "unable to mkdirs for {0}", cacheFile);
