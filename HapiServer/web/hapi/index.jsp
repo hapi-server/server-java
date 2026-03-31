@@ -34,10 +34,9 @@
         
         String uri = request.getRequestURI();
 
-        if (uri.endsWith("/hapi/")) {
-            response.sendRedirect(request.getContextPath() + "/hapi");
-            return;
-        }
+        boolean withinHapi= uri.endsWith("/hapi/"); // if true, then references must be relative
+        String h="hapi/";
+        if ( withinHapi ) h="";
         
         JSONObject landingConfig= HapiServerSupport.getLandingConfig(HAPI_HOME);
         JSONObject about= HapiServerSupport.getAbout(HAPI_HOME);
@@ -78,9 +77,9 @@
         <!-- <br>The HAPI server <a href="http://hapi-server.org/verify?url=">verifier</a> will test this HAPI server for correctness. -->
 
         <h3>Some example requests:</h3>
-        <a href="hapi/about">About</a> <i>More about this server, like contact info.</i><br>
-        <a href="hapi/capabilities">Capabilities</a> <i>Capabilities of the server.</i><br>
-        <a href="hapi/catalog">Catalog</a> <i>Show the catalog of available data sets.</i><br>
+        <a href="<%=h%>about">About</a> <i>More about this server, like contact info.</i><br>
+        <a href="<%=h%>capabilities">Capabilities</a> <i>Capabilities of the server.</i><br>
+        <a href="<%=h%>catalog">Catalog</a> <i>Show the catalog of available data sets.</i><br>
         
         <br>
                 
@@ -220,10 +219,10 @@
                                 TimeUtil.formatIso8601TimeBrief( TimeUtil.getStopTime(exampleRange) ) ); 
                         out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
                         if ( exampleRange!=null ) {
-                            out.println( String.format("[<a href=\"hapi/info?dataset=%s\">Info</a>] [<a href=\"hapi/data?dataset=%s&%s\">Data</a>]", 
+                            out.println( String.format("[<a href=\""+h+"info?dataset=%s\">Info</a>] [<a href=\""+h+"data?dataset=%s&%s\">Data</a>]", 
                                 id, id, exampleTimeRange ) );
                         } else {
-                            out.println( String.format("[<a href=\"hapi/info?dataset=%s\">Info</a>] [Data]", 
+                            out.println( String.format("[<a href=\""+h+"info?dataset=%s\">Info</a>] [Data]", 
                                 id, id ) );
                         }
 
@@ -244,7 +243,7 @@
                             if ( j>0 ) out.print("  ");
                             try {
                                 String pname= parameters.getJSONObject(j).getString("name");
-                                out.print( String.format( "<a href=\"hapi/data?dataset=%s&parameters=%s&%s\">%s</a>", id, pname, exampleTimeRange, labels[j] ) );
+                                out.print( String.format( "<a href=\""+h+"data?dataset=%s&parameters=%s&%s\">%s</a>", id, pname, exampleTimeRange, labels[j] ) );
                                 if ( j>0 && sparklines ) { //sparklines
                                     //     vap  +hapi  :https      ://jfaden.net  /HapiServerDemo  /hapi  ?id=?parameters=Temperature
                                     //?url=vap%2Bhapi%3Ahttps%3A%2F%2Fjfaden.net%2FHapiServerDemo%2Fhapi%3Fid%3DpoolTemperature%26timerange%3D2020-08-06&format=image%2Fpng&width=70&height=20&column=0%2C100%25&row=0%2C100%25&timeRange=2003-mar&renderType=&color=%23000000&symbolSize=&fillColor=%23aaaaff&foregroundColor=%23000000&backgroundColor=none
@@ -278,7 +277,7 @@
                         }
                     } catch ( Exception ex ) {
                         out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
-                        out.println( "<p>Unable to load info for dataset: <a href=\"hapi/info?dataset="+id+"\">"+id+"</a>, log files should notify the server host.<br></p>" ) ;
+                        out.println( "<p>Unable to load info for dataset: <a href=\""+h+"info?dataset="+id+"\">"+id+"</a>, log files should notify the server host.<br></p>" ) ;
                         Util.logError(ex);
                         //out.println( "ex: " ;+ ex ); //TODO: security!!!
                     }
