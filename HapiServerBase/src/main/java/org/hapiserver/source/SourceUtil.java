@@ -344,7 +344,8 @@ public class SourceUtil {
             }
             if ( cacheFile.exists() ) {
                 long timeTag= cacheFile.lastModified();
-                if ( System.currentTimeMillis() - timeTag < ( ageSeconds * 1000 ) ) {
+                double cacheAgeSeconds= ( System.currentTimeMillis() - timeTag ) / 1000.;
+                if ( cacheAgeSeconds < ( ageSeconds * 1000 ) ) {
                     return new FileInputStream(cacheFile);
                 }
             }
