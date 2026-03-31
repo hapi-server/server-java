@@ -13,6 +13,7 @@ import org.hapiserver.AbstractHapiRecordSource;
 import org.hapiserver.HapiRecord;
 import org.hapiserver.TimeString;
 import org.hapiserver.TimeUtil;
+import org.hapiserver.source.SourceUtil;
 
 /**
  * provide the data stream from the ESAC TAP server
@@ -72,7 +73,7 @@ public class TAPDataSource extends AbstractHapiRecordSource {
         logger.log(Level.FINE, "Querying: {0}", queryString);
         try {
             URL uu = new URL(queryString);
-            in = uu.openStream();
+            in = SourceUtil.getInputStream( uu, 86400 );
             ReadableByteChannel lun = Channels.newChannel(in);
             CefFileIterator iter = new CefFileIterator(lun,info);
 
