@@ -50,7 +50,7 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
         bobwurl= roots + spid + ".json";
         try {
             JSONArray array= info.getJSONArray("parameters");
-            JSONObject p= array.getJSONObject(2); // the filename parameter
+            JSONObject p= array.getJSONObject(1); // the filename parameter
             JSONObject stringType= p.getJSONObject("stringType");
             JSONObject urin= stringType.getJSONObject("uri");
             rootlen= urin.getString("base").length();
@@ -205,30 +205,30 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
             
             return "{\n" +
                     "    \"x_sourceURL\": \""+sourceURL + "\", \n" +
-                    "    \"HAPI\": \"3.1\",\n" +
+                    "    \"HAPI\": \"3.3\",\n" +
                     "    \"modificationDate\": \"" + lastModified + "\",\n" +
                     "    \"parameters\": [\n" +
                     "        {\n" +
                     "            \"fill\": null,\n" +
                     "            \"length\": 24,\n" +
-                    "            \"name\": \"StartTime\",\n" +
+                    "            \"name\": \"time\",\n" +
                     "            \"type\": \"isotime\",\n" +
                     "            \"units\": \"UTC\"\n" +
                     "        },\n" +
                     "        {\n" +
                     "            \"fill\": null,\n" +
-                    "            \"length\": 24,\n" +
-                    "            \"name\": \"StopTime\",\n" +
-                    "            \"type\": \"isotime\",\n" +
-                    "            \"units\": \"UTC\"\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "            \"fill\": null,\n" +
-                    "            \"name\": \"filename\",\n" +
+                    "            \"name\": \"fileURI\",\n" +
                     "            \"type\": \"string\",\n" +
                     "            \"stringType\":" + stringType + ",\n" +
                     "            \"length\": "+filenameLen + ",\n" +
                     "            \"units\": null\n" +
+                    "        },\n" +
+                    "        {\n" +
+                    "            \"fill\": null,\n" +
+                    "            \"length\": 24,\n" +
+                    "            \"name\": \"stopDate\",\n" +
+                    "            \"type\": \"isotime\",\n" +
+                    "            \"units\": \"UTC\"\n" +
                     "        }\n" +
                     "    ],\n" +
                     "    \"sampleStartDate\": \""+sampleStart+"\",\n" +
@@ -340,7 +340,7 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
                         switch (i) {
                             case 0:
                                 return nextObject.optString("StartTime");
-                            case 1:
+                            case 2:
                                 return nextObject.optString("EndTime");
                             default:
                                 throw new IllegalArgumentException("must be 0 or 1");
@@ -349,7 +349,7 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
 
                     @Override
                     public String getString(int i) {
-                        if ( i!=2 ) throw new IllegalArgumentException("must be 2");
+                        if ( i!=1 ) throw new IllegalArgumentException("must be 1");
                         return nextObject.optString("Name").substring(rootlen);
                     }
                     
