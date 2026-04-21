@@ -109,6 +109,7 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
                 jo.put( "id", id + "/source" );
                 if ( jo.has("title") ) {
                     jo.put("title","Files for "+id );
+                    jo.put("x_schema","fileListing");
                 }
                 newArray.put( newArray.length(), jo );
             }
