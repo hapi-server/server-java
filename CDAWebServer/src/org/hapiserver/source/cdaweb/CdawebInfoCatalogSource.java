@@ -278,9 +278,14 @@ public class CdawebInfoCatalogSource {
             
             String sampleStartDate= jo.optString("sampleStartDate","");
             String sampleStopDate=  jo.optString("sampleStopDate","");
-            if ( sampleStopDate.length()>0 && sampleStartDate.equals(sampleStopDate) ) { //C3_PP_CIS has start and stop times equal for each granule.
-                logger.info("kludge for sampleStartDate.equals(sampleStopDate).");
-                jo.put("sampleStopDate",jo.getString("stopDate") );
+            if ( sampleStartDate==null || sampleStopDate==null ) {
+                jo.remove("sampleStartDate");
+                jo.remove("sampleStopDate");
+            } else {
+                if ( sampleStopDate.length()>0 && sampleStartDate.equals(sampleStopDate) ) { //C3_PP_CIS has start and stop times equal for each granule.
+                    logger.info("kludge for sampleStartDate.equals(sampleStopDate).");
+                    jo.put("sampleStopDate",jo.getString("stopDate") );
+                }
             }
             
             if ( url.getProtocol().equals("file") ) {
