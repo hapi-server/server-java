@@ -23,6 +23,8 @@ import org.w3c.dom.NodeList;
 
 /**
  * return availability, showing when file granules are found.
+ * http://localhost:8280/HapiServer/hapi/info?dataset=A1_K0_MPA/source
+ * http://localhost:8280/HapiServer/hapi/data?dataset=A1_K0_MPA/source&start=2007-12-30T00:02:46Z&stop=2008-01-03T01:31:56Z
  * @author jbf
  */ 
 public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource {
