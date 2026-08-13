@@ -27,8 +27,8 @@ public class AvailabilityIterator implements Iterator<TimeString[]> {
     public TimeString[] next() {
         HapiRecord hr= it.next();
         String start= hr.getIsoTime(0);
-        String stop= hr.getIsoTime(1);
-        this.file= hr.getString(2);
+        String stop= hr.getIsoTime(2);
+        this.file= hr.getString(1);
         
         return new TimeString[] { new TimeString(start), new TimeString(stop) };
     }
