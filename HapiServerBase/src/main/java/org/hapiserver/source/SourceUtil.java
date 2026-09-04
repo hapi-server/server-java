@@ -181,9 +181,29 @@ public class SourceUtil {
      */
     public static String getAllFileLines( URL url ) throws IOException {
         StringBuilder sb= new StringBuilder();
-        try ( BufferedReader r= new BufferedReader( new InputStreamReader( url.openStream() ) ) ) {
-            for ( String line= r.readLine(); line!=null; line=r.readLine() ) {
-                sb.append(line).append("\n");
+        if ( url.getProtocol().equals("file") ) {
+            try {
+                File file= Paths.get(url.toURI()).toFile();
+                logger.log(Level.INFO, "reading local file (instead of URL): {0}", file);
+                // weird problem at Goddard where it was refusing to read a file URL.
+                try ( BufferedReader r= new BufferedReader( new FileReader( file ) ) ) {
+                    for ( String line= r.readLine(); line!=null; line=r.readLine() ) {
+                        sb.append(line).append("\n");
+                    }
+                }
+            } catch (URISyntaxException ex) {
+                logger.log(Level.INFO, "fail reading local file, using URL: {0}", url);
+                try ( BufferedReader r= new BufferedReader( new InputStreamReader( url.openStream() ) ) ) {
+                    for ( String line= r.readLine(); line!=null; line=r.readLine() ) {
+                        sb.append(line).append("\n");
+                    }
+                }
+            }
+        } else {
+            try ( BufferedReader r= new BufferedReader( new InputStreamReader( url.openStream() ) ) ) {
+                for ( String line= r.readLine(); line!=null; line=r.readLine() ) {
+                    sb.append(line).append("\n");
+                }
             }
         }
         return sb.toString();
