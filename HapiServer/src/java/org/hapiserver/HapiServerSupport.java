@@ -690,6 +690,11 @@ public class HapiServerSupport {
         
         JSONObject result= loadAndCheckConfig( HAPI_HOME, "about.json", DEFAULT_ABOUT );
         result.put( "x_buildTime", Util.buildTime() );
+        if ( System.getProperty("HAPI_HOME_VERBOSE")==null ) { // temporary
+            logger.log(Level.INFO, "HAPI_HOME_VERBOSE is off. {0}", HAPI_HOME);
+        } else {
+            result.put( "x_hapiHome", HAPI_HOME ); //TODO: permission
+        }
         result.put( "HAPI", Util.hapiVersion() );
                 
         return result;
