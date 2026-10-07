@@ -261,14 +261,27 @@ public class SpawnRecordSource implements HapiRecordSource {
                 
                 ProcessBuilder pb= new ProcessBuilder( ss );
                 process= pb.start();
+                
+                // Drain stderr asynchronously.
+                Thread errorThread = new Thread(() -> {
+                    try (BufferedReader err = new BufferedReader(
+                            new InputStreamReader(process.getErrorStream()))) {
+
+                        String line;
+                        while ((line = err.readLine()) != null) {
+                            logger.fine(line);
+                        }
+                    } catch (IOException ex) {
+                        logger.log(Level.FINE, "Error reading stderr", ex);
+                    }
+                }, "HAPI-process-stderr");
+
+                errorThread.setDaemon(true);
+                errorThread.start();
+                
                 reader= new BufferedReader( new InputStreamReader( process.getInputStream() ) );
                 nextRecord= reader.readLine();
-                if ( nextRecord==null ) {
-                    String errorMessage= 
-                        new BufferedReader( new InputStreamReader( process.getErrorStream() ) )
-                            .lines().collect( Collectors.joining("\n") );
-                    logger.fine( errorMessage );
-                }
+                
                 converter= new CsvHapiRecordConverter(info);
             } catch (JSONException | IOException ex ) {
                 throw new RuntimeException(ex);
