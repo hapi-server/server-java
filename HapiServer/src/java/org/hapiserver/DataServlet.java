@@ -504,7 +504,11 @@ public class DataServlet extends HttpServlet {
             
         } catch ( RuntimeException ex ) {
             Util.logError( ex );
-            Util.raiseError( 1500, ex.getMessage(), response, out );
+            if ( Config.getDebugging() ) {
+                Util.raiseError( 1500, ex.getMessage(), response, out );
+            } else {
+                Util.raiseError( 1500, "RuntimeException of type "+ ex.getClass().getName(), response, out );
+            }
             
         } finally {
             
