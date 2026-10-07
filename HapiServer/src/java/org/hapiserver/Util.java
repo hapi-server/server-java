@@ -49,10 +49,7 @@ public final class Util {
      * @return true if the client is trusted 
      */
     public static final boolean isTrustedClient( HttpServletRequest request ) {
-        boolean debugging=false;
-        if ( debugging ) {
-            return false;
-        } else {
+        if ( Config.getDebugging() ) {
             String remoteAddr= request.getRemoteAddr();
             if ( remoteAddr.equals("127.0.0.1" ) || remoteAddr.equals("0:0:0:0:0:0:0:1") ) {
                 Enumeration<String> hh= request.getHeaders("X-Forwarded-For");
@@ -61,6 +58,8 @@ public final class Util {
                 }
             }            
             return remoteAddr.equals("127.0.0.1" ) || remoteAddr.equals("0:0:0:0:0:0:0:1");
+        } else {
+            return false;
         }
     }
     
@@ -320,7 +319,9 @@ public final class Util {
      * @param ex the exception
      */
     public static void logError(Exception ex) {
-        ex.printStackTrace();
+        if ( Config.getDebugging() ) {
+            ex.printStackTrace();
+        }
     }
         
     /**
