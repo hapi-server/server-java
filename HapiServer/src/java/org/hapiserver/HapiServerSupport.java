@@ -405,22 +405,7 @@ public class HapiServerSupport {
         ProcessBuilder pb= new ProcessBuilder( ss );
         Process process= pb.start();
        
-        // Drain stderr asynchronously.
-        Thread errorThread = new Thread(() -> {
-            try (BufferedReader err = new BufferedReader(
-                    new InputStreamReader(process.getErrorStream()))) {
-
-                String line;
-                while ((line = err.readLine()) != null) {
-                    logger.fine(line);
-                }
-
-            } catch (IOException ex) {
-                logger.log(Level.FINE, "Error reading stderr", ex);
-            }
-        }, "HAPI-process-stderr");
-        errorThread.setDaemon(true);
-        errorThread.start();
+        Util.drainStream(process.getErrorStream());
 
         String text = new BufferedReader(
             new InputStreamReader( process.getInputStream(), StandardCharsets.UTF_8))
@@ -450,6 +435,9 @@ public class HapiServerSupport {
 
             ProcessBuilder pb= new ProcessBuilder( ss );
             Process process= pb.start();
+            
+            Util.drainStream(process.getErrorStream());
+            
             String text = new BufferedReader(
                 new InputStreamReader( process.getInputStream(), StandardCharsets.UTF_8))
                 .lines()
