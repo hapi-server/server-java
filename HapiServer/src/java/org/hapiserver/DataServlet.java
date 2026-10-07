@@ -189,7 +189,13 @@ public class DataServlet extends HttpServlet {
         
         String parameters= 
             getParam( params, "parameters", "", "The comma separated list of parameters to include in the response ", null );
-        String include= getParam(params, "include", "", "include header at the top", PATTERN_INCLUDE);
+        String include;
+        try {
+            include = getParam(params, "include", "", "include header at the top", PATTERN_INCLUDE);
+        } catch ( IllegalArgumentException ex ) {
+            Util.raiseError( 1410, "Bad request - unsupported include value", response, null );
+            return;
+        }
         String sresolveReferences= getParam( params, "resolve_references", "true", "resolve references in included header", null );
         
         String format;
