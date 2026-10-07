@@ -246,7 +246,7 @@ public class DataServlet extends HttpServlet {
                 response.setContentType("application/json");
                 dataFormatter= new JsonDataFormatter();
                 response.setHeader("Content-disposition", "attachment; filename="
-                        + Util.fileSystemSafeName(dataset).replaceAll("\\/", "_" ) + "_"+start+ "_"+stop + ".bin" );
+                        + Util.fileSystemSafeName(dataset).replaceAll("\\/", "_" ) + "_"+start+ "_"+stop + ".json" );
                 break;
             case "csv":
             case "":
