@@ -862,8 +862,6 @@ public class HapiServerSupport {
                             if ( jo.has(item) ) {
                                 deft= jo.getJSONObject(item);
                             }
-                        } else {
-                            deft= jo;
                         }
                         
                         if ( deft==null ) {
@@ -881,6 +879,8 @@ public class HapiServerSupport {
                         warnWebMaster(ex);
                         throw ex;
                     }
+                } else {
+                    
                 }
             }
         }
