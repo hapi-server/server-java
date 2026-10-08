@@ -1,3 +1,4 @@
+<%@page import="org.hapiserver.Util"%>
 <%@page import="org.hapiserver.Config"%>
 <%@ page isErrorPage="true" import="java.io.*" contentType="text/plain"%>
 
@@ -6,7 +7,7 @@ Message:
 <%
     if ( exception.getCause()!=null ) {
         out.println( "Caused by: " );
-        out.println( exception.getCause().getMessage() ); 
+        out.println( Util.escapeHtml(exception.getCause().getMessage()) ); 
     }
     if ( Config.getDebugging() ) {
         out.println("StackTrace:\n");

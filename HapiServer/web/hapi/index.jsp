@@ -43,7 +43,7 @@
     %>
 <html>
     <head>
-        <title><%= about.optString("title","Basic HAPI Server") %></title>
+        <title><%= Util.escapeHtml(about.optString("title","Basic HAPI Server")) %></title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <%
@@ -65,14 +65,14 @@
             
             %>
 
-            <h1><%= about.optString("title","Basic HAPI Server") %></h1>  
+            <h1><%= Util.escapeHtml(about.optString("title","Basic HAPI Server")) %></h1>  
             <%
                 String defaultDescription="More information about this type of server is found at "
                     + "<a href=\"https://github.com/hapi-server/server-java\" target=\"_blank\">GitHub</a>."
         + " This implementation of the HAPI server uses plug-in readers to load data.  Discussion and more about this "
         + " server can be found <a href=\"https://github.com/hapi-server/server-java/blob/main/README.md\">here</a>.";
         %>
-        <%= about.optString("description",defaultDescription) %> 
+        <%= Util.escapeHtml(about.optString("description",defaultDescription)) %> 
 
         <!-- <br>The HAPI server <a href="http://hapi-server.org/verify?url=">verifier</a> will test this HAPI server for correctness. -->
 
@@ -200,6 +200,8 @@
                     } else {
                         title= id;
                     }
+                    
+                    title= Util.escapeHtml(title);
 
                     try {
                         
@@ -243,7 +245,7 @@
                             if ( j>0 ) out.print("  ");
                             try {
                                 String pname= parameters.getJSONObject(j).getString("name");
-                                out.print( String.format( "<a href=\""+h+"data?dataset=%s&parameters=%s&%s\">%s</a>", id, pname, exampleTimeRange, labels[j] ) );
+                                out.print( String.format( "<a href=\""+h+"data?dataset=%s&parameters=%s&%s\">%s</a>", id, Util.escapeHtml(pname), exampleTimeRange, Util.escapeHtml(labels[j]) ) );
                                 if ( j>0 && sparklines ) { //sparklines
                                     //     vap  +hapi  :https      ://jfaden.net  /HapiServerDemo  /hapi  ?id=?parameters=Temperature
                                     //?url=vap%2Bhapi%3Ahttps%3A%2F%2Fjfaden.net%2FHapiServerDemo%2Fhapi%3Fid%3DpoolTemperature%26timerange%3D2020-08-06&format=image%2Fpng&width=70&height=20&column=0%2C100%25&row=0%2C100%25&timeRange=2003-mar&renderType=&color=%23000000&symbolSize=&fillColor=%23aaaaff&foregroundColor=%23000000&backgroundColor=none
@@ -276,8 +278,8 @@
                             out.print("...");
                         }
                     } catch ( Exception ex ) {
-                        out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
-                        out.println( "<p>Unable to load info for dataset: <a href=\""+h+"info?dataset="+id+"\">"+id+"</a>, log files should notify the server host.<br></p>" ) ;
+                        out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", Util.escapeHtml(title) ) );
+                        out.println( "<p>Unable to load info for dataset: <a href=\""+Util.escapeHtml(h)+"info?dataset="+id+"\">"+Util.escapeHtml(id)+"</a>, log files should notify the server host.<br></p>" ) ;
                         Util.logError(ex);
                         //out.println( "ex: " ;+ ex ); //TODO: security!!!
                     }
