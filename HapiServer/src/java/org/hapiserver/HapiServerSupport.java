@@ -824,8 +824,9 @@ public class HapiServerSupport {
                     String item= typeFileName.substring(0,i);
                     if ( jo.has(item) ) {
                         deft= jo.getJSONObject(item); // the item is defined in config.json
+                        typeFile= catalogConfigFile;
                     }
-                    typeFile= catalogConfigFile;
+                    
                 }  catch ( JSONException ex ) {
                     warnWebMaster(ex);
                 }
@@ -850,6 +851,8 @@ public class HapiServerSupport {
                             if ( jo.has(item) ) {
                                 deft= jo.getJSONObject(item);
                             }
+                        } else {
+                            deft= jo;
                         }
                         
                         if ( deft==null ) {
@@ -871,6 +874,10 @@ public class HapiServerSupport {
                     
                 }
             }
+        }
+        
+        if ( !releaseFile.exists() ) {
+            return deft;
         }
         
         logger.log(Level.FINE, "reading config json from {0}", releaseFile );
