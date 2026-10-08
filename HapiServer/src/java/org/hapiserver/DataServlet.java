@@ -172,8 +172,14 @@ public class DataServlet extends HttpServlet {
         // HAPI 3.0 servers must accept both old and new parameters.
         dataset= getParam( params,"id","","The identifier for the resource.", null );
         if ( dataset.equals("") ) {
-            dataset= getParam( params,"dataset",null,"The identifier for the resource.", null ); // allowed in 3.0
+            dataset= getParam( params,"dataset","","The identifier for the resource.", null ); // allowed in 3.0
         }
+        if ( dataset.equals("") ) {
+            Util.raiseError( 1400, "Bad request - user input error (id is missing)", 
+                response, null );
+            return;
+        }
+        
         start= getParam( params, "time.min", "", "The earliest value of time to include in the response.", null );
         stop= getParam( params, "time.max", "", "Include values of time up to but not including this time in the response.", null );
         if ( start.length()==0 ) {
