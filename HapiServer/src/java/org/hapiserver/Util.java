@@ -149,6 +149,8 @@ public final class Util {
         }
     }
 
+    private static final Pattern FS_PATTERN= Pattern.compile("[a-zA-Z0-9\\-\\*\\._\\/]+");
+    private static final Pattern FS_PLUS_PATTERN= Pattern.compile("[a-zA-Z0-9\\-\\+\\*\\._\\/]+");
     /**
      * convert IDs and NAMEs into safe names which will work on all platforms.
      * If the name is modified, it will start with an underscore (_). <ul>
@@ -161,14 +163,14 @@ public final class Util {
      * @return a file-system safe name, not containing spaces, spaces replaced by pluses.  If strange characters remain everything is escaped.
      */
     public static final String fileSystemSafeName( String s ) {
-        Pattern p= Pattern.compile("[a-zA-Z0-9\\-\\*\\._\\/]+");
+        Pattern p= FS_PATTERN;
         Matcher m= p.matcher(s);
         if ( m.matches() && !s.contains("..") ) {
             return s;
         } else {
             String s1= s.replaceAll("\\+","2B");
             s1= s1.replaceAll(" ","+");
-            Pattern p2= Pattern.compile("[a-zA-Z0-9\\-\\+\\*\\._\\/]+");
+            Pattern p2= FS_PLUS_PATTERN;
             if ( p2.matcher(s1).matches() && !s.contains("..") ) {
                 return "_" + s1;
             } else {
