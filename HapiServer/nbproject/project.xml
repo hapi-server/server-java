@@ -8,15 +8,19 @@
             <explicit-platform explicit-source-supported="true"/>
             <web-module-libraries>
                 <library dirs="200">
-                    <file>${file.reference.jettison-1.4.1.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
                     <file>${reference.HapiServerBase.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
+                    <file>${reference.CDAWebServer.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library dirs="200">
                     <file>${file.reference.cdfj.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library dirs="200">
+                    <file>${file.reference.jettison-1.5.4.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
             </web-module-libraries>
@@ -32,6 +36,14 @@
             <definitions>./lib/nblibraries.properties</definitions>
         </libraries>
         <references xmlns="http://www.netbeans.org/ns/ant-project-references/1">
+            <reference>
+                <foreign-project>CDAWebServer</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build.xml</script>
+                <target>jar</target>
+                <clean-target>clean</clean-target>
+                <id>jar</id>
+            </reference>
             <reference>
                 <foreign-project>HapiServerBase</foreign-project>
                 <artifact-type>jar</artifact-type>
