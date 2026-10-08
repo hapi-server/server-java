@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -325,6 +326,51 @@ public class SourceUtil {
         return ss;
     }
     
+    
+    /**
+     * Creates an XML parser that rejects DTDs and external resources.
+     */
+    public static DocumentBuilder newSecureDocumentBuilder()
+            throws ParserConfigurationException {
+
+        DocumentBuilderFactory factory
+                = DocumentBuilderFactory.newInstance();
+
+        factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+
+        // Reject documents containing a DOCTYPE declaration.
+        factory.setFeature(
+                "http://apache.org/xml/features/disallow-doctype-decl",
+                true);
+
+        // Prevent external entities and external DTD loading.
+        factory.setFeature(
+                "http://xml.org/sax/features/external-general-entities",
+                false);
+        factory.setFeature(
+                "http://xml.org/sax/features/external-parameter-entities",
+                false);
+        factory.setFeature(
+                "http://apache.org/xml/features/nonvalidating/load-external-dtd",
+                false);
+
+        factory.setXIncludeAware(false);
+        factory.setExpandEntityReferences(false);
+
+        // Empty strings prohibit all external-access protocols.
+        factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+
+        DocumentBuilder builder = factory.newDocumentBuilder();
+
+        // Additional protection if external resolution is requested.
+        builder.setEntityResolver((publicId, systemId) -> {
+            throw new SAXException("External XML resources are prohibited");
+        });
+
+        return builder;
+    }
+
     /**
      * read the XML document from a remote site.
      * @param url the XML document
@@ -336,7 +382,7 @@ public class SourceUtil {
     public static Document readDocument( URL url )  throws SAXException, IOException, ParserConfigurationException {
         try ( InputStream is= url.openStream() ) {
             DocumentBuilder builder;
-            builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            builder = newSecureDocumentBuilder();
             InputSource source = new InputSource(new InputStreamReader(is));
             Document document = builder.parse(source);
             return document;
@@ -400,7 +446,7 @@ public class SourceUtil {
         
         try ( InputStream is= getInputStream( url, ageSeconds ) ) {
             DocumentBuilder builder;
-            builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            builder = newSecureDocumentBuilder();
             InputSource source = new InputSource(new InputStreamReader(is));
             Document document = builder.parse(source);
             return document;
@@ -416,12 +462,13 @@ public class SourceUtil {
      * @throws ParserConfigurationException 
      */
     public static Document readDocument( String src ) throws SAXException, IOException, ParserConfigurationException {
-        StringReader reader= new StringReader(src);
-        DocumentBuilder builder;
-        builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        InputSource source = new InputSource( reader );
-        Document document = builder.parse(source);
-        return document;
+        try ( StringReader reader= new StringReader(src) ) {
+            DocumentBuilder builder;
+            builder = newSecureDocumentBuilder();
+            InputSource source = new InputSource( reader );
+            Document document = builder.parse(source);
+            return document;
+        }
     }
     
     /**
