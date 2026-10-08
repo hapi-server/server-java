@@ -1139,7 +1139,11 @@ public class CdawebServicesHapiRecordIterator implements Iterator<HapiRecord> {
             sizes.add( Array.getLength(o) );
             o= Array.get( o, 0 );
         }
-        return new JSONArray(sizes);
+        try {
+            return new JSONArray(sizes);
+        } catch ( JSONException ex ) {
+            throw new RuntimeException(ex);  // should not happen, according to ChatGPT
+        }
     }
     
     private static Adapter getAdapterFor( 
