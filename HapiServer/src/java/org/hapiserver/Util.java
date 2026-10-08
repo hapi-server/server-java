@@ -161,14 +161,15 @@ public final class Util {
      * @return a file-system safe name, not containing spaces, spaces replaced by pluses.  If strange characters remain everything is escaped.
      */
     public static final String fileSystemSafeName( String s ) {
-        Pattern p= Pattern.compile("[a-zA-Z0-9\\-\\+\\*\\._\\/]+");
+        Pattern p= Pattern.compile("[a-zA-Z0-9\\-\\*\\._\\/]+");
         Matcher m= p.matcher(s);
         if ( m.matches() && !s.contains("..") ) {
             return s;
         } else {
             String s1= s.replaceAll("\\+","2B");
-            s1= s1.replaceAll(" ","\\+");
-            if ( p.matcher(s1).matches() && !s.contains("..") ) {
+            s1= s1.replaceAll(" ","+");
+            Pattern p2= Pattern.compile("[a-zA-Z0-9\\-\\+\\*\\._\\/]+");
+            if ( p2.matcher(s1).matches() && !s.contains("..") ) {
                 return "_" + s1;
             } else {
                 byte[] bb= s.getBytes( Charset.forName("UTF-8") );
@@ -534,5 +535,7 @@ public final class Util {
     
     public static void main(String[] args ) throws ParseException {
         TimeUtil.parseISO8601TimeRange( "2017-07-01T00:00Z/2024-09-14T23:59:56Z" );
+        System.err.println(fileSystemSafeName("A B"));
+        System.err.println(fileSystemSafeName("A+B"));
     }
 }
