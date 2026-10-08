@@ -1,100 +1,72 @@
-/*
- * Copyright 2003 Jayson Falkner (jayson@jspinsider.com)
- * This code is from "Servlets and JavaServer pages; the J2EE Web Tier",
- * http://www.jspbook.com. You may freely use the code both commercially
- * and non-commercially. If you like the code, please pick up a copy of
- * the book and help support the authors, development of more free code,
- * and the JSP/Servlet/J2EE community.
- */
 package com.jspbook;
 
-import java.io.*;
-import java.util.logging.Logger;
+import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
-import javax.servlet.*;
-import javax.servlet.http.*;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
+import javax.servlet.http.HttpServletResponse;
 
 public class GZIPResponseStream extends ServletOutputStream {
-    
-  private static final Logger logger= Logger.getLogger("hapi.gzip");
-    
-  protected ByteArrayOutputStream baos = null;
-  protected GZIPOutputStream gzipstream = null;
-  protected boolean closed = false;
-  protected HttpServletResponse response = null;
-  protected ServletOutputStream output = null;
 
-  public GZIPResponseStream(HttpServletResponse response) throws IOException {
-    super();
-    closed = false;
-    this.response = response;
-    this.output = response.getOutputStream();
-    baos = new ByteArrayOutputStream();
-    gzipstream = new GZIPOutputStream(baos);
-  }
+    private final ServletOutputStream output;
+    private final GZIPOutputStream gzip;
+    private boolean closed = false;
 
-  public void close() throws IOException {
-    if (closed) {
-      throw new IOException("This output stream has already been closed");
+    public GZIPResponseStream(HttpServletResponse response)
+            throws IOException {
+
+        response.setHeader("Content-Encoding", "gzip");
+        response.setHeader("Vary", "Accept-Encoding");
+
+        // Do not set Content-Length: compressed size is unknown.
+        output = response.getOutputStream();
+
+        // syncFlush=true allows flush() to push compressed
+        // data to the underlying servlet output stream.
+        gzip = new GZIPOutputStream(output, 8192, true);
     }
-    gzipstream.finish();
 
-    byte[] bytes = baos.toByteArray();
-
-
-    response.addHeader("Content-Length", 
-                       Integer.toString(bytes.length)); 
-    response.addHeader("Content-Encoding", "gzip");
-    output.write(bytes);
-    output.flush();
-    output.close();
-    closed = true;
-  }
-
-  public void flush() throws IOException {
-    if (closed) {
-      throw new IOException("Cannot flush a closed output stream");
+    private void checkOpen() throws IOException {
+        if (closed) {
+            throw new IOException("GZIP stream is closed");
+        }
     }
-    gzipstream.flush();
-  }
-
-  public void write(int b) throws IOException {
-    if (closed) {
-      throw new IOException("Cannot write to a closed output stream");
-    }
-    gzipstream.write((byte)b);
-  }
-
-  public void write(byte b[]) throws IOException {
-    write(b, 0, b.length);
-  }
-
-  public void write(byte b[], int off, int len) throws IOException {
-    logger.finest("writing...");
-    if (closed) {
-      throw new IOException("Cannot write to a closed output stream");
-    }
-    gzipstream.write(b, off, len);
-  }
-
-  public boolean closed() {
-    return (this.closed);
-  }
-  
-  public void reset() {
-    //noop
-  }
 
     @Override
-    public void setWriteListener(WriteListener writeListener) {
-        output.setWriteListener(writeListener);
+    public void write(int b) throws IOException {
+        checkOpen();
+        gzip.write(b);
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len)
+            throws IOException {
+        checkOpen();
+        gzip.write(b, off, len);
+    }
+
+    @Override
+    public void flush() throws IOException {
+        checkOpen();
+        gzip.flush();
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (!closed) {
+            closed = true;
+            gzip.close();
+        }
     }
 
     @Override
     public boolean isReady() {
         return output.isReady();
     }
-  
-    
-  
+
+    @Override
+    public void setWriteListener(WriteListener listener) {
+        throw new UnsupportedOperationException(
+            "Asynchronous servlet output is not supported");
+    }
 }
