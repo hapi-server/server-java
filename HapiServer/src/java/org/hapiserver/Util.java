@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -385,24 +386,28 @@ public final class Util {
      * start a new thread that will drain the stream.
      * @param ins 
      */
-    public static void drainStream( InputStream ins ) {
+    public static void drainStream(InputStream ins) {
         // Drain stderr asynchronously.
         Thread errorThread = new Thread(() -> {
-            try (BufferedReader err = new BufferedReader(
-                    new InputStreamReader(ins))) {
+            try (Reader err = new InputStreamReader(ins)) {
+                char[] buffer = new char[4096];
+                int n;
 
-                String line;
-                while ((line = err.readLine()) != null) {
-                    logger.fine(line);
+                while ((n = err.read(buffer)) != -1) {
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.fine(new String(buffer, 0, n));
+                    }
                 }
 
             } catch (IOException ex) {
                 logger.log(Level.FINE, "Error reading stderr", ex);
             }
         }, "HAPI-process-stderr");
+
         errorThread.setDaemon(true);
         errorThread.start();
     }
+    
     /**
      * properly trim the byte array containing a UTF-8 String to a limit
      * @param bytes the bytes
