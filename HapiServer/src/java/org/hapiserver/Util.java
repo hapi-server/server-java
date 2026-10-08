@@ -456,6 +456,24 @@ public final class Util {
             }
         }
     }
+ 
+    /**
+     * escape the string so that it can be safely inserted into HTML.
+     *
+     * @param s the string
+     * @return the string with &amp; and other items escaped.
+     */
+    public static String escapeHtml(String s) {
+        if (s == null) {
+            return "";
+        }
+
+        return s.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
     
     /**
      * create a new JSONObject with the escapeForwardSlashAlways set, to minimize
