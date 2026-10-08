@@ -115,9 +115,8 @@ public class CsaInfoCatalogSource {
             
     private static Document readDoc(InputStream is) throws SAXException, IOException, ParserConfigurationException {
         DocumentBuilder builder;
-        builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        InputSource source = new InputSource(new InputStreamReader(is));
-        Document document = builder.parse(source);
+        builder = SourceUtil.newSecureDocumentBuilder();
+        Document document = builder.parse(is);
         return document;
     }
     
