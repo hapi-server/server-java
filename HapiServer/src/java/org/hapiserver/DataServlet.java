@@ -102,29 +102,36 @@ public class DataServlet extends HttpServlet {
         if ( stop.compareTo(stopTime)>0 ) {
             throw new HapiException( 1405, "Bad request - stop > stopDate", "stop time must be no later than "+stopTime );
         }
-        if ( ( Integer.parseInt(stop.substring(0,4)) - Integer.parseInt(start.substring(0,4)) ) > 200 ) {
-            throw new HapiException( 1408, "Bad request - too much time or data requested", "stop year - start year must be less than 200" );
-        }
-        if ( info.has("x_requestLimits") ) {
-            try {
-                JSONObject requestLimits= info.getJSONObject("x_requestLimits");
-                String duration= requestLimits.optString("duration","");
-                if ( duration.length()>0 ) {
-                    try {
-                        int[] iduration= TimeUtil.parseISO8601Duration(duration);
-                        int[] istart= TimeUtil.parseISO8601Time(start);
-                        int[] stopLimit= TimeUtil.add( istart, iduration );
-                        String fstopLimit= TimeUtil.formatIso8601Time(stopLimit);
-                        fstopLimit= TimeUtil.reformatIsoTime( stop, fstopLimit );
-                        if ( stop.compareTo(fstopLimit)>0 ) {
-                            throw new HapiException( 1408, "Bad request - too much time or data requested", "limit is "+duration );
-                        }
-                    } catch (ParseException ex) {
-                        throw new ServerImplementationException("unable to parse time duration");
-                    }
+
+        String maxRequestDuration= info.optString( "maxRequestDuration", "" );
+        if ( maxRequestDuration.length()==0 ) {
+            if ( info.has("x_requestLimits") ) {
+                try {
+                    JSONObject requestLimits= info.getJSONObject("x_requestLimits");
+                    maxRequestDuration= requestLimits.optString("duration","");
+                } catch (JSONException ex) {
+                    Logger.getLogger(DataServlet.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            } catch (JSONException ex) {
-                logger.log(Level.SEVERE, null, ex);
+            }
+        }
+        if ( maxRequestDuration.length()>0 ) {
+            if ( maxRequestDuration.length()>0 ) {
+                try {
+                    int[] iduration= TimeUtil.parseISO8601Duration(maxRequestDuration);
+                    int[] istart= TimeUtil.parseISO8601Time(start);
+                    int[] stopLimit= TimeUtil.add( istart, iduration );
+                    String fstopLimit= TimeUtil.formatIso8601Time(stopLimit);
+                    fstopLimit= TimeUtil.reformatIsoTime( stop, fstopLimit );
+                    if ( stop.compareTo(fstopLimit)>0 ) {
+                        throw new HapiException( 1408, "Bad request - too much time or data requested", "limit is "+maxRequestDuration );
+                    }
+                } catch (ParseException ex) {
+                    throw new ServerImplementationException("unable to parse time duration");
+                }
+            }
+        } else {
+            if ( ( Integer.parseInt(stop.substring(0,4)) - Integer.parseInt(start.substring(0,4)) ) > 200 ) {
+                throw new HapiException( 1408, "Bad request - too much time or data requested", "stop year - start year must be less than 200" );
             }
         }
         return true;
