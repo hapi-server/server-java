@@ -175,7 +175,7 @@
                         
                 for ( int i=0; i<ids.size(); i++ ) {
 
-                    String id= Util.escapeHtml(ids.get(i));
+                    String id= ids.get(i);
                     
                     String title= titles.get(i);
                     if ( title.length()>0 ) {
@@ -205,9 +205,9 @@
                                 TimeUtil.formatIso8601TimeBrief(exampleRange), 
                                 TimeUtil.formatIso8601TimeBrief( TimeUtil.getStopTime(exampleRange) ) ); 
                         out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
-                        String url= h + "info?dataset="+ URLEncoder.encode(id, "UTF-8");
+                        String url= h + "info?dataset="+ Util.urlEncode(id);
                         if ( exampleRange!=null ) {
-                            String dataUrl= h + String.format( "data?dataset=%s&%s", id, exampleTimeRange );
+                            String dataUrl= h + String.format( "data?dataset=%s&%s", Util.urlEncode(id), exampleTimeRange );
                             out.println( "[<a href=\""+Util.escapeHtml(url) +"\">Info</a>] [<a href=\""+Util.escapeHtml(dataUrl)+"\">Data</a>]" );
                         } else {
                             out.println( "[<a href=\""+Util.escapeHtml(url) +"\">Info</a>] [Data]" );
@@ -229,8 +229,8 @@
                         for ( int j=0; j<Math.min(MAX_PARAMETERS,parameters.length()); j++ ) {
                             if ( j>0 ) out.print("  ");
                             try {
-                                String pname= parameters.getJSONObject(j).getString("name");
-                                String dataUrl= h + String.format( "data?dataset=%s&parameters=%s&%s", id, pname, exampleTimeRange );
+                                String parameter= parameters.getJSONObject(j).getString("name");
+                                String dataUrl= h + String.format( "data?dataset=%s&parameters=%s&%s", id, parameter, exampleTimeRange );
                                 out.print( "<a href=\""+Util.escapeHtml(dataUrl) +"\">"+Util.escapeHtml(labels[j])+"</a>" );
 
                             } catch ( JSONException ex ) {
