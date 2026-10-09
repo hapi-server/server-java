@@ -290,13 +290,34 @@ public final class GzipFilter implements Filter {
                     }
 
                     @Override
-                    public void write(byte[] b, int off, int len) throws IOException {
+                    public void write(byte[] b, int off, int len)
+                            throws IOException {
+
+                        if (b == null) {
+                            throw new NullPointerException("b");
+                        }
+                        if (off < 0 || len < 0 || off > b.length - len) {
+                            throw new IndexOutOfBoundsException();
+                        }
                         if (finished || error) {
                             throw new IOException("Response closed");
                         }
+                        if (len == 0) {
+                            return;
+                        }
+
+                        final int bufferLimit = 8192;
+
+                        if (!started && len >= bufferLimit - pending.size()) {
+                            // Send existing buffered bytes and select the output sink.
+                            start();
+                        }
+
                         if (started) {
+                            // Compress/send incrementally without accumulating the response.
                             sink.write(b, off, len);
                         } else {
+                            // Keep only a small amount buffered, allowing an early reset.
                             pending.write(b, off, len);
                         }
                     }
