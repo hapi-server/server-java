@@ -1,9 +1,3 @@
-<%-- 
-    Document   : index
-    Created on : Mar 29, 2022, 8:56:44 AM
-    Author     : jbf
---%>
-
 <%@page import="org.hapiserver.SourceRegistry"%>
 <%@page import="java.net.URLClassLoader"%>
 <%@page import="java.net.URL"%>
@@ -28,8 +22,7 @@
 <%@page import="java.io.File"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-
-    <%
+<%
         String HAPI_HOME= Initialize.getHapiHome(getServletContext());           
         
         String uri = request.getRequestURI();
@@ -40,22 +33,22 @@
         
         JSONObject landingConfig= HapiServerSupport.getLandingConfig(HAPI_HOME);
         JSONObject about= HapiServerSupport.getAbout(HAPI_HOME);
-    %>
+%>
 <html>
     <head>
         <title><%= Util.escapeHtml(about.optString("title","Basic HAPI Server")) %></title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <%
+<%
             if ( landingConfig.has("style") ) {
                 String styleUrl= landingConfig.getString("style");
                 out.println("<link rel=\"stylesheet\" href=\""+styleUrl+"\">");
             }
-        %>
+%>
     </head>
     <body>
 
-        <%
+<%
             final int MAX_PARAMETERS=10;
             final int MAX_DATASETS=10;
             
@@ -63,15 +56,15 @@
             
             Logger logger= Util.getLogger();
             
-            %>
+%>
 
             <h1><%= Util.escapeHtml(about.optString("title","Basic HAPI Server")) %></h1>  
-            <%
+<%
                 String defaultDescription="More information about this type of server is found at "
                     + "<a href=\"https://github.com/hapi-server/server-java\" target=\"_blank\">GitHub</a>."
         + " This implementation of the HAPI server uses plug-in readers to load data.  Discussion and more about this "
         + " server can be found <a href=\"https://github.com/hapi-server/server-java/blob/main/README.md\">here</a>.";
-        %>
+%>
         <%= Util.escapeHtml(about.optString("description",defaultDescription)) %> 
 
         <!-- <br>The HAPI server <a href="http://hapi-server.org/verify?url=">verifier</a> will test this HAPI server for correctness. -->
@@ -83,7 +76,7 @@
         
         <br>
                 
-        <%
+<%
             try {
             
                 JSONObject catalog= HapiServerSupport.getCatalog(HAPI_HOME);
@@ -93,16 +86,7 @@
                 if ( dss.length()>1 ) {
                     out.println("This server provides "+dss.length()+" datasets, examples follow.");
                 }
-                
-                // There is a method for including sparklines on the landing page, where an "AutoplotServer" is called
-                // to generate graphics for each dataset.  Please ignore this if sparklines=false.
-                
-                String autoplotServer= "https://cottagesystems.com/AutoplotServlet";
-                //String autoplotServer= "http://localhost:8084/AutoplotServlet";
                     
-                String me= "http://spot9/hapi"; // TODO: address this, what is the public name for the server
-                boolean sparklines= false;      // don't draw sparklines using external server.
-                
                 int numDataSets= Math.min( dss.length(), landingConfig.optInt( "x-landing-count", MAX_DATASETS ) );
                 
                 Pattern[] incl;
@@ -191,7 +175,8 @@
                         
                 for ( int i=0; i<ids.size(); i++ ) {
 
-                    String id= ids.get(i);      
+                    String id= Util.escapeHtml(ids.get(i));
+                    
                     String title= titles.get(i);
                     if ( title.length()>0 ) {
                         if ( !title.equals(id) ) {
@@ -212,7 +197,7 @@
                         if ( exampleRange!=null ) {
                             title= title+ "<em> (available "+ TimeUtil.formatIso8601TimeRange(availableRange)
                                 + ", example range "+TimeUtil.formatIso8601TimeRange(exampleRange) + 
-                                ( sparklines ? " shown)</em>" : ")</em>" );
+                                ")</em>";
                         }
 
                         String exampleTimeRange= exampleRange==null ? null : 
@@ -220,12 +205,12 @@
                                 TimeUtil.formatIso8601TimeBrief(exampleRange), 
                                 TimeUtil.formatIso8601TimeBrief( TimeUtil.getStopTime(exampleRange) ) ); 
                         out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", title ) );
+                        String url= h + "info?dataset="+ URLEncoder.encode(id, "UTF-8");
                         if ( exampleRange!=null ) {
-                            out.println( String.format("[<a href=\""+h+"info?dataset=%s\">Info</a>] [<a href=\""+h+"data?dataset=%s&%s\">Data</a>]", 
-                                id, id, exampleTimeRange ) );
+                            String dataUrl= h + String.format( "data?dataset=%s&%s", id, exampleTimeRange );
+                            out.println( "[<a href=\""+Util.escapeHtml(url) +"\">Info</a>] [<a href=\""+Util.escapeHtml(dataUrl)+"\">Data</a>]" );
                         } else {
-                            out.println( String.format("[<a href=\""+h+"info?dataset=%s\">Info</a>] [Data]", 
-                                id, id ) );
+                            out.println( "[<a href=\""+Util.escapeHtml(url) +"\">Info</a>] [Data]" );
                         }
 
                         out.println(" ");
@@ -245,30 +230,8 @@
                             if ( j>0 ) out.print("  ");
                             try {
                                 String pname= parameters.getJSONObject(j).getString("name");
-                                out.print( String.format( "<a href=\""+h+"data?dataset=%s&parameters=%s&%s\">%s</a>", id, Util.escapeHtml(pname), exampleTimeRange, Util.escapeHtml(labels[j]) ) );
-                                if ( j>0 && sparklines ) { //sparklines
-                                    //     vap  +hapi  :https      ://jfaden.net  /HapiServerDemo  /hapi  ?id=?parameters=Temperature
-                                    //?url=vap%2Bhapi%3Ahttps%3A%2F%2Fjfaden.net%2FHapiServerDemo%2Fhapi%3Fid%3DpoolTemperature%26timerange%3D2020-08-06&format=image%2Fpng&width=70&height=20&column=0%2C100%25&row=0%2C100%25&timeRange=2003-mar&renderType=&color=%23000000&symbolSize=&fillColor=%23aaaaff&foregroundColor=%23000000&backgroundColor=none
-                                    StringBuilder sb= new StringBuilder();
-                                    sb.append("uri=");
-                                    StringBuilder ub= new StringBuilder();
-                                    ub.append("vap+hapi:"+me);
-                                    ub.append("?");
-                                    ub.append("id="+id);
-                                    ub.append("&parameters="+pname);
-                                    ub.append("&timerange="+exampleRange.toString().replaceAll(" ","+") );
-                                    sb.append( URLEncoder.encode(ub.toString(),"US-ASCII") );
-                                    sb.append("&format=image%2Fpng");
-                                    sb.append("&width=70");
-                                    sb.append("&height=16");
-                                    sb.append("&row=0%25-1px%2C100%25");
-                                    sb.append("&column=0%25-1px%2C100%25");
-                                    sb.append("&timerange="+URLEncoder.encode(exampleRange.toString(),"US-ASCII") );
-                                    out.print( "<a href='"+autoplotServer+"/thin/zoom/demo.jsp?"+sb.toString()+"' target='top'>");
-                                    out.print( "<img src='"+autoplotServer+"/SimpleServlet?"+sb.toString()+"'>" );
-                                    out.print( "</a>");
-                                    //out.print( "<img src=\"http://localhost:8084/AutoplotServlet/SimpleServlet?"+sb.toString()+"\">" );                        
-                                }
+                                String dataUrl= h + String.format( "data?dataset=%s&parameters=%s&%s", id, pname, exampleTimeRange );
+                                out.print( "<a href=\""+Util.escapeHtml(dataUrl) +"\">"+Util.escapeHtml(labels[j])+"</a>" );
 
                             } catch ( JSONException ex ) {
                                 out.print( "???" );
@@ -295,7 +258,7 @@
                 Util.logError(ex);
             }
             
-            out.println("<br><br><br><small>build id: "+Util.buildTime()+"</small>");
+            out.println("<br><br><br><small>build id: "+Util.escapeHtml(Util.buildTime())+"</small>");
             JSONObject footer= (JSONObject)landingConfig.opt("x_footer");
             if ( footer!=null ) {
                 String s= footer.optString( "classpath", footer.optString("x_classpath","") );
@@ -308,11 +271,11 @@
                     Class c= Class.forName(clas,true,cl);
                     Method m = c.getMethod( method );
                     String sfooter= (String)m.invoke(null);
-                    out.println("<small>"+sfooter+"</small>");
+                    out.println("<small>"+Util.escapeHtml(sfooter)+"</small>");
                 } 
             }
             
             
-        %>
+%>
     </body> 
 </html>
