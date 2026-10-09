@@ -10,6 +10,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -476,6 +478,20 @@ public final class Util {
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;")
                 .replace("'", "&#39;");
+    }
+    
+    /**
+     * encode the string to make it safe URL.
+     * @param s
+     * @return 
+     */
+    public static String urlEncode(String s) {
+        try {
+            return URLEncoder.encode(s,"UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
+            return "";
+        }
     }
     
     /**
