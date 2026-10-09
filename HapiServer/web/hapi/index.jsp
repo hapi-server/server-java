@@ -226,11 +226,12 @@
                                 labels= HapiServerSupport.maybeShortenLabels(common,labels);
                             }
                         }
-                        for ( int j=0; j<Math.min(MAX_PARAMETERS,parameters.length()); j++ ) {
+                        int nparm= Math.min(MAX_PARAMETERS,parameters.length());
+                        for ( int j=0; j<nparm; j++ ) {
                             if ( j>0 ) out.print("  ");
                             try {
-                                String parameter= parameters.getJSONObject(j).getString("name");
-                                String dataUrl= h + String.format( "data?dataset=%s&parameters=%s&%s", id, parameter, exampleTimeRange );
+                                String parameter= Util.urlEncode(parameters.getJSONObject(j).getString("name"));
+                                String dataUrl= h + String.format( "data?dataset=%s&parameters=%s&%s", Util.urlEncode(id), parameter, exampleTimeRange );
                                 out.print( "<a href=\""+Util.escapeHtml(dataUrl) +"\">"+Util.escapeHtml(labels[j])+"</a>" );
 
                             } catch ( JSONException ex ) {
