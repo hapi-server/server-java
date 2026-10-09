@@ -1,7 +1,6 @@
 
 package org.hapiserver;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -172,6 +171,9 @@ public final class Util {
         } else {
             String s1= s.replaceAll("\\+","2B");
             s1= s1.replaceAll(" ","+");
+            if ( s1.charAt(0)=='_' ) {
+                s1= "_"+s1;
+            }
             Pattern p2= FS_PLUS_PATTERN;
             if ( p2.matcher(s1).matches() && !s.contains("..") ) {
                 return "_" + s1;
