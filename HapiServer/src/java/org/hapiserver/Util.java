@@ -150,7 +150,7 @@ public final class Util {
         }
     }
 
-    private static final Pattern FS_PATTERN= Pattern.compile("[a-zA-Z0-9\\-\\*\\._\\/]+");
+    private static final Pattern FS_PATTERN= Pattern.compile("[a-zA-Z0-9\\-\\*\\.\\/][a-zA-Z0-9\\-\\*\\._\\/]*");
     private static final Pattern FS_PLUS_PATTERN= Pattern.compile("[a-zA-Z0-9\\-\\+\\*\\._\\/]+");
     /**
      * convert IDs and NAMEs into safe names which will work on all platforms.
@@ -171,9 +171,6 @@ public final class Util {
         } else {
             String s1= s.replaceAll("\\+","2B");
             s1= s1.replaceAll(" ","+");
-            if ( s1.charAt(0)=='_' ) {
-                s1= "_"+s1;
-            }
             Pattern p2= FS_PLUS_PATTERN;
             if ( p2.matcher(s1).matches() && !s.contains("..") ) {
                 return "_" + s1;
@@ -555,7 +552,8 @@ public final class Util {
     
     public static void main(String[] args ) throws ParseException {
         TimeUtil.parseISO8601TimeRange( "2017-07-01T00:00Z/2024-09-14T23:59:56Z" );
-        System.err.println(fileSystemSafeName("A B"));
         System.err.println(fileSystemSafeName("A+B"));
+        System.err.println(fileSystemSafeName("__A2BB"));
+        System.err.println(fileSystemSafeName("_A2BB"));
     }
 }
