@@ -97,10 +97,13 @@ public class DataServlet extends HttpServlet {
             throw new HapiException( 1403, "Bad request - error in stop time" );
         }
         if ( start.compareTo(startTime)<0 ) {
-            throw new HapiException( 1405, "time outside valid range", "start time must be no earlier than "+startTime );
+            throw new HapiException( 1405, "Bad request - start < startDate", "start time must be no earlier than "+startTime );
         }
         if ( stop.compareTo(stopTime)>0 ) {
-            throw new HapiException( 1405, "time outside valid range", "stop time must be no later than "+stopTime );
+            throw new HapiException( 1405, "Bad request - stop > stopDate", "stop time must be no later than "+stopTime );
+        }
+        if ( ( Integer.parseInt(stop.substring(0,4)) - Integer.parseInt(start.substring(0,4)) ) > 200 ) {
+            throw new HapiException( 1408, "Bad request - too much time or data requested", "stop year - start year must be less than 200" );
         }
         if ( info.has("x_requestLimits") ) {
             try {
