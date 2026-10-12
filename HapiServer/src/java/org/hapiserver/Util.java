@@ -151,7 +151,7 @@ public final class Util {
     }
 
     private static final Pattern FS_PATTERN= Pattern.compile("[a-zA-Z0-9\\-\\*\\.\\/][a-zA-Z0-9\\-\\*\\._\\/]*");
-    private static final Pattern FS_PLUS_PATTERN= Pattern.compile("[a-zA-Z0-9\\-\\+\\*\\._\\/]+");
+    
     /**
      * convert IDs and NAMEs into safe names which will work on all platforms.
      * If the name is modified, it will start with an underscore (_). <ul>
@@ -169,19 +169,12 @@ public final class Util {
         if ( m.matches() && !s.contains("..") ) {
             return s;
         } else {
-            String s1= s.replaceAll("\\+","2B");
-            s1= s1.replaceAll(" ","+");
-            Pattern p2= FS_PLUS_PATTERN;
-            if ( p2.matcher(s1).matches() && !s.contains("..") ) {
-                return "_" + s1;
-            } else {
-                byte[] bb= s.getBytes( Charset.forName("UTF-8") );
-                StringBuilder sb= new StringBuilder("_");
-                for ( byte b: bb ) {
-                    sb.append( String.format("%02X", b) );
-                }
-                return sb.toString();
+            byte[] bb= s.getBytes( Charset.forName("UTF-8") );
+            StringBuilder sb= new StringBuilder("_");
+            for ( byte b: bb ) {
+                sb.append( String.format("%02X", b) );
             }
+            return sb.toString();
         }
     }
     
@@ -553,6 +546,6 @@ public final class Util {
     public static void main(String[] args ) throws ParseException {
         TimeUtil.parseISO8601TimeRange( "2017-07-01T00:00Z/2024-09-14T23:59:56Z" );
         System.err.println(fileSystemSafeName("A+ B"));
-        System.err.println(fileSystemSafeName("A2B BB"));
+        System.err.println(fileSystemSafeName("A2B B"));
     }
 }
