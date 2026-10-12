@@ -239,7 +239,7 @@
                             }
                         }
                         if ( parameters.length()>MAX_PARAMETERS ) {
-                            out.print("...");
+                            out.print(" ...");
                         }
                     } catch ( Exception ex ) {
                         out.println( String.format( "<p style=\"background-color: #e0e0e0;\">%s</p>", Util.escapeHtml(title) ) );
