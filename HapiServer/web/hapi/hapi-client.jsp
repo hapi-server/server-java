@@ -79,13 +79,13 @@ body{font:15px system-ui,sans-serif;max-width:850px;margin:2rem auto;padding:0 1
     $('count').textContent = `${matches.length} matching datasets (${catalog.length} total)`;
     const box = $('datasets'); box.replaceChildren();
     // Render a bounded set; filtering still searches the entire catalog.
-    for (const d of matches.slice(0, 100)) {
+    for (const d of matches.slice(0, 4000)) {
       const b = document.createElement('button');
       b.type = 'button'; b.textContent = d.id + (d.title ? ' \u2014 ' + d.title : '');
       b.addEventListener('click', () => selectDataset(d.id)); box.append(b);
     }
-    if (matches.length > 100) {
-      const p = document.createElement('p'); p.textContent = 'Showing first 100 matches. Refine your search.'; box.append(p);
+    if (matches.length > 4000) {
+      const p = document.createElement('p'); p.textContent = 'Showing first 4000 matches. Refine your search.'; box.append(p);
     }
   }
   async function selectDataset(id) {
