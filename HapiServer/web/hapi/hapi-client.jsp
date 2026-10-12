@@ -47,7 +47,7 @@ body{font:15px system-ui,sans-serif;max-width:850px;margin:2rem auto;padding:0 1
         <br>
         
 <label>Dataset search <input id="search" type="search" placeholder="Search dataset IDs and descriptions" autocomplete="off"></label>
-<p id="count"></p><div id="datasets" role="listbox" aria-label="Datasets"></div>
+<p id="count" aria-live="polite">Loading dataset count...</p><div id="datasets" role="listbox" aria-label="Datasets"></div>
 <div class="selection-heading"><h2 id="selected">Select a dataset</h2><a id="info-link" href="#" target="_blank" rel="noopener noreferrer" hidden>info &nearr;</a></div>
 <fieldset><legend>Parameters</legend><div id="params">Choose a dataset first.</div></fieldset>
 <div class="dates"><label>Start (ISO 8601)<input id="start" placeholder="2020-01-01T00:00:00Z"></label><label>Stop (ISO 8601)<input id="stop" placeholder="2020-01-02T00:00:00Z"></label></div>
@@ -76,7 +76,8 @@ body{font:15px system-ui,sans-serif;max-width:850px;margin:2rem auto;padding:0 1
   function renderCatalog() {
     const q = $('search').value.trim().toLowerCase();
     const matches = catalog.filter(d => (d.id + ' ' + (d.title || '')).toLowerCase().includes(q));
-    $('count').textContent = `${matches.length} matching datasets (${catalog.length} total)`;
+    var s= "Matching datasets: " + matches.length + " of " + catalog.length;
+    $('count').textContent = s;
     const box = $('datasets'); box.replaceChildren();
     // Render a bounded set; filtering still searches the entire catalog.
     for (const d of matches.slice(0, 4000)) {
