@@ -48,7 +48,7 @@ body{font:15px system-ui,sans-serif;max-width:850px;margin:2rem auto;padding:0 1
         
 <label>Dataset search <input id="search" type="search" placeholder="Search dataset IDs and descriptions" autocomplete="off"></label>
 <p id="count"></p><div id="datasets" role="listbox" aria-label="Datasets"></div>
-<h2 id="selected">Select a dataset</h2>
+<div class="selection-heading"><h2 id="selected">Select a dataset</h2><a id="info-link" href="#" target="_blank" rel="noopener noreferrer" hidden>info &nearr;</a></div>
 <fieldset><legend>Parameters</legend><div id="params">Choose a dataset first.</div></fieldset>
 <div class="dates"><label>Start (ISO 8601)<input id="start" placeholder="2020-01-01T00:00:00Z"></label><label>Stop (ISO 8601)<input id="stop" placeholder="2020-01-02T00:00:00Z"></label></div>
 <p><button id="download" disabled>Download CSV</button> <button id="copy" disabled>Copy URL</button></p>
@@ -81,7 +81,7 @@ body{font:15px system-ui,sans-serif;max-width:850px;margin:2rem auto;padding:0 1
     // Render a bounded set; filtering still searches the entire catalog.
     for (const d of matches.slice(0, 100)) {
       const b = document.createElement('button');
-      b.type = 'button'; b.textContent = d.id + (d.title ? ' -- ' + d.title : '');
+      b.type = 'button'; b.textContent = d.id + (d.title ? ' \u2014 ' + d.title : '');
       b.addEventListener('click', () => selectDataset(d.id)); box.append(b);
     }
     if (matches.length > 100) {
@@ -90,7 +90,10 @@ body{font:15px system-ui,sans-serif;max-width:850px;margin:2rem auto;padding:0 1
   }
   async function selectDataset(id) {
     selectedId = id; info = null; const version = ++loadVersion;
-    $('selected').textContent = id; $('params').textContent = 'Loading parameters:';
+    $('selected').textContent = id;
+    $('info-link').href = endpoint('info', {id}).href;
+    $('info-link').hidden = false;
+    $('params').textContent = 'Loading parameters\u2026';
     updateURL(); status('');
     try {
       const result = await json(endpoint('info', {id}));
@@ -102,7 +105,7 @@ body{font:15px system-ui,sans-serif;max-width:850px;margin:2rem auto;padding:0 1
         const cb = document.createElement('input'); cb.type = 'checkbox'; cb.value = p.name;
         cb.checked = true; cb.disabled = index === 0; // HAPI's first parameter is Time.
         cb.addEventListener('change', updateURL);
-        label.append(cb, document.createTextNode(' ' + p.name + (p.description ? ' — ' + p.description : '')));
+        label.append(cb, document.createTextNode(' ' + p.name + (p.description ? ' \u2014 ' + p.description : '')));
         box.append(label);
       });
       $('start').value = result.sampleStartDate || result.startDate || '';
@@ -137,7 +140,7 @@ body{font:15px system-ui,sans-serif;max-width:850px;margin:2rem auto;padding:0 1
     catch (e) { status('Copy failed: ' + e.message); }
   });
   (async () => {
-    try { status('Loading catalog…'); const result = await json(endpoint('catalog'));
+    try { status('Loading catalog\u2026'); const result = await json(endpoint('catalog'));
       catalog = result.catalog || []; renderCatalog(); status('');
     } catch (e) { status('Could not load catalog: ' + e.message); }
   })();
