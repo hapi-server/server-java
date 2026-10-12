@@ -519,6 +519,7 @@ public class SourceUtil {
      * @param file the file accepting the result.
      * @param tmpFile the file accepting the data as the file is downloaded.
      * @return the downloaded file.
+     * @throws java.io.IOException
      */
     public static File downloadFileLocking( URL url, File file, String tmpFile ) throws IOException {
         String surl= url.toString();
@@ -543,7 +544,10 @@ public class SourceUtil {
                 }
                 logger.log(Level.FINE, "Download complete: {0}", file);
             }
-            new File(tmpFile).renameTo( file );
+            File t= new File(tmpFile);
+            if ( !t.renameTo( file ) ) {
+                throw new IOException("Unable to move to target file");
+            }
             
             return file;
         } finally {
