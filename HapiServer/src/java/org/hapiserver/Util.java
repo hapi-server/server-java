@@ -537,7 +537,7 @@ public final class Util {
      * @return the time this file was last modified.
      */
     public static String buildTime() {
-        String time= "last_modified_at: 2026-10-09T10:59";
+        String time= "last_modified_at: 2026-10-12T08:14";
         return time.substring(18);
     }
     
@@ -552,8 +552,7 @@ public final class Util {
     
     public static void main(String[] args ) throws ParseException {
         TimeUtil.parseISO8601TimeRange( "2017-07-01T00:00Z/2024-09-14T23:59:56Z" );
-        System.err.println(fileSystemSafeName("A+B"));
-        System.err.println(fileSystemSafeName("__A2BB"));
-        System.err.println(fileSystemSafeName("_A2BB"));
+        System.err.println(fileSystemSafeName("A+ B"));
+        System.err.println(fileSystemSafeName("A2B BB"));
     }
 }
