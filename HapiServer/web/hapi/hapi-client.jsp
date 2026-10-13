@@ -74,8 +74,15 @@ body{font:15px system-ui,sans-serif;max-width:850px;margin:2rem auto;padding:0 1
     return result;
   }
   function renderCatalog() {
-    const q = $('search').value.trim().toLowerCase();
-    const matches = catalog.filter(d => (d.id + ' ' + (d.title || '')).toLowerCase().includes(q));
+    const query = $('search').value.trim().toLowerCase();
+    const predicate = compileSearch(query);
+    const matches = catalog.filter(dataset => {
+        const text = (
+            dataset.id + " " +
+            (dataset.title || "")
+        );
+        return predicate(text);
+    });
     var s= "Matching datasets: " + matches.length + " of " + catalog.length;
     $('count').textContent = s;
     const box = $('datasets'); box.replaceChildren();
@@ -89,6 +96,230 @@ body{font:15px system-ui,sans-serif;max-width:850px;margin:2rem auto;padding:0 1
       const p = document.createElement('p'); p.textContent = 'Showing first 4000 matches. Refine your search.'; box.append(p);
     }
   }
+  
+  
+  
+/**
+ * Compile a Boolean search expression into a predicate.
+ *
+ * Supported:
+ *   rbsp density
+ *   rbsp AND density
+ *   rbsp OR themis
+ *   rbsp NOT density
+ *   rbsp -density
+ *   "electron density"
+ *   (rbsp OR themis) AND density
+ *
+ * Operators are case-insensitive.
+ * Precedence: NOT, AND, OR.
+ *
+ * @param {string} query search expression
+ * @returns {function(string): boolean}
+ * @throws {SyntaxError} for malformed expressions
+ */
+function compileSearch(query) {
+    const tokens = tokenizeSearch(query);
+    let pos = 0;
+
+    function peek() {
+        return tokens[pos];
+    }
+
+    function take() {
+        return tokens[pos++];
+    }
+
+    function accept(type) {
+        if (peek() && peek().type === type) {
+            pos++;
+            return true;
+        }
+        return false;
+    }
+
+    function primary() {
+        if (accept("LPAREN")) {
+            const expr = parseOr();
+            if (!accept("RPAREN")) {
+                throw new SyntaxError("Missing closing ')'");
+            }
+            return expr;
+        }
+
+        const token = peek();
+        if (token && token.type === "WORD") {
+            take();
+            const word = token.value.toLowerCase();
+            return text => text.includes(word);
+        }
+
+        throw new SyntaxError(
+            "Expected a search term or '('"
+        );
+    }
+
+    function parseNot() {
+        if (accept("NOT")) {
+            const expr = parseNot();
+            return text => !expr(text);
+        }
+        return primary();
+    }
+
+    function parseAnd() {
+        let left = parseNot();
+
+        while (true) {
+            if (accept("AND")) {
+                const right = parseNot();
+                const previous = left;
+                left = text =>
+                    previous(text) && right(text);
+            } else if (
+                peek() &&
+                ["WORD", "LPAREN", "NOT"].includes(
+                    peek().type
+                )
+            ) {
+                // Implicit AND
+                const right = parseNot();
+                const previous = left;
+                left = text =>
+                    previous(text) && right(text);
+            } else {
+                break;
+            }
+        }
+
+        return left;
+    }
+
+    function parseOr() {
+        let left = parseAnd();
+
+        while (accept("OR")) {
+            const right = parseAnd();
+            const previous = left;
+            left = text =>
+                previous(text) || right(text);
+        }
+
+        return left;
+    }
+
+    if (tokens.length === 0) {
+        return () => true;
+    }
+
+    const result = parseOr();
+
+    if (pos !== tokens.length) {
+        throw new SyntaxError(
+            "Unexpected token: " + tokens[pos].value
+        );
+    }
+
+    return text => result(String(text).toLowerCase());
+}
+
+/**
+ * Tokenize a Boolean search expression.
+ */
+function tokenizeSearch(query) {
+    const tokens = [];
+    let i = 0;
+
+    while (i < query.length) {
+        const ch = query[i];
+
+        if (/\s/.test(ch)) {
+            i++;
+            continue;
+        }
+
+        if (ch === "(" || ch === ")") {
+            tokens.push({
+                type: ch === "(" ? "LPAREN" : "RPAREN",
+                value: ch
+            });
+            i++;
+            continue;
+        }
+
+        if (ch === '"') {
+            i++;
+            let value = "";
+            let closed = false;
+
+            while (i < query.length) {
+                if (query[i] === '"') {
+                    i++;
+                    closed = true;
+                    break;
+                }
+                value += query[i++];
+            }
+
+            if (!closed) {
+                throw new SyntaxError(
+                    "Unterminated quoted phrase"
+                );
+            }
+
+            tokens.push({
+                type: "WORD",
+                value: value
+            });
+            continue;
+        }
+
+        if (ch === "-") {
+            tokens.push({
+                type: "NOT",
+                value: "-"
+            });
+            i++;
+            continue;
+        }
+
+        let value = "";
+
+        while (
+            i < query.length &&
+            !/\s/.test(query[i]) &&
+            query[i] !== "(" &&
+            query[i] !== ")"
+        ) {
+            value += query[i++];
+        }
+
+        const upper = value.toUpperCase();
+
+        tokens.push({
+            type: ["AND", "OR", "NOT"].includes(upper)
+                ? upper
+                : "WORD",
+            value: value
+        });
+    }
+
+    return tokens;
+}
+
+  function filterCatalog(catalog, query) {
+    const matches = compileSearch(query);
+
+    return catalog.filter(dataset => {
+        const text = [
+            dataset.id || "",
+            dataset.title || ""
+        ].join(" ");
+
+        return matches(text);
+    });
+}
+ 
   async function selectDataset(id) {
     selectedId = id; info = null; const version = ++loadVersion;
     $('selected').textContent = id;
