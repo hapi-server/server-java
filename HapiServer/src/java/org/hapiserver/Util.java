@@ -531,6 +531,19 @@ public final class Util {
      * @return the time this file was last modified.
      */
     public static String buildTime() {
+        return getBuildProperty("build.time");
+    }
+    
+    /**
+     * return a string which uniquely identifies the build.  Presently this is the
+     * Git hash.
+     * @return return a string which uniquely identifies the build
+     */
+    public static String buildHash() {
+        return getBuildProperty("git.hash");
+    }
+    
+    private static String getBuildProperty(String name) {
         Properties props = new Properties();
 
         try (InputStream in =
@@ -541,10 +554,10 @@ public final class Util {
             }
 
             props.load(in);
-            return props.getProperty("build.time", "unknown");
+            return props.getProperty(name, "unknown");
 
         } catch (IOException ex) {
-            logger.log(Level.WARNING, "Unable to read build time", ex);
+            logger.log(Level.WARNING, "Unable to read build metadata", ex);
             return "unknown";
         }
     }
