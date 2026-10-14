@@ -80,5 +80,3 @@ jobs:
               --notes "Automatically built from the main branch." \
               --target "$GITHUB_SHA"
           fi          
-          path: HapiServer/dist/*.war
-          if-no-files-found: error
