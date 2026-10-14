@@ -23,6 +23,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ant
 
       - name: Build WAR
+        working-directory: HapiServer
         run: |
           ant -Dplatforms.JDK_8__System_.home="$JAVA_HOME" war
 
