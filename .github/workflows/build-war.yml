@@ -31,5 +31,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: web-application
-          path: dist/*.war
+          path: HapiServer/dist/*.war
           if-no-files-found: error
