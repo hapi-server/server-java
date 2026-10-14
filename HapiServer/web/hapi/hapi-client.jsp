@@ -121,7 +121,7 @@
             #searchHelpPopup {
                 position: absolute;
                 top: 100%;
-                right: 0;
+                left: 0;
                 z-index: 1000;
                 width: max-content;
                 max-width: min(90vw, 450px);
