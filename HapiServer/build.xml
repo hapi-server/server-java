@@ -79,7 +79,7 @@
 
         <!-- Git revision of the source -->
         <exec executable="git"
-              outputproperty="war.build.hash"
+              outputproperty="war.git.hash"
               failifexecutionfails="false"
               failonerror="false">
             <arg value="rev-parse"/>
