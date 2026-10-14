@@ -152,9 +152,9 @@
         %>
         <%= Util.escapeHtml(about.optString("description", defaultDescription))%> 
         <h3>Some example requests:</h3>
-        <a href="<%=h%>about">About</a> <i>More about this server, like contact info.</i><br>
-        <a href="<%=h%>capabilities">Capabilities</a> <i>Capabilities of the server.</i><br>
-        <a href="<%=h%>catalog">Catalog</a> <i>Show the catalog of available data sets.</i><br>
+        <a href="<%=h%>about" target="_blank">About</a> <i>More about this server, like contact info.</i><br>
+        <a href="<%=h%>capabilities" target="_blank">Capabilities</a> <i>Capabilities of the server.</i><br>
+        <a href="<%=h%>catalog" target="_blank">Catalog</a> <i>Show the catalog of available data sets.</i><br>
 
         <br>
 
