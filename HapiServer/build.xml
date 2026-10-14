@@ -69,18 +69,33 @@
 
     -->
     <target name="-pre-dist">
+
+        <!-- Build timestamp in UTC -->
         <tstamp>
             <format property="war.build.time"
                     pattern="yyyy-MM-dd'T'HH:mm:ss'Z'"
                     timezone="UTC"/>
         </tstamp>
 
+        <!-- Git revision of the source -->
+        <exec executable="git"
+              outputproperty="war.build.hash"
+              failifexecutionfails="false"
+              failonerror="false">
+            <arg value="rev-parse"/>
+            <arg value="HEAD"/>
+        </exec>
+
+        <!-- Create build metadata -->
         <mkdir dir="${build.web.dir}/WEB-INF/classes"/>
+
+        <delete file="${build.web.dir}/WEB-INF/classes/build.properties"/>
 
         <propertyfile
             file="${build.web.dir}/WEB-INF/classes/build.properties">
-            <entry key="build.time"
-                   value="${war.build.time}"/>
+            <entry key="build.time" value="${war.build.time}"/>
+            <entry key="git.hash" value="${war.git.hash}"/>
         </propertyfile>
+
     </target>
 </project>
