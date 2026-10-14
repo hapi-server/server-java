@@ -586,5 +586,6 @@
                 }
             });
         </script>
+        <small>Build time: <%=Util.escapeHtml(Util.buildTime())%></small>
     </body>
 </html>
