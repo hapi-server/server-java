@@ -25,7 +25,7 @@ jobs:
       - name: Build WAR
         working-directory: HapiServer
         run: |
-          ant -Dplatforms.JDK_8__System_.home="$JAVA_HOME" war
+          ant -Dplatforms.JDK_8__System_.home="$JAVA_HOME" dist
 
       - name: Upload WAR
         uses: actions/upload-artifact@v4
