@@ -24,6 +24,25 @@ jobs:
 
       - name: Install Tomcat 9
         run: |
+          TOMCAT_VERSION=9.0.113
+
+          echo "Downloading Tomcat..."
+          curl -fL \
+            --connect-timeout 15 \
+            --max-time 90 \
+            --retry 2 \
+            "https://dlcdn.apache.org/tomcat/tomcat-9/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz" \
+            -o tomcat.tar.gz
+
+          echo "Extracting Tomcat..."
+          mkdir -p "$HOME/tomcat"
+          tar -xzf tomcat.tar.gz -C "$HOME/tomcat" \
+            --strip-components=1
+
+          echo "Tomcat ready."
+
+      - name: Install Tomcat 9
+        run: |
           echo "Starting Tomcat download..."
           curl -fL \
             --connect-timeout 15 \
