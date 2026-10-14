@@ -41,6 +41,14 @@
         <jsp-file>/hapi/index.jsp</jsp-file>
     </servlet>
     <servlet-mapping>
+        <servlet-name>LandingServlet</servlet-name>
+        <url-pattern>/hapi</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>LandingServlet</servlet-name>
+        <url-pattern>/hapi/</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
         <servlet-name>AboutServlet</servlet-name>
         <url-pattern>/hapi/about</url-pattern>
     </servlet-mapping>
@@ -59,14 +67,6 @@
     <servlet-mapping>
         <servlet-name>DataServlet</servlet-name>
         <url-pattern>/hapi/data</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>LandingServlet</servlet-name>
-        <url-pattern>/hapi</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>LandingServlet</servlet-name>
-        <url-pattern>/hapi/</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>EmptyServlet</servlet-name>
