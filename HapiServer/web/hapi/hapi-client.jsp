@@ -181,7 +181,7 @@
 
             <input id="search" type="search" placeholder="Search dataset IDs and descriptions" autocomplete="off"></label>
         <p id="count" aria-live="polite">Loading dataset count...</p><div id="datasets" role="listbox" aria-label="Datasets"></div>
-        <div class="selection-heading"><h2 id="selected">Select a dataset</h2><a id="info-link" href="#" target="_blank" rel="noopener noreferrer" hidden>info &nearr;</a></div>
+        <div class="selection-heading"><h2 id="selected">Select a dataset</h2><a id="info-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Info</a></div>
         <fieldset><legend>Parameters</legend><div id="params">Choose a dataset first.</div></fieldset>
         <div class="dates"><label>Start (ISO 8601)<input id="start" placeholder="2020-01-01T00:00:00Z"></label><label>Stop (ISO 8601)<input id="stop" placeholder="2020-01-02T00:00:00Z"></label></div>
         <p><button id="download" disabled>Download CSV</button> <button id="copy" disabled>Copy URL</button></p>
@@ -502,14 +502,18 @@
                     }
                 }
                 function requestURL() {
-                    if (!info || !selectedId)
-                        return null;
-                    const start = $('start').value.trim(), stop = $('stop').value.trim();
+                    if (!info || !selectedId) return null;
+                    const start = $('start').value.trim();
+                    const stop = $('stop').value.trim();
                     const selected = [...$('params').querySelectorAll('input:checked')].map(x => x.value);
-                    if (!start || !stop || !selected.length)
-                        return null;
-                    return endpoint('data', {id: selectedId, parameters: selected.join(','), start, stop, format: 'csv'}).href;
+                    if (!start || !stop || !selected.length) return null;
+                    const args = {id: selectedId, start, stop, format: 'csv'};
+                    if (selected.length !== info.parameters.length) {
+                        args.parameters = selected.join(',');
+                    }
+                    return endpoint('data', args).href;
                 }
+                
                 function updateURL() {
                     const url = requestURL();
                     $('url').textContent = url || 'Select a dataset and enter a start and stop time.';
