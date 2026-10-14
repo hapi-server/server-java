@@ -586,6 +586,6 @@
                 }
             });
         </script>
-        <small>Build time: <%=Util.escapeHtml(Util.buildTime())%> Build hash: <%=Util.escapeHtml(Util.buildHash()%></small>
+        <small>Build time: <%=Util.escapeHtml(Util.buildTime())%> Build hash: <%=Util.escapeHtml(Util.buildHash())%></small>
     </body>
 </html>
