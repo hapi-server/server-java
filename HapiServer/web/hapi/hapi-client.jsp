@@ -511,7 +511,8 @@
                     if (selected.length !== info.parameters.length) {
                         args.parameters = selected.join(',');
                     }
-                    return endpoint('data', args).href;
+                    const url= endpoint('data', args).href;
+                    return url.replace(/%2C/gi, ',').replace(/%3A/gi, ':');
                 }
                 
                 function updateURL() {
