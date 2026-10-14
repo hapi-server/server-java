@@ -22,10 +22,22 @@ jobs:
       - name: Install Ant
         run: sudo apt-get update && sudo apt-get install -y ant
 
+      - name: Install Tomcat 9
+        run: |
+          curl -fsSL \
+            https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.113/bin/apache-tomcat-9.0.113.tar.gz \
+            -o tomcat.tar.gz
+          mkdir -p "$HOME/tomcat"
+          tar -xzf tomcat.tar.gz -C "$HOME/tomcat" \
+            --strip-components=1
+            
       - name: Build WAR
         working-directory: HapiServer
         run: |
-          ant -Dplatforms.JDK_8__System_.home="$JAVA_HOME" dist
+          ant \
+            -Dplatforms.JDK_8__System_.home="$JAVA_HOME" \
+            -Dj2ee.server.home="$HOME/tomcat" \
+            dist
 
       - name: Upload WAR
         uses: actions/upload-artifact@v4
