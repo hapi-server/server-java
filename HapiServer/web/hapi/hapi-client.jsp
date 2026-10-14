@@ -27,7 +27,33 @@
             }
 %>
 <style>
-body{font:15px system-ui,sans-serif;max-width:850px;margin:2rem auto;padding:0 1rem;color:#222}input,button{font:inherit;padding:.45rem}input[type=search]{width:100%;box-sizing:border-box}fieldset{border:1px solid #ccc;margin:1rem 0}#datasets{max-height:220px;overflow:auto;border:1px solid #ddd}#datasets button{display:block;width:100%;text-align:left;border:0;background:white;cursor:pointer;overflow-wrap:anywhere;padding:.18rem .4rem;line-height:1.2;font-size:.9rem}#datasets button:hover,#datasets button:focus{background:#eaf2ff}.param{display:block;margin:.4rem 0}.dates{display:flex;gap:1rem;flex-wrap:wrap}.dates label{flex:1;min-width:230px}.dates input{width:100%;box-sizing:border-box}#url{overflow-wrap:anywhere;font-family:monospace;font-size:.85rem}#status{min-height:1.5em;color:#555}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.55}.selection-heading{display:flex;align-items:baseline;gap:.75rem;flex-wrap:wrap}.selection-heading h2{overflow-wrap:anywhere}.selection-heading a{white-space:nowrap}
+body{font:15px system-ui,sans-serif;max-width:850px;margin:2rem auto;padding:0 1rem;color:#222}input,button{font:inherit;padding:.45rem}input[type=search]{width:100%;box-sizing:border-box}fieldset{border:1px solid #ccc;margin:1rem 0}#datasets{max-height:220px;overflow:auto;border:1px solid #ddd}#datasets button{display:block;width:100%;text-align:left;border:0;background:white;cursor:pointer;overflow-wrap:anywhere;padding:.18rem .4rem;line-height:1.2;font-size:.9rem}#datasets button:hover,#datasets button:focus{background:#eaf2ff}.param{display:block;margin:.4rem 0}.dates{display:flex;gap:1rem;flex-wrap:wrap}.dates label{flex:1;min-width:230px}.dates input{width:100%;box-sizing:border-box}#url{overflow-wrap:anywhere;font-family:monospace;font-size:.85rem}#status{min-height:1.5em;color:#555}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.55}.selection-heading{display:flex;align-items:baseline;gap:.75rem;flex-wrap:wrap}.selection-heading h2{overflow-wrap:anywhere}.selection-heading a{white-space:nowrap}.search-help-container {
+    position: relative;
+    display: inline-block;
+}
+
+#searchHelpPopup {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 1000;
+    width: max-content;
+    max-width: min(90vw, 450px);
+    padding: 12px;
+    background: white;
+    color: #222;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+#searchHelpPopup[hidden] {
+    display: none;
+}
+
+#searchHelpPopup td {
+    padding: 3px 12px 3px 0;
+}
 </style>
 </head>
 <body>
@@ -46,7 +72,28 @@ body{font:15px system-ui,sans-serif;max-width:850px;margin:2rem auto;padding:0 1
         
         <br>
         
-<label>Dataset search <input id="search" type="search" placeholder="Search dataset IDs and descriptions" autocomplete="off"></label>
+<label>Dataset search 
+<span class="search-help-container">
+  <a href="#" id="searchHelpLink">[help]</a>
+  <span id="searchHelpPopup" hidden>
+    <strong>Search examples</strong>
+    <table>
+      <tr><td><code>rbsp density</code></td>
+          <td>Both terms</td></tr>
+      <tr><td><code>rbsp OR themis</code></td>
+          <td>Either term</td></tr>
+      <tr><td><code>rbsp NOT density</code></td>
+          <td>Exclude density</td></tr>
+      <tr><td><code>"electron density"</code></td>
+          <td>Exact phrase</td></tr>
+      <tr><td><code>(rbsp OR themis) AND density</code></td>
+          <td>Grouped search</td></tr>
+    </table>
+    <small>Case-insensitive. Precedence: NOT, AND, OR.</small>
+  </span>
+</span>
+    
+<input id="search" type="search" placeholder="Search dataset IDs and descriptions" autocomplete="off"></label>
 <p id="count" aria-live="polite">Loading dataset count...</p><div id="datasets" role="listbox" aria-label="Datasets"></div>
 <div class="selection-heading"><h2 id="selected">Select a dataset</h2><a id="info-link" href="#" target="_blank" rel="noopener noreferrer" hidden>info &nearr;</a></div>
 <fieldset><legend>Parameters</legend><div id="params">Choose a dataset first.</div></fieldset>
@@ -377,6 +424,20 @@ function tokenizeSearch(query) {
     } catch (e) { status('Could not load catalog: ' + e.message); }
   })();
 })();
+
+const helpLink = document.getElementById("searchHelpLink");
+const helpPopup = document.getElementById("searchHelpPopup");
+
+helpLink.addEventListener("click", function(event) {
+    event.preventDefault();
+    helpPopup.hidden = !helpPopup.hidden;
+});
+
+document.addEventListener("click", function(event) {
+    if (!event.target.closest(".search-help-container")) {
+        helpPopup.hidden = true;
+    }
+});
 </script>
 </body>
 </html>
