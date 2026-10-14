@@ -491,8 +491,23 @@
                             label.append(cb, document.createTextNode(' ' + p.name + (p.description ? ' \u2014 ' + p.description : '')));
                             box.append(label);
                         });
-                        $('start').value = result.sampleStartDate || result.startDate || '';
-                        $('stop').value = result.sampleStopDate || result.stopDate || '';
+                        let start = result.sampleStartDate;
+                        let stop = result.sampleStopDate;
+
+                        if (!start) {
+                            const end = stop || result.stopDate || new Date().toISOString();
+                            const endTime = new Date(end).getTime();
+
+                            stop = end;
+                            start = new Date(endTime - 24 * 60 * 60 * 1000).toISOString();
+
+                            // Don't request data before the dataset begins.
+                            if (result.startDate && new Date(start) < new Date(result.startDate)) {
+                                start = result.startDate;
+                            }
+                        }
+                        $('start').value = start || '';
+                        $('stop').value = stop || '';
                         updateURL();
                     } catch (e) {
                         if (version === loadVersion) {
