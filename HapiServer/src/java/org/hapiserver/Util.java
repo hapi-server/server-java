@@ -20,6 +20,7 @@ import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -530,8 +531,22 @@ public final class Util {
      * @return the time this file was last modified.
      */
     public static String buildTime() {
-        String time= "last_modified_at: 2026-10-14T08:48";
-        return time.substring(18);
+        Properties props = new Properties();
+
+        try (InputStream in =
+            Util.class.getResourceAsStream("/build.properties")) {
+
+            if (in == null) {
+                return "unknown";
+            }
+
+            props.load(in);
+            return props.getProperty("build.time", "unknown");
+
+        } catch (IOException ex) {
+            logger.log(Level.WARNING, "Unable to read build time", ex);
+            return "unknown";
+        }
     }
     
     /**
