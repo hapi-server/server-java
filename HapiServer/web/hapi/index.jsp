@@ -183,7 +183,7 @@
         <p id="count" aria-live="polite">Loading dataset count...</p><div id="datasets" role="listbox" aria-label="Datasets"></div>
         <div class="selection-heading"><h2 id="selected">Select a dataset</h2><a id="info-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Info</a></div>
         <fieldset><legend>Parameters</legend><div id="params">Choose a dataset first.</div></fieldset>
-        <div class="dates"><label>Start (ISO 8601)<input id="start" placeholder="2020-01-01T00:00:00Z"></label><label>Stop (ISO 8601)<input id="stop" placeholder="2020-01-02T00:00:00Z"></label></div>
+        <div class="dates"><label>Start (ISO 8601)<input id="start" placeholder="2020-01-01T00:00:00Z"></label><label>Stop (ISO 8601)<input id="stop" placeholder="2020-01-02T00:00:00Z"></label>        <button type="button" id="clearParameters">Clear all</button></div>
         <p><button id="download" disabled>Download CSV</button> <button id="copy" disabled>Copy URL</button></p>
         <p id="url"></p><p id="status" role="status"></p>
         <script>
@@ -585,6 +585,13 @@
                     helpPopup.hidden = true;
                 }
             });
+                
+            document.addEventListener('click', function (event) {
+                if (event.target.id === 'clearParameters') {
+                    document.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+                        cb.checked = false;
+                });
+            } } );
         </script>
         <small>Build time: <%=Util.escapeHtml(Util.buildTime())%> Build hash: <%=Util.escapeHtml(Util.buildHash())%></small>
     </body>
