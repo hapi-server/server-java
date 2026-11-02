@@ -1,33 +1,10 @@
-<%@page import="org.hapiserver.HapiServerSupport"%>
-<%@page import="org.codehaus.jettison.json.JSONObject"%>
-<%@page import="org.hapiserver.Initialize"%>
-<%@page import="org.hapiserver.Util"%>
-<%
-    String HAPI_HOME = Initialize.getHapiHome(getServletContext());
 
-    String uri = request.getRequestURI();
-
-    boolean withinHapi = uri.endsWith("/hapi/"); // if true, then references must be relative
-    String h = "hapi/";
-    if (withinHapi) {
-        h = "";
-    }
-
-    JSONObject landingConfig = HapiServerSupport.getLandingConfig(HAPI_HOME);
-    JSONObject about = HapiServerSupport.getAbout(HAPI_HOME);
-%>
 <!doctype html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title><%= Util.escapeHtml(about.optString("title", "Basic HAPI Server"))%></title>
-        <%
-            if (landingConfig.has("style")) {
-                String styleUrl = landingConfig.getString("style");
-                out.println("<link rel=\"stylesheet\" href=\"" + styleUrl + "\">");
-            }
-        %>
+        <title>HAPI Server</title>
         <style>
             body{
                 font:15px system-ui,sans-serif;
@@ -143,18 +120,13 @@
         </style>
     </head>
     <body>
-        <h1><%= Util.escapeHtml(about.optString("title", "Basic HAPI Server"))%></h1>  
-        <%
-            String defaultDescription = "More information about this type of server is found at "
-                    + "<a href=\"https://github.com/hapi-server/server-java\" target=\"_blank\">GitHub</a>."
-                    + " This implementation of the HAPI server uses plug-in readers to load data.  Discussion and more about this "
-                    + " server can be found <a href=\"https://github.com/hapi-server/server-java/blob/main/README.md\">here</a>.";
-        %>
-        <%= Util.escapeHtml(about.optString("description", defaultDescription))%> 
+        <h1 id="server-title">Basic HAPI Server</h1>  
+        <p id="server-description" hidden></p>
+        
         <h3>Some example requests:</h3>
-        <a href="<%=h%>about" target="_blank">About</a> <i>More about this server, like contact info.</i><br>
-        <a href="<%=h%>capabilities" target="_blank">Capabilities</a> <i>Capabilities of the server.</i><br>
-        <a href="<%=h%>catalog" target="_blank">Catalog</a> <i>The catalog of available datasets.</i><br>
+        <a href="hapi/about" target="_blank">About</a> <i>More about this server, like contact info.</i><br>
+        <a href="hapi/capabilities" target="_blank">Capabilities</a> <i>Capabilities of the server.</i><br>
+        <a href="hapi/catalog" target="_blank">Catalog</a> <i>The catalog of available datasets.</i><br>
 
         <br>
 
@@ -570,8 +542,26 @@
                         status('Could not load catalog: ' + e.message);
                     }
                 })();
+                (async () => {
+                    try {
+                      status('about to get branding');
+                      const about = await json(endpoint('about'));
+                      if (typeof about.title === 'string' && about.title.trim()) {
+                        $('server-title').textContent = about.title;
+                        document.title = about.title + ' - HAPI CSV Client';
+                      }
+                      if (typeof about.description === 'string' && about.description.trim()) {
+                        $('server-description').textContent = about.description;
+                        $('server-description').hidden = false;
+                      }
+                    } catch (e) {
+                      // /about is optional; retain the default heading if unavailable.
+                      console.warn('Could not load HAPI /about branding:', e);
+                    }
+                })();
+                
             })();
-
+            
             const helpLink = document.getElementById("searchHelpLink");
             const helpPopup = document.getElementById("searchHelpPopup");
 
@@ -593,6 +583,6 @@
                 });
             } } );
         </script>
-        <small>Build time: <%=Util.escapeHtml(Util.buildTime())%> Build hash: <%=Util.escapeHtml(Util.buildHash())%></small>
+        <!-- <small>Build time: </small> -->
     </body>
 </html>
