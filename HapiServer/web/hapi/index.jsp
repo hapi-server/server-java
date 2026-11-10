@@ -1,11 +1,34 @@
-
+<%@page import="org.hapiserver.HapiServerSupport"%>
+<%@page import="org.codehaus.jettison.json.JSONObject"%>
+<%@page import="org.hapiserver.Initialize"%>
 <%@page import="org.hapiserver.Util"%>
+<%
+    String HAPI_HOME = Initialize.getHapiHome(getServletContext());
+
+    String uri = request.getRequestURI();
+
+    boolean withinHapi = uri.endsWith("/hapi/"); // if true, then references must be relative
+    String h = "hapi/";
+    if (withinHapi) {
+        h = "";
+    }
+
+    JSONObject landingConfig = HapiServerSupport.getLandingConfig(HAPI_HOME);
+    JSONObject about = HapiServerSupport.getAbout(HAPI_HOME);
+%>
+
 <!doctype html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>HAPI Server</title>
+        <title><%= Util.escapeHtml(about.optString("title", "Basic HAPI Server"))%></title>
+        <%
+            if (landingConfig.has("style")) {
+                String styleUrl = landingConfig.getString("style");
+                out.println("<link rel=\"stylesheet\" href=\"" + styleUrl + "\">");
+            }
+        %>
         <style>
             body{
                 font:15px system-ui,sans-serif;
