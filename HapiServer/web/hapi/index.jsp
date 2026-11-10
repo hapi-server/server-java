@@ -163,7 +163,10 @@
             'use strict';
             (() => {
                 // Same-origin by default. To use another HAPI server, set this to its /hapi URL.
-                const BASE = new URL('./', location.href).href.replace(/\/$/, '');
+                var BASE = new URL('./', location.href).href.replace(/\/$/, '');
+                if ( !BASE.endsWith("hapi") ) {
+                    BASE= BASE + "/hapi";
+                }
                 const $ = id => document.getElementById(id);
                 let catalog = [], selectedId = null, info = null, loadVersion = 0;
                 const status = message => {
