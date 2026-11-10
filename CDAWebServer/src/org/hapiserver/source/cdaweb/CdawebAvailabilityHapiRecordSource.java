@@ -206,6 +206,9 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
             
             String stringType= "{ \"uri\": { \"mediaType\": \"application/x-cdf\", \"base\": \"" + root + "\" } }";
             
+            String schemaURI= "https://raw.githubusercontent.com/hapi-server/data-specification-schema/refs/heads/main/python/resourceListing/resourceListing.json";
+            String datasetSchema= "[ { \"schemaName\": \"resourceListing\",\n"
+                    + "\"schemaURI\": \""+schemaURI+"\" } ]";
             return "{\n" +
                     "    \"x_sourceURL\": \""+sourceURL + "\", \n" +
                     "    \"HAPI\": \"3.3\",\n" +
@@ -214,13 +217,13 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
                     "        {\n" +
                     "            \"fill\": null,\n" +
                     "            \"length\": 24,\n" +
-                    "            \"name\": \"time\",\n" +
+                    "            \"name\": \"startDate\",\n" +
                     "            \"type\": \"isotime\",\n" +
                     "            \"units\": \"UTC\"\n" +
                     "        },\n" +
                     "        {\n" +
                     "            \"fill\": null,\n" +
-                    "            \"name\": \"fileURI\",\n" +
+                    "            \"name\": \"uri\",\n" +
                     "            \"type\": \"string\",\n" +
                     "            \"stringType\":" + stringType + ",\n" +
                     "            \"length\": "+filenameLen + ",\n" +
@@ -234,6 +237,7 @@ public class CdawebAvailabilityHapiRecordSource extends AbstractHapiRecordSource
                     "            \"units\": \"UTC\"\n" +
                     "        }\n" +
                     "    ],\n" +
+                    "    \"x_datasetSchema\": " + datasetSchema + ", \n" +
                     "    \"sampleStartDate\": \""+sampleStart+"\",\n" +
                     "    \"sampleStopDate\": \""+sampleStop+"\",\n" +
                     "    \"startDate\": \""+start+"\",\n" +
