@@ -1002,7 +1002,9 @@ public class HapiServerSupport {
     
     public static final Object HAPI_VERSION_3_2 = "3.2";
 
-    public static final Object HAPI_VERSION = HAPI_VERSION_3_2;
+    public static final Object HAPI_VERSION_3_3 = "3.3";
+    
+    public static final Object HAPI_VERSION = HAPI_VERSION_3_3;
     
     /**
      * keep and monitor a cached version of the configuration in memory.
